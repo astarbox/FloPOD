@@ -22,10 +22,12 @@ IPConfig	wifiClientConfig;
 PowerConfig powerConfig;
 
 // interrupt handlers
-void openIntHandler();
-void closeIntHandler();
-void conditionIntHandler();
-void buttonHandler();
+void magnetHandler();
+void overCurrentAlarm();
+void mainOverCurrentAlarm();
+volatile bool bOcTriggered = false;
+volatile bool bMainOcTriggered = false;
+volatile bool bMagnetTriggered = false;
 
 // FreeRTOS task
 void MotorTask(void *);
@@ -59,12 +61,9 @@ void setup()
     xTaskCreatePinnedToCore(MotorTask, "MotorTask", 10000, NULL, 8, NULL,  0); // priority 8 (medium) on Core 0
     xTaskCreatePinnedToCore(PowerTask, "PowerTask", 10000, NULL, 16, NULL,  0); // priority 16 (High) on Core 0
 
-	// attach output OC alarm interrupt
-	// OC_ALARM
-
-	// MAIN_OC_ALARM
-
 	// MAG_TRIG
+	attachInterrupt(MAG_TRIG, magnetHandler, FALLING);
+
 	// start Alpaca on the AP.
 	podAp_AlpacaDiscoveryServer = new AlpacaDiscoveryServer(PodWiFi.softAPIP());
 	podAp_AlpacaDiscoveryServer->startServer();
@@ -116,8 +115,12 @@ void MotorTask(void *)
 	PodMotorController = new motorMotion();
 
 	for(;;) {
+		// check magnet
+		if(bMagnetTriggered) {
+
+		}
 		// run motor if needed
-		//
+
 		// FreeRTOS task management
 		vTaskDelay(xDelay);
 		taskYIELD();
@@ -131,15 +134,56 @@ void PowerTask(void *)
 	EncoderConfig motorEncoderConfig;
 	globalPodConfig->LoadPowerConfig(powerConfig);
 	// set all interrupts
+	// OC_ALARM
+	attachInterrupt(OC_ALARM, overCurrentAlarm, FALLING);
+	// MAIN_OC_ALARM
+	attachInterrupt(MAIN_OC_ALARM, mainOverCurrentAlarm, FALLING);
 
 	for(;;) {
 		// do a whole lot of nothing
+		if(bOcTriggered) {
+			bOcTriggered = false;
+			// check which INA260 triggered the OC interrupt
+
+		}
+		if(bMainOcTriggered){
+			bMainOcTriggered = false;
+			// check which INA260 triggered the OC interrupt
+		}
 		// FreeRTOS task management
 		vTaskDelay(xDelay);
 		taskYIELD();
 		esp_task_wdt_reset();
 	}
 }
+
+// Interrup handlers
+
+void IRAM_ATTR magnetHandler()
+{
+	// re-read the pin
+	if (digitalRead(MAG_TRIG) == LOW) {
+		bMagnetTriggered = true;
+	}
+
+}
+
+void IRAM_ATTR overCurrentAlarm()
+{
+	// re-read the pin
+	if (digitalRead(OC_ALARM) == LOW) {
+		bOcTriggered = true;
+	}
+}
+
+void IRAM_ATTR mainOverCurrentAlarm()
+{
+	// re-read the pin
+	if (digitalRead(MAIN_OC_ALARM) == LOW) {
+		bMainOcTriggered = true;
+	}
+}
+
 
 void configureWiFi()
 {
