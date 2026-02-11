@@ -15,20 +15,24 @@ HDC1080 -> 1000000 -> 0x40 , this will conflict with U1, U1 address need to be c
 
 AS5048B -> 1000001 -> 0x41
 */
-// U1  INA260 A0=GND A1=GND -> 1000000 -> 0x40 // Main
-INA260_MAIN INA(0x40);
-// U2  INA260 A0=SCL A1=GND -> 1001100 -> 0x4c // DC1
+// U1  A1 = 3v3 , A0 = SDA => 1000110 => 0x46// Main
+INA260_MAIN INA(0x46);
+// U2  A1 = GND , A0 = SCL => 1000011 => 0x43 // DC1
 INA260_DC_1 INA(0x4C);
-// U3  INA260 A0=GND A1=3V3 -> 1000001 -> 0x41 // DC2
+// U3  A1 = 3v3 , A0 = GND => 1000100 => 0x44 // DC2
 INA260_DC_2 INA(0x41);
-// U4  INA260 A0=3V3 A1=3V3 -> 1000101 -> 0x45 // PWM1
+// U4  A1 = 3v3 , A0 = 3v3 => 1000101 => 0x45// PWM1
 INA260_PWM1 INA(0x45);
-// U5  INA260 A0=SDA A1=SDA -> 1001010 -> 0x4a // PWM2
+// U5  A1 = SDA , A0 = SDA => 1001010 => 0x4a // PWM2
 INA260_PWM2 INA(0x4A);
-// U8  INA260 A0=SCL A1=SDA -> 1001110 -> 0x4e // USB-C
+// U8  A1 = SDA , A0 = SCL => 1001011 => 0x4b // USB-C
 INA260_USB_C INA(0x4E);
-// U11 INA260 A0=SCL A1=3V3 -> 1001101 -> 0x4d // VBat
+// U11 A1 = 3v3 , A0 = SCL => 1000111 => 0x47 // VBat
 INA260_BAT INA(0x4D);
+// U18 A1 = SCL , A0 = SCL => 1001111 => 0x4f // VMOT 
+INA260_VMOT INA(0x4F);
+// Extra INA260 : A1 = SCL , A0 = SDA => 1001110 => 0x4e // VMOT2
+INA260_VMOT2 INA(0x4E);
 
 class powerPort {
 public:
