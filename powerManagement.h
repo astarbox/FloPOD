@@ -90,10 +90,10 @@ bool powerPorts::setAlarmAmps(INA260 &INA, float nAmps)
 {
 	uint16_t alert_mask = INA260_SHUNT_OVER_CURRENT;
 	// set value in mA
-	uint16_t miliAmps = uint16_t(nAmps*1000);
-	INA.setAlertLimit(miliAmps);
+	uint16_t limit = ampsToRaw(namps);
+	INA.setAlertLimit(limit);
 	uint16_t test_limit = INA.getAlertLimit();
-	if (test_limit != miliAmps) {
+	if (test_limit != limit) {
 		return false;
 	}
 
@@ -106,13 +106,13 @@ bool powerPorts::setAlarmVoltage(INA260 &INA, float nVolts)
 {
 	uint16_t alert_mask = INA260_BUS_OVER_VOLTAGE;
 	// set value in mV
-	uint16_t miliVolts = uint16_t(nVolts*1000);
-	INA.setAlertLimit(miliVolts);
+	uint16_t limit = voltsToRaw(nVolts);
+	INA.setAlertLimit(limit);
 	uint16_t test_limit = INA.getAlertLimit();
-	if (test_limit != miliVolts) {
+	if (test_limit != limit) {
 		return false;
 	}
-	INA.setAlertRegister(miliVolts);
+	INA.setAlertRegister(alert_mask);
 	INA.setAlertLatchEnable(true);
 	return true;
 }
