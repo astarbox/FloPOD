@@ -6,6 +6,7 @@
 #ifndef __POWER_PORT_
 #define __POWER_PORT_
 #include "INA260.h"
+#include "config.h"
 
 // define all INA260 addresses
 /*
@@ -34,19 +35,27 @@ INA260 INS260_VMOT(0x4F);
 // Extra INA260 : A1 = SCL , A0 = SDA => 1001110 => 0x4e // VMOT2
 INA260 INS260_VMOT2(0x4E);
 
-class powerPort
+class powerPorts
 {
 public:
 	powerPort();
-	bool setAlarmAmps(INA260 *INA, int nAmps);
-	bool setAlarmVoltage(INA260 *INA, int nVolts);
+	bool setAlarmAmps(INA260 *INA, float nAmps);
+	bool setAlarmVoltage(INA260 *INA, float nVolts);
+	void setPortState(int nPort, bool bOn);
+	bool checkAlert(INA260 *INA);
 
-private:
+	private:
+	float rawToAmps(int16_t value);
+	int16_t ampsToRaw(float value);
+	float rawToVolts(uint16_t value);
+	uint16_t voltsToRaw(float value);
+	float rawToWatts(uint16_t value);
+	uint16_t ina260::wattsToRaw(float value);
 };
 
-powerPort *podPowerController = nullptr;
+powerPorts *podPowerController = nullptr;
 
-powerPort::powerPort()
+powerPorts::powerPort()
 {
 	if (!INS260_MAIN.begin()) {
 		// set error.. this one is not responding
@@ -74,7 +83,7 @@ powerPort::powerPort()
 	}
 }
 
-bool powerPort::setAlarmAmps(INA260 *INA, int nAmps)
+bool powerPorts::setAlarmAmps(INA260 *INA, float nAmps)
 {
 	uint16_t alert_mask = INA260_SHUNT_OVER_CURRENT;
 	INA->setAlertLimit(nAmps);
@@ -84,10 +93,11 @@ bool powerPort::setAlarmAmps(INA260 *INA, int nAmps)
 	}
 
 	INA->setAlertRegister(alert_mask);
+	INA->setAlertLatchEnable(true);
 	return true;
 }
 
-bool powerPort::setAlarmVoltage(INA260 *INA, int nVolts)
+bool powerPorts::setAlarmVoltage(INA260 *INA, float nVolts)
 {
 	uint16_t alert_mask = INA260_BUS_OVER_VOLTAGE;
 	INA->setAlertLimit(nAmps);
@@ -96,7 +106,54 @@ bool powerPort::setAlarmVoltage(INA260 *INA, int nVolts)
 		return false;
 	}
 	INA->setAlertRegister(nVolts);
+	INA->setAlertLatchEnable(true);
 	return true;
+}
+
+
+void powerPorts::setPortState(int nPort, bool bOn)
+{
+	digitalWrite(nPort, bEnable?1:0);
+}
+
+bool powerPorts::checkAlert(INA260 *INA)
+{
+	bool bAlertTRiggered = false;
+	uint16_t flags = INA->getAlertFlag();
+	if(flags) {
+		bAlertTRiggered = true;
+	}
+	return bAlertTRiggered;
+}
+
+float powerPorts::rawToAmps(int16_t value)
+{
+	return (value * 1.25) / 1000.0;
+}
+
+int16_t powerPorts::ampsToRaw(float value)
+{
+	return (value * 1000.0) / 1.25;
+}
+
+float powerPorts::rawToVolts(uint16_t value)
+{
+	return (value * 1.25) / 1000.0;
+}
+
+uint16_t powerPorts::voltsToRaw(float value)
+{
+	return (value * 1000.0) / 1.25;
+}
+
+float powerPorts::rawToWatts(uint16_t value)
+{
+	return (value * 10.0) / 1000.0;
+}
+
+uint16_t powerPorts::wattsToRaw(float value)
+{
+	return (value * 1000.0) / 10.0;
 }
 
 #endif

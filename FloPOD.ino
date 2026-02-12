@@ -132,12 +132,20 @@ void PowerTask(void *)
 {
 	const TickType_t xDelay = 50/ portTICK_PERIOD_MS; // 50ms task block to give time back
 	EncoderConfig motorEncoderConfig;
-	globalPodConfig->LoadPowerConfig(powerConfig);
 	// set all interrupts
 	// OC_ALARM
 	attachInterrupt(OC_ALARM, overCurrentAlarm, FALLING);
 	// MAIN_OC_ALARM
 	attachInterrupt(MAIN_OC_ALARM, mainOverCurrentAlarm, FALLING);
+	// read save port config
+	globalPodConfig->LoadPowerConfig(powerConfig);
+	// set port states
+	podPowerController = new powerPorts();
+	podPowerController->setPortState(&INS260_DC_1, powerConfig.bDc1On);
+	podPowerController->setPortState(&INS260_DC_2, powerConfig.bDc2On);
+	podPowerController->setPortState(&INS260_PWM1, powerConfig.nPwm1Percent);
+	podPowerController->setPortState(&INS260_PWM2, powerConfig.nPwm2Percent);
+	podPowerController->setPortState(&INS260_USB_C, powerConfig.bUsbcOn);
 
 	for(;;) {
 		// do a whole lot of nothing
