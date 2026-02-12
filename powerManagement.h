@@ -90,7 +90,7 @@ bool powerPorts::setAlarmAmps(INA260 &INA, float nAmps)
 {
 	uint16_t alert_mask = INA260_SHUNT_OVER_CURRENT;
 	// set value in mA
-	uint16_t limit = ampsToRaw(namps);
+	uint16_t limit = ampsToRaw(nAmps);
 	INA.setAlertLimit(limit);
 	uint16_t test_limit = INA.getAlertLimit();
 	if (test_limit != limit) {
