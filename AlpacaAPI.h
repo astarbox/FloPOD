@@ -7,7 +7,6 @@
 #pragma message "Alpaca server enabled"
 #include <vector>
 #include <functional>
-#include <EthernetUdp.h>
 #include <ArduinoJson.h>
 // Alpaca REST server
 #include <UUID.h>
@@ -21,6 +20,9 @@
 #define ALPACA_OK 0
 #define DISCOVERY_ERROR -1
 #define DOME_INTERFACE_VERSION 3
+
+#define UDP_PACKET_MAX_SIZE 16
+
 
 enum AlpacaShutterStates { A_OPEN=0, A_CLOSED, A_OPENING, A_CLOSING,  A_ERROR};
 uint32_t nTransactionID;
@@ -86,12 +88,12 @@ int AlpacaDiscoveryServer::checkForRequest()
 		return -1;
 	String sDiscoveryResponse = "{\"AlpacaPort\":"+String(ALPACA_SERVER_PORT)+"}";
 	String sDiscoveryRequest;
-	char packetBuffer[UDP_TX_PACKET_MAX_SIZE];
+	char packetBuffer[UDP_PACKET_MAX_SIZE];
 	int packetSize = discoveryServer->parsePacket();
 	if (packetSize) {
 		DBPrintln("Alpaca discovery server request");
 		memset(packetBuffer,0,sizeof(packetBuffer));
-		discoveryServer->read(packetBuffer, UDP_TX_PACKET_MAX_SIZE);
+		discoveryServer->read(packetBuffer, UDP_PACKET_MAX_SIZE);
 		// do stuff
 		sDiscoveryRequest = String(packetBuffer);
 		DBPrintln("Alpaca discovery server sDiscoveryRequest : " + sDiscoveryRequest);
