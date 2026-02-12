@@ -119,7 +119,7 @@ public:
     void LoadEncodeConfig(EncoderConfig &encoderConfig);
 
 	void setWifiDefault();
-	void getSerialNumber(String &serNum)
+	void getSerialNumber(String &serNum);
 
 private:
     Preferences m_preferences;

@@ -29,6 +29,7 @@ private:
 	MotorStates m_nMotorState = M_STOPPED;
 	void	getEncoderPosition(float fDegrees);
 
+
 };
 
 motorMotion *PodMotorController = nullptr;
@@ -41,7 +42,7 @@ motorMotion::motorMotion()
 	// read encoder
 	// compare with open/close position
 	// if in middle, set error, this will trigger a close
-	mState = NOT_MOVING;
+	m_nState = IDLE;
 	m_nMotorState = M_STOPPED;
 }
 
@@ -64,7 +65,7 @@ void motorMotion::Close()
 	m_nState = CLOSING;
 }
 
-void motorMotion::getState(podStates &nState);
+void motorMotion::getState(podStates &nState)
 {
 	// get current position in degree as well as podStates;
 	nState = m_nState;

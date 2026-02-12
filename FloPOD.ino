@@ -12,7 +12,6 @@
 #include "config.h"
 #include "powerManagement.h"
 #include "motorCtrl.h"
-#include "AlpacaAPI.h"
 #include "podController.h"
 
 String sLocalIPAdress = "";
@@ -20,6 +19,9 @@ PodConfig *globalPodConfig; // init GPIO, provide config management
 WIFIConfig	wifiApConfig;
 IPConfig	wifiClientConfig;
 PowerConfig powerConfig;
+
+// include Alpaca here so it gets the definition above.
+#include "AlpacaAPI.h"
 
 // interrupt handlers
 void magnetHandler();
@@ -141,11 +143,11 @@ void PowerTask(void *)
 	globalPodConfig->LoadPowerConfig(powerConfig);
 	// set port states
 	podPowerController = new powerPorts();
-	podPowerController->setPortState(&INS260_DC_1, powerConfig.bDc1On);
-	podPowerController->setPortState(&INS260_DC_2, powerConfig.bDc2On);
-	podPowerController->setPortState(&INS260_PWM1, powerConfig.nPwm1Percent);
-	podPowerController->setPortState(&INS260_PWM2, powerConfig.nPwm2Percent);
-	podPowerController->setPortState(&INS260_USB_C, powerConfig.bUsbcOn);
+	podPowerController->setPortState(DC1, powerConfig.bDc1On);
+	podPowerController->setPortState(DC2, powerConfig.bDc2On);
+	podPowerController->setPortState(PWM1, powerConfig.nPwm1Percent);
+	podPowerController->setPortState(PWM2, powerConfig.nPwm2Percent);
+	podPowerController->setPortState(USB_C, powerConfig.bUsbcOn);
 
 	for(;;) {
 		// do a whole lot of nothing
@@ -196,6 +198,7 @@ void IRAM_ATTR mainOverCurrentAlarm()
 void configureWiFi()
 {
 	bool bWiFiAPOk = false;
+	int nTimeout = 0;
 
 	DBPrintln("========== Configuring WiFi ==========");
 	globalPodConfig->LoadIpConfig(wifiClientConfig);
@@ -211,8 +214,8 @@ void configureWiFi()
 	}
 
 	// connect to local WiFi
-	if(wifiClientConfig.sSSID.lemgth()) {
-		PodWiFi.begin(sSSID.c_str(), sPassword.c_str());
+	if(wifiClientConfig.sSSID.length()) {
+		PodWiFi.begin(wifiClientConfig.sSSID.c_str(), wifiClientConfig.sPassword.c_str());
 		while (PodWiFi.status() != WL_CONNECTED) {
 			DBPrintln("Waiting for WiFi");
 			vTaskDelay(1000 / portTICK_PERIOD_MS);
@@ -225,6 +228,6 @@ void configureWiFi()
 
 	}
 
-	PodWiFi.setHostname("FLOPod");å
+	PodWiFi.setHostname("FLOPod");
 	DBPrintln("WiFi IP = " + IpAddress2String(WiFi.softAPIP()));
 }

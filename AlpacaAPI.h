@@ -47,9 +47,6 @@ public :
 	void startServer();
 	void checkForRequest();
 	// void setPodCtrlPtr(RoofClass *pRoof);
-
-	PodController *mPodController;
-
 private :
 	WiFiServer *mRestServer;
 	Application  *m_AlpacaRestServer;
@@ -60,7 +57,7 @@ private :
 AlpacaServer *pod_AlpacaServer;
 AlpacaServer *podAp_AlpacaServer;
 
-AlpacaDiscoveryServer *podAlpacaDiscoveryServer;
+AlpacaDiscoveryServer *pod_AlpacaDiscoveryServer;
 AlpacaDiscoveryServer *podAp_AlpacaDiscoveryServer;
 
 // ALPACA discovery server
@@ -114,12 +111,12 @@ int AlpacaDiscoveryServer::checkForRequest()
 int getAlpacaShutterState()
 {
 	int nAlpacaShutterState = A_ERROR;
-	int nRoofState = NOT_MOVING;
+	int nShutterState = IDLE;
 	String sTmpString;
 
-	nRoofState = podAlpacaServer->mPodController->getShutterState();
+	nShutterState = podController->getShutterState();
 
-	switch (nRoofState) {
+	switch (nShutterState) {
 		case OPEN:
 			nAlpacaShutterState = A_OPEN;
 			break;
@@ -609,7 +606,7 @@ void getDomeState(Request &req, Response &res)
 	// add states to response
 
 	jsTmp.clear();
-	jsTmp["Azimuth"] = podAlpacaServer->mPodController->GetAzimuth();
+	jsTmp["Azimuth"] = podController->GetAzimuth();
 	AlpacaResp["Value"].add(jsTmp);
 
 	jsTmp.clear();
@@ -617,7 +614,7 @@ void getDomeState(Request &req, Response &res)
 	AlpacaResp["Value"].add(jsTmp);
 
 	jsTmp.clear();
-	if(podAlpacaServer->mPodController->getShutterState() != NOT_MOVING) {
+	if(podController->getShutterState() != IDLE) {
 		AlpacaResp["Slewing"] = true;
 	}
 	else {
@@ -783,13 +780,13 @@ void getAltitude(Request &req, Response &res)
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	nState = podAlpacaServer->mPodController->getShutterState();
+	nState = podController->getShutterState();
 	if(nState == OPEN)
 		AlpacaResp["Value"] = 90.0f;
 	else if (nState == CLOSED)
 		AlpacaResp["Value"] = 90.0f;
 	else {
-		AlpacaResp["Value"] = podAlpacaServer->mPodController->getAltitude();
+		AlpacaResp["Value"] = podController->getAltitude();
 	}
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
@@ -807,7 +804,7 @@ void geAtHome(Request &req, Response &res)
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	/*if(String(podAlpacaServer->mPodController->GetHomeStatus() == CLOSED)) {
+	/*if(String(podController->GetHomeStatus() == CLOSED)) {
 		AlpacaResp["Value"] = true;
 	}
 	else {
@@ -850,7 +847,7 @@ void getAzimuth(Request &req, Response &res)
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	AlpacaResp["Value"] = podAlpacaServer->mPodController->GetAzimuth();
+	AlpacaResp["Value"] = podController->GetAzimuth();
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
@@ -1005,7 +1002,7 @@ void getShutterStatus(Request &req, Response &res)
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	nState = podAlpacaServer->mPodController->getShutterState();
+	nState = podController->getShutterState();
 	switch (nState) {
 		case OPEN:
 			AlpacaResp["Value"] = A_OPEN;
@@ -1076,9 +1073,9 @@ void getSlewing(Request &req, Response &res)
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	DBPrintln("RoofState : " + String(podAlpacaServer->mPodController->getShutterState()));
+	DBPrintln("RoofState : " + String(podController->getShutterState()));
 
-	if(podAlpacaServer->mPodController->getShutterState() != NOT_MOVING) {
+	if(podController->getShutterState() != IDLE) {
 		AlpacaResp["Value"] = true;
 	}
 	else {
@@ -1110,7 +1107,7 @@ void doAbort(Request &req, Response &res)
 
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	podAlpacaServer->mPodController->Abort(); // this is in the RoREth-esp32.ino
+	podController->Abort(); // this is in the RoREth-esp32.ino
 
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
@@ -1138,7 +1135,7 @@ void doCloseShutter(Request &req, Response &res)
 
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	podAlpacaServer->mPodController->Close();
+	podController->Close();
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
@@ -1191,7 +1188,7 @@ void doOpenShutter(Request &req, Response &res)
 
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	podAlpacaServer->mPodController->Open();
+	podController->Open();
 
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
@@ -1250,8 +1247,8 @@ void setPark(Request &req, Response &res)
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-	fParkPos = podAlpacaServer->mPodController->GetAzimuth();
-	podAlpacaServer->mPodController->SetParkAzimuth(fParkPos);
+	fParkPos = podController->GetAzimuth();
+	podController->SetParkAzimuth(fParkPos);
 }
 
 void doAltitudeSlew(Request &req, Response &res)
@@ -1326,7 +1323,7 @@ void doGoTo(Request &req, Response &res)
 		return;
 	}
 
-	podAlpacaServer->mPodController->GoToAzimuth(dNewPos);
+	podController->GoToAzimuth(dNewPos);
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
 	serializeJson(AlpacaResp, sResp);
@@ -1372,7 +1369,7 @@ void doSyncAzimuth(Request &req, Response &res)
 		return;
 	}
 
-	podAlpacaServer->mPodController->SyncPosition(dNewPos);
+	podController->SyncPosition(dNewPos);
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
 	serializeJson(AlpacaResp, sResp);
@@ -1423,7 +1420,7 @@ void subnetMaskValue(Request &req, Response &res)
 		}
 		else {
 			if(FormData["value"].is<String>()) {
-				podAlpacaServer->mPodController->setIPSubnetMask(FormData["value"]);
+				podController->setIPSubnetMask(FormData["value"]);
 			}
 		}
 	}
@@ -1448,7 +1445,7 @@ void ipGetewayValue(Request &req, Response &res)
 		}
 		else {
 			if(FormData["value"].is<String>()) {
-				podAlpacaServer->mPodController->setIPGateway(FormData["value"]);
+				podController->setIPGateway(FormData["value"]);
 			}
 		}
 	}
@@ -1474,10 +1471,10 @@ void roofCalibrateAction(Request &req, Response &res)
 		else {
 			if(FormData["value"].is<String>()) {
 				if(FormData["value"] == "start") {
-					podAlpacaServer->mPodController->StartCalibrating();
+					podController->StartCalibrating();
 				}
 				if(FormData["value"] == "abort") {
-					podAlpacaServer->mPodController->motorStop();
+					podController->motorStop();
 				}
 			}
 		}
@@ -1503,12 +1500,12 @@ void stepPerOpenValue(Request &req, Response &res)
 		}
 		else {
 			if(FormData["value"].is<long>()) {
-				podAlpacaServer->mPodController->SetStepsPerStroke(FormData["value"]);
+				podController->SetStepsPerStroke(FormData["value"]);
 			}
 		}
 	}
 
-	controllerResp["value"] = podAlpacaServer->mPodController->GetStepsPerStroke();
+	controllerResp["value"] = podController->GetStepsPerStroke();
 	serializeJson(controllerResp, sResp);
 	DBPrintln("sResp : " + sResp);
 
@@ -1528,12 +1525,12 @@ void roofSpeedValue(Request &req, Response &res)
 		}
 		else {
 			if(FormData["value"].is<long>()) {
-				podAlpacaServer->mPodController->SetMaxSpeed(FormData["value"]);
+				podController->SetMaxSpeed(FormData["value"]);
 			}
 		}
 	}
 
-	controllerResp["value"] = podAlpacaServer->mPodController->GetMaxSpeed();
+	controllerResp["value"] = podController->GetMaxSpeed();
 	serializeJson(controllerResp, sResp);
 	DBPrintln("sResp : " + sResp);
 
@@ -1553,12 +1550,12 @@ void roofAccelerationValue(Request &req, Response &res)
 		}
 		else {
 			if(FormData["value"].is<long>()) {
-				podAlpacaServer->mPodController->SetAcceleration(FormData["value"]);
+				podController->SetAcceleration(FormData["value"]);
 			}
 		}
 	}
 
-	controllerResp["value"] = podAlpacaServer->mPodController->GetAcceleration();
+	controllerResp["value"] = podController->GetAcceleration();
 	serializeJson(controllerResp, sResp);
 	DBPrintln("sResp : " + sResp);
 
@@ -1572,7 +1569,7 @@ void restoreMotorValues(Request &req, Response &res)
 	JsonDocument controllerResp;
 	String sResp;
 
-	podAlpacaServer->mPodController->restoreDefaultMotorSettings();
+	podController->restoreDefaultMotorSettings();
 	controllerResp["value"] = "Restored";
 	serializeJson(controllerResp, sResp);
 	DBPrintln("sResp : " + sResp);
@@ -1594,12 +1591,12 @@ void roofVoltageCutoffValue(Request &req, Response &res)
 		}
 		else {
 			if(FormData["value"].is<long>()) {
-				podAlpacaServer->mPodController->SetLowVoltageCutoff(FormData["value"]);
+				podController->SetLowVoltageCutoff(FormData["value"]);
 			}
 		}
 	}
 
-	controllerResp["value"] = podAlpacaServer->mPodController->GetVoltString();
+	controllerResp["value"] = podController->GetVoltString();
 	serializeJson(controllerResp, sResp);
 	DBPrintln("sResp : " + sResp);
 
@@ -1620,12 +1617,12 @@ void unsafeAction(Request &req, Response &res)
 		}
 		else {
 			if(FormData["value"].is<long>()) {
-				// podAlpacaServer->mPodController->SetConditionsAction(FormData["value"]);
+				// podController->SetConditionsAction(FormData["value"]);
 			}
 		}
 	}
 
-	// controllerResp["value"] = podAlpacaServer->mPodController->GetConditionsAction();
+	// controllerResp["value"] = podController->GetConditionsAction();
 	serializeJson(controllerResp, sResp);
 	DBPrintln("sResp : " + sResp);
 
@@ -1670,7 +1667,7 @@ void getSerialNumber(Request &req, Response &res)
 
 AlpacaServer::AlpacaServer(IPAddress ipAddress, int port)
 {
-	byte macAddress[6];    // Mac address, uses part of the unique ID
+	String sSerialNumber;    // Mac address, uses part of the unique ID
 
 	m_nRestPort = port;
 	m_ipAddress = ipAddress;
@@ -1678,12 +1675,12 @@ AlpacaServer::AlpacaServer(IPAddress ipAddress, int port)
 	m_AlpacaRestServer = nullptr;
 	nTransactionID = 0;
 
-	getMacAddress(macAddress);
+	globalPodConfig->getSerialNumber(sSerialNumber);
 
-	PodUuid.seed(macAddress[4],macAddress[5]);
+	PodUuid.seed(sSerialNumber[4],sSerialNumber[5]);
 	PodUuid.generate();
 
-	PodPowerUuid.seed(macAddress[4],macAddress[5]+1);
+	PodPowerUuid.seed(sSerialNumber[4],sSerialNumber[5]+1);
 	PodPowerUuid.generate();
 
 

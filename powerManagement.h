@@ -1,3 +1,5 @@
+#include <sys/types.h>
+#include <sys/_stdint.h>
 //
 // FLO POD controller power management
 //
@@ -6,6 +8,7 @@
 #ifndef __POWER_PORT_
 #define __POWER_PORT_
 #include "INA260.h"
+
 #include "config.h"
 
 // define all INA260 addresses
@@ -17,58 +20,58 @@ HDC1080 -> 1000000 -> 0x40 , this will conflict with U1, U1 address need to be c
 AS5048B -> 1000001 -> 0x41
 */
 // U1  A1 = 3v3 , A0 = SDA => 1000110 => 0x46// Main
-INA260 INS260_MAIN(0x46);
+INA260 INA260_MAIN(0x46);
 // U2  A1 = GND , A0 = SCL => 1000011 => 0x43 // DC1
-INA260 INS260_DC_1(0x4C);
+INA260 INA260_DC_1(0x4C);
 // U3  A1 = 3v3 , A0 = GND => 1000100 => 0x44 // DC2
-INA260 INS260_DC_2(0x41);
+INA260 INA260_DC_2(0x41);
 // U4  A1 = 3v3 , A0 = 3v3 => 1000101 => 0x45// PWM1
-INA260 INS260_PWM1(0x45);
+INA260 INA260_PWM1(0x45);
 // U5  A1 = SDA , A0 = SDA => 1001010 => 0x4a // PWM2
-INA260 INS260_PWM2(0x4A);
+INA260 INA260_PWM2(0x4A);
 // U8  A1 = SDA , A0 = SCL => 1001011 => 0x4b // USB-C
-INA260 INS260_USB_C(0x4E);
+INA260 INA260_USB_C(0x4E);
 // U11 A1 = 3v3 , A0 = SCL => 1000111 => 0x47 // VBat
-INA260 INS260_BAT(0x4D);
+INA260 INA260_BAT(0x4D);
 // U18 A1 = SCL , A0 = SCL => 1001111 => 0x4f // VMOT
-INA260 INS260_VMOT(0x4F);
+INA260 INA260_VMOT(0x4F);
 // Extra INA260 : A1 = SCL , A0 = SDA => 1001110 => 0x4e // VMOT2
-INA260 INS260_VMOT2(0x4E);
+INA260 INA260_VMOT2(0x4E);
 
 class powerPorts
 {
 public:
-	powerPort();
-	bool setAlarmAmps(INA260 *INA, float nAmps);
-	bool setAlarmVoltage(INA260 *INA, float nVolts);
+	powerPorts();
+	bool setAlarmAmps(INA260 &INA, float nAmps);
+	bool setAlarmVoltage(INA260 &INA, float nVolts);
 	void setPortState(int nPort, bool bOn);
-	bool checkAlert(INA260 *INA);
+	bool checkAlert(INA260 &INA);
 
-	private:
+private:
 	float rawToAmps(int16_t value);
 	int16_t ampsToRaw(float value);
 	float rawToVolts(uint16_t value);
 	uint16_t voltsToRaw(float value);
 	float rawToWatts(uint16_t value);
-	uint16_t ina260::wattsToRaw(float value);
+	uint16_t wattsToRaw(float value);
 };
 
 powerPorts *podPowerController = nullptr;
 
-powerPorts::powerPort()
+powerPorts::powerPorts()
 {
-	if (!INS260_MAIN.begin()) {
+	if (!INA260_MAIN.begin()) {
 		// set error.. this one is not responding
 	}
 
-	if (!INS260_DC_1.begin()) {
+	if (!INA260_DC_1.begin()) {
 		// set error.. this one is not responding
 	}
 
-	if (!INS260_DC_2.begin()) {
+	if (!INA260_DC_2.begin()) {
 		// set error.. this one is not responding
 	}
-	if (!INS260_USB_C.begin()) {
+	if (!INA260_USB_C.begin()) {
 		// set error.. this one is not responding
 	}
 
@@ -83,43 +86,47 @@ powerPorts::powerPort()
 	}
 }
 
-bool powerPorts::setAlarmAmps(INA260 *INA, float nAmps)
+bool powerPorts::setAlarmAmps(INA260 &INA, float nAmps)
 {
 	uint16_t alert_mask = INA260_SHUNT_OVER_CURRENT;
-	INA->setAlertLimit(nAmps);
-	uint16_t test_limit = INA->getAlertLimit();
-	if (test_limit != limit) {
+	// set value in mA
+	uint16_t miliAmps = uint16_t(nAmps*1000);
+	INA.setAlertLimit(miliAmps);
+	uint16_t test_limit = INA.getAlertLimit();
+	if (test_limit != miliAmps) {
 		return false;
 	}
 
-	INA->setAlertRegister(alert_mask);
-	INA->setAlertLatchEnable(true);
+	INA.setAlertRegister(alert_mask);
+	INA.setAlertLatchEnable(true);
 	return true;
 }
 
-bool powerPorts::setAlarmVoltage(INA260 *INA, float nVolts)
+bool powerPorts::setAlarmVoltage(INA260 &INA, float nVolts)
 {
 	uint16_t alert_mask = INA260_BUS_OVER_VOLTAGE;
-	INA->setAlertLimit(nAmps);
-	uint16_t test_limit = INA->getAlertLimit();
-	if (test_limit != limit) {
+	// set value in mV
+	uint16_t miliVolts = uint16_t(nVolts*1000);
+	INA.setAlertLimit(miliVolts);
+	uint16_t test_limit = INA.getAlertLimit();
+	if (test_limit != miliVolts) {
 		return false;
 	}
-	INA->setAlertRegister(nVolts);
-	INA->setAlertLatchEnable(true);
+	INA.setAlertRegister(miliVolts);
+	INA.setAlertLatchEnable(true);
 	return true;
 }
 
 
 void powerPorts::setPortState(int nPort, bool bOn)
 {
-	digitalWrite(nPort, bEnable?1:0);
+	digitalWrite(nPort, bOn?1:0);
 }
 
-bool powerPorts::checkAlert(INA260 *INA)
+bool powerPorts::checkAlert(INA260 &INA)
 {
 	bool bAlertTRiggered = false;
-	uint16_t flags = INA->getAlertFlag();
+	uint16_t flags = INA.getAlertRegister();
 	if(flags) {
 		bAlertTRiggered = true;
 	}
