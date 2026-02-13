@@ -33,7 +33,8 @@ volatile bool bAlpacaConnected = false;
 class AlpacaDiscoveryServer
 {
 public:
-	AlpacaDiscoveryServer(IPAddress ipAddress, int port=ALPACA_DISCOVERY_PORT);
+	AlpacaDiscoveryServer(int port=ALPACA_DISCOVERY_PORT);
+	// AlpacaDiscoveryServer(IPAddress ipAddress, int port=ALPACA_DISCOVERY_PORT);
 	void startServer();
 	int checkForRequest();
 private:
@@ -45,7 +46,8 @@ private:
 class AlpacaServer
 {
 public :
-	AlpacaServer(IPAddress ipAddress, int port=ALPACA_SERVER_PORT);
+	// AlpacaServer(IPAddress ipAddress, int port=ALPACA_SERVER_PORT);
+	AlpacaServer(int port=ALPACA_SERVER_PORT);
 	void startServer();
 	void checkForRequest();
 	// void setPodCtrlPtr(RoofClass *pRoof);
@@ -53,24 +55,31 @@ private :
 	WiFiServer *mRestServer;
 	Application  *m_AlpacaRestServer;
 	int m_nRestPort;
-	IPAddress m_ipAddress;
+	// IPAddress m_ipAddress;
 };
 
-AlpacaServer *pod_AlpacaServer;
-AlpacaServer *podAp_AlpacaServer;
-
 AlpacaDiscoveryServer *pod_AlpacaDiscoveryServer;
-AlpacaDiscoveryServer *podAp_AlpacaDiscoveryServer;
+AlpacaServer *pod_AlpacaServer;
+// AlpacaDiscoveryServer *podAp_AlpacaDiscoveryServer;
+// AlpacaServer *podAp_AlpacaServer;
+
 
 // ALPACA discovery server
 
+AlpacaDiscoveryServer::AlpacaDiscoveryServer( int port)
+{
+	m_UDPPort = port;
+	discoveryServer = nullptr;
+	//	m_ipAddress = ipAddress;
+}
+/*
 AlpacaDiscoveryServer::AlpacaDiscoveryServer(IPAddress ipAddress, int port)
 {
 	m_UDPPort = port;
 	discoveryServer = nullptr;
 	m_ipAddress = ipAddress;
 }
-
+*/
 void AlpacaDiscoveryServer::startServer()
 {
 	discoveryServer = new WiFiUDP();
@@ -1667,6 +1676,27 @@ void getSerialNumber(Request &req, Response &res)
 
 
 
+AlpacaServer::AlpacaServer(int port)
+{
+	String sSerialNumber;    // Mac address, uses part of the unique ID
+
+	m_nRestPort = port;
+	mRestServer = nullptr;
+	m_AlpacaRestServer = nullptr;
+	nTransactionID = 0;
+
+	globalPodConfig->getSerialNumber(sSerialNumber);
+
+	PodUuid.seed(sSerialNumber[4],sSerialNumber[5]);
+	PodUuid.generate();
+
+	PodPowerUuid.seed(sSerialNumber[4],sSerialNumber[5]+1);
+	PodPowerUuid.generate();
+
+
+
+}
+/*
 AlpacaServer::AlpacaServer(IPAddress ipAddress, int port)
 {
 	String sSerialNumber;    // Mac address, uses part of the unique ID
@@ -1688,16 +1718,15 @@ AlpacaServer::AlpacaServer(IPAddress ipAddress, int port)
 
 
 }
-
+*/
 void AlpacaServer::startServer()
 {
-	String sLocalIPAdress;
-	mRestServer = new WiFiServer(m_ipAddress, m_nRestPort);
+	mRestServer = new WiFiServer(m_nRestPort);
+	// mRestServer = new WiFiServer(m_ipAddress, m_nRestPort);
 	m_AlpacaRestServer = new Application();
 	DBPrintln("m_AlpacaRestServer starting");
 	DBPrintln("m_AlpacaRestServer UUID : " + String(PodUuid.toCharArray()));
 	// check if we're connected as client, if not, use AP IP
-	sLocalIPAdress = IpAddress2String(m_ipAddress);
 	mRestServer->begin();
 	DBPrintln("m_AlpacaRestServer mapping endpoints");
 	m_AlpacaRestServer->use("/", &doSetup);

@@ -67,6 +67,7 @@ void setup()
 	attachInterrupt(MAG_TRIG, magnetHandler, FALLING);
 
 	// start Alpaca on the AP.
+/*/
 	podAp_AlpacaDiscoveryServer = new AlpacaDiscoveryServer(PodWiFi.softAPIP());
 	podAp_AlpacaDiscoveryServer->startServer();
 	podAp_AlpacaServer = new AlpacaServer(PodWiFi.softAPIP());
@@ -74,11 +75,14 @@ void setup()
 
 	// start Alpaca on the client connection to local wifi
 	if(PodWiFi.status() == WL_CONNECTED) {
-		pod_AlpacaDiscoveryServer = new AlpacaDiscoveryServer(PodWiFi.localIP());
+*/
+		pod_AlpacaDiscoveryServer = new AlpacaDiscoveryServer();
+		// pod_AlpacaDiscoveryServer = new AlpacaDiscoveryServer(PodWiFi.localIP());
 		pod_AlpacaDiscoveryServer->startServer();
-		podAp_AlpacaServer = new AlpacaServer(PodWiFi.localIP());
-		podAp_AlpacaServer->startServer();
-	}
+		pod_AlpacaServer = new AlpacaServer();
+		// pod_AlpacaServer = new AlpacaServer(PodWiFi.localIP());
+		pod_AlpacaServer->startServer();
+//	}
 }
 
 // core 1 main loop takes care of Alpaca coms
@@ -86,13 +90,13 @@ void loop()
 {
     const TickType_t xDelay = 1 / portTICK_PERIOD_MS;
 
-	podAp_AlpacaDiscoveryServer->checkForRequest();
-    podAp_AlpacaServer->checkForRequest();
+	// podAp_AlpacaDiscoveryServer->checkForRequest();
+    //podAp_AlpacaServer->checkForRequest();
 
-	if(PodWiFi.status() == WL_CONNECTED) {
+	//if(PodWiFi.status() == WL_CONNECTED) {
 		pod_AlpacaDiscoveryServer->checkForRequest();
 		pod_AlpacaServer->checkForRequest();
-	}
+	//}
     // FreeRTOS task management
     vTaskDelay(xDelay);
 	taskYIELD();
