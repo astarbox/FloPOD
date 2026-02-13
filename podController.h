@@ -15,7 +15,7 @@ volatile bool bParked = false;
 class PodController
 {
 public:
-	PodController();
+	PodController(motorCtrl *pMotionController);
 	podStates getShutterState();
 	float GetAzimuth();
 	float getAltitude();
@@ -28,13 +28,68 @@ public:
 
 
 private:
-	motorMotion	mPodMotor;
-	float	m_fPartAzimuth;
-	float	m_fAz;
+	motorCtrl	*mPodMotor = nullptr;
+	float	m_fPartAzimuth = 0.0f;
+	float	m_fAz = 0.0f;
 
 };
 
 PodController *podController = nullptr;
+
+PodController::PodController(motorCtrl *pMotionController)
+{
+	// make sure we're not getting a nullptr
+	if(pMotionController) {
+		mPodMotor = pMotionController;
+	}
+}
+
+podStates PodController::getShutterState()
+{
+	return IDLE;
+}
+
+float PodController::GetAzimuth()
+{
+	return m_fAz;
+}
+
+float PodController::getAltitude()
+{
+	return 0.0f;
+}
+
+void PodController::Abort()
+{
+
+}
+
+void PodController::Open()
+{
+	if(mPodMotor)
+		mPodMotor->Open();
+}
+
+void PodController::Close()
+{
+	if(mPodMotor)
+		mPodMotor->Close();
+}
+
+void PodController::SetParkAzimuth(float fAz)
+{
+
+}
+
+void PodController::GoToAzimuth(float fAz)
+{
+
+}
+
+void PodController::SyncPosition(float fAz)
+{
+
+}
 
 
 #endif

@@ -59,12 +59,18 @@ void setup()
     // start I2C
     Wire.begin();
 
+	// create new motor controller, it will be used by MotorTask and by the PodController
+	PodMotorController = new motorCtrl();
+
     // create tasks
     xTaskCreatePinnedToCore(MotorTask, "MotorTask", 10000, NULL, 8, NULL,  0); // priority 8 (medium) on Core 0
     xTaskCreatePinnedToCore(PowerTask, "PowerTask", 10000, NULL, 16, NULL,  0); // priority 16 (High) on Core 0
 
-	// MAG_TRIG
+	// MAG_TRIG interrupt
 	attachInterrupt(MAG_TRIG, magnetHandler, FALLING);
+
+	// create Pod controllerm PodMotorController config will be set in MotorTask
+	podController = new PodController(PodMotorController);
 
 	// start Alpaca on the AP.
 /*/
@@ -117,8 +123,6 @@ void MotorTask(void *)
 		motorEncoderConfig.bNeedCalibration = true;
 	}
 
-	// create new motor controller
-	PodMotorController = new motorMotion();
 
 	for(;;) {
 		// check magnet

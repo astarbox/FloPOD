@@ -15,10 +15,10 @@
 
 enum MotorStates {M_STOPPED, M_RUNNING, M_CALIBRATING};
 
-class motorMotion
+class motorCtrl
 {
 public:
-	motorMotion();
+	motorCtrl();
 	void 	Calibrate();
 	void 	Open();
 	void 	Close();
@@ -27,14 +27,14 @@ private:
 	EncoderConfig m_EncoderConfig;
 	podStates m_nState = IDLE;
 	MotorStates m_nMotorState = M_STOPPED;
-	void	getEncoderPosition(float fDegrees);
+	void	getEncoderPosition(float &fDegrees);
 
 
 };
 
-motorMotion *PodMotorController = nullptr;
+motorCtrl *PodMotorController = nullptr;
 
-motorMotion::motorMotion()
+motorCtrl::motorCtrl()
 {
 	// init dir pin and led pwm pin
 	// attach interrupt for motor over current
@@ -46,26 +46,26 @@ motorMotion::motorMotion()
 	m_nMotorState = M_STOPPED;
 }
 
-void motorMotion::Calibrate()
+void motorCtrl::Calibrate()
 {
 	// set speed to 10%
 	// close
 
 }
 
-void motorMotion::Open()
+void motorCtrl::Open()
 {
 	// move to calibrated open position
 	m_nState = OPENING;
 }
 
-void motorMotion::Close()
+void motorCtrl::Close()
 {
 	// move to calibrated close position
 	m_nState = CLOSING;
 }
 
-void motorMotion::getState(podStates &nState)
+void motorCtrl::getState(podStates &nState)
 {
 	// get current position in degree as well as podStates;
 	nState = m_nState;
@@ -77,7 +77,7 @@ void motorMotion::getState(podStates &nState)
 
 }
 
-void motorMotion::getEncoderPosition(float fDegrees)
+void motorCtrl::getEncoderPosition(float &fDegrees)
 {
 
 }
