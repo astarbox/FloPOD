@@ -122,7 +122,8 @@ void MotorTask(void *)
 	if(motorEncoderConfig.closeAngle <1 && motorEncoderConfig.openAngle <1) {
 		motorEncoderConfig.bNeedCalibration = true;
 	}
-
+	// make sure nothing is moving when we power up
+	PodMotorController->Stop();
 
 	for(;;) {
 		// check magnet
