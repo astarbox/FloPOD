@@ -52,7 +52,8 @@ void setup()
 	esp_task_wdt_add(NULL);
 	disableCore0WDT();
 	disableCore1WDT();
-
+	// start the network stack so all server sees all interfaces.
+	Network.begin();
 	// Start local hostspot and connect to local wifi if configured and available
 	configureWiFi();
 

@@ -24,7 +24,7 @@ public:
 	void 	Close();
 	void	Stop();
 	void 	getState(podStates &nState, MotorCalibrationSteps &nCalState);
-	void	OverCurrentStop/\;
+	void	OverCurrentStop();
 private:
 	EncoderConfig m_EncoderConfig;
 	podStates m_nState = IDLE;
@@ -52,7 +52,7 @@ void motorCtrl::Calibrate()
 	switch(m_CalsState) {
 		case CAL_NONE:
 			// set speed to 10%
-			m_nState = M_CALIBRATING;
+			m_nMotorState = M_CALIBRATING;
 			// close
 			m_CalsState = CAL_FIRST_CLOSE;
 			Close();
@@ -74,8 +74,8 @@ void motorCtrl::Calibrate()
 			break;
 
 		case CAL_FINISH_CLOSE:
-			Stop
-			m_nState = M_STOPPED
+			Stop();
+			m_nMotorState = M_STOPPED;
 			m_CalsState = CAL_NONE;
 			break;
 	}
@@ -99,7 +99,7 @@ void motorCtrl::Stop()
 
 }
 
-void motorCtrl::getState(podStates &nState, MotorCalibrationSteps &nCalState);
+void motorCtrl::getState(podStates &nState, MotorCalibrationSteps &nCalState)
 {
 	// get current position in degree as well as podStates;
 	nState = m_nState;

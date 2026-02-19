@@ -7,6 +7,7 @@
 #define __P_CONFIG__
 #include <Preferences.h>
 #include <nvs_flash.h>
+#include <Network.h>
 #include <WiFi.h>
 
 #define PodWiFi WiFi

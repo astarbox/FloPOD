@@ -38,7 +38,7 @@ public:
 	void startServer();
 	int checkForRequest();
 private:
-	WiFiUDP *discoveryServer;
+	NetworkUDP *discoveryServer;
 	int m_UDPPort;
 	IPAddress m_ipAddress;
 };
@@ -52,7 +52,7 @@ public :
 	void checkForRequest();
 	// void setPodCtrlPtr(RoofClass *pRoof);
 private :
-	WiFiServer *mRestServer;
+	NetworkServer *mRestServer;
 	Application  *m_AlpacaRestServer;
 	int m_nRestPort;
 	// IPAddress m_ipAddress;
@@ -82,7 +82,7 @@ AlpacaDiscoveryServer::AlpacaDiscoveryServer(IPAddress ipAddress, int port)
 */
 void AlpacaDiscoveryServer::startServer()
 {
-	discoveryServer = new WiFiUDP();
+	discoveryServer = new NetworkUDP();
 	if(!discoveryServer) {
 		discoveryServer = nullptr;
 		return;
@@ -1721,8 +1721,7 @@ AlpacaServer::AlpacaServer(IPAddress ipAddress, int port)
 */
 void AlpacaServer::startServer()
 {
-	mRestServer = new WiFiServer(m_nRestPort);
-	// mRestServer = new WiFiServer(m_ipAddress, m_nRestPort);
+	mRestServer = new NetworkServer(m_nRestPort);
 	m_AlpacaRestServer = new Application();
 	DBPrintln("m_AlpacaRestServer starting");
 	DBPrintln("m_AlpacaRestServer UUID : " + String(PodUuid.toCharArray()));
@@ -1803,7 +1802,7 @@ void AlpacaServer::startServer()
 void AlpacaServer::checkForRequest()
 {
 	// process incoming connections one at a time
-	WiFiClient client = mRestServer->accept();
+	NetworkClient client = mRestServer->accept();
 	if (client.connected()) {
 		m_AlpacaRestServer->process(&client);
 		client.stop();
