@@ -9,13 +9,14 @@
 
 float fTemperature;
 float fHumidity;
-
+int32_t	rainSensorAdcValue;
 
 void setup()
 {
     Wire.begin();
 
     envSensor = new HumTempSensor();
+    podRainSensor = new RainSensor();
 
     Serial.begin(115200);
     Serial.println("\nI2C Scanner & FloPOD tester");
@@ -165,7 +166,11 @@ void loop()
 
         // Environment sensors
         envSensor->getTempAndHum(fTemperature, fHumidity);
-        Serial.printf("%f degC \n %f %% \n",fTemperature,fHumidity);
+        Serial.printf("HDC1080 : %f degC \n %f %% \n",fTemperature,fHumidity);
+
+        rainSensorAdcValue = podRainSensor->getADCValue();
+        Serial.println("Rain Sensor ADC : " + String(rainSensorAdcValue));
+
 
     }
     delay(1000);

@@ -40,6 +40,7 @@ void EnvTask(void *);
 // Environment global variables
 float fTemperature;
 float fHumidity;
+int32_t	rainSensorAdcValue;
 
 // other object
 esp_task_wdt_config_t twdt_config = {
@@ -74,6 +75,7 @@ void setup()
     // create tasks
     xTaskCreatePinnedToCore(MotorTask, "MotorTask", 10000, NULL, 8, NULL,  0); // priority 8 (medium) on Core 0
     xTaskCreatePinnedToCore(PowerTask, "PowerTask", 10000, NULL, 16, NULL,  0); // priority 16 (High) on Core 0
+    xTaskCreatePinnedToCore(EnvTask, "EnvTask", 10000, NULL, 12, NULL,  0); // priority 12 (between medium and high) on Core 0
 
 	// MAG_TRIG interrupt
 	attachInterrupt(MAG_TRIG, magnetHandler, FALLING);
@@ -187,9 +189,11 @@ void EnvTask(void *)
 	const TickType_t xDelay = 50/ portTICK_PERIOD_MS; // 50ms task block to give time back
 
 	envSensor = new HumTempSensor();
+	podRainSensor = new RainSensor();
 
 	for(;;) {
 		envSensor->getTempAndHum(fTemperature, fHumidity);
+		rainSensorAdcValue = podRainSensor->getADCValue();
 		// FreeRTOS task management
 		vTaskDelay(xDelay);
 		taskYIELD();
