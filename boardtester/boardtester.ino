@@ -5,10 +5,17 @@
 
 #include <Wire.h>
 #include "../powerManagement.h"
+#include "../environment.h"
+
+float fTemperature;
+float fHumidity;
+
 
 void setup()
 {
-    Wire1.begin();
+    Wire.begin();
+
+    envSensor = new HumTempSensor();
 
     Serial.begin(115200);
     Serial.println("\nI2C Scanner & FloPOD tester");
@@ -155,6 +162,11 @@ void loop()
 //        } else {
 //            Serial.println("Motor 2 INA260 not found");
 //        }
+
+        // Environment sensors
+        envSensor->getTempAndHum(fTemperature, fHumidity);
+        Serial.printf("%f degC \n %f %% \n",fTemperature,fHumidity);
+
     }
     delay(1000);
 }

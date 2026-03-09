@@ -13,10 +13,12 @@
 #include "powerManagement.h"
 #include "motorCtrl.h"
 #include "podController.h"
+#include "environment.h"
 
 String sLocalIPAdress = "";
 WIFIConfig	wifiApConfig;
 IPConfig	wifiClientConfig;
+IPConfig	wifiConfig;
 PowerConfig powerConfig;
 
 // include Alpaca here so it gets the definition above.
@@ -33,6 +35,11 @@ volatile bool bMagnetTriggered = false;
 // FreeRTOS task
 void MotorTask(void *);
 void PowerTask(void *);
+void EnvTask(void *);
+
+// Environment global variables
+float fTemperature;
+float fHumidity;
 
 // other object
 esp_task_wdt_config_t twdt_config = {
@@ -168,6 +175,21 @@ void PowerTask(void *)
 			bMainOcTriggered = false;
 			// check which INA260 triggered the OC interrupt
 		}
+		// FreeRTOS task management
+		vTaskDelay(xDelay);
+		taskYIELD();
+		esp_task_wdt_reset();
+	}
+}
+
+void EnvTask(void *)
+{
+	const TickType_t xDelay = 50/ portTICK_PERIOD_MS; // 50ms task block to give time back
+
+	envSensor = new HumTempSensor();
+
+	for(;;) {
+		envSensor->getTempAndHum(fTemperature, fHumidity);
 		// FreeRTOS task management
 		vTaskDelay(xDelay);
 		taskYIELD();
