@@ -95,7 +95,7 @@ typedef struct POWERCONFIG {
 typedef struct ENCODER_CONFIG {
     float   closeAngle;
     float   openAngle;
-	bool	bNeedCalibration;
+	bool	bIsCalibrated;
 } EncoderConfig;
 
 enum podStates { OPEN, CLOSED, IDLE, OPENING, CLOSING, FINISHING_OPENING, FINISHING_CLOSING, CALIBRATION_STEP_RESET, CALIBRATION_STEP_OPENING, CALIBRATION_STEP_OPEN, CALIBRATION_MEASURE, POD_ERROR};
@@ -114,10 +114,19 @@ public:
     PodConfig();
 
     void LoadIpConfig(IPConfig &ipClientConfig);
-    void LoadApConfig(WIFIConfig &wifiApConfig);
-    void LoadPodConfig(Configuration &podConfig);
-    void LoadPowerConfig(PowerConfig &powerConfig);
-    void LoadEncodeConfig(EncoderConfig &encoderConfig);
+    void saveIpConfig(IPConfig ipClientConfig);
+
+	void LoadApConfig(WIFIConfig &wifiApConfig);
+	void saveApConfig(WIFIConfig wifiApConfig);
+
+	void LoadPodConfig(Configuration &podConfig);
+	void savePodConfig(Configuration podConfig);
+
+	void LoadPowerConfig(PowerConfig &powerConfig);
+	void savePowerConfig(PowerConfig powerConfig);
+
+	void LoadEncoderConfig(EncoderConfig &encoderConfig);
+	void saveEncoderConfig(EncoderConfig encoderConfig);
 
 	void setWifiDefault();
 	void getSerialNumber(String &serNum);
@@ -173,13 +182,30 @@ void PodConfig::LoadIpConfig(IPConfig &ipClientConfig)
 	m_preferences.begin("FloPod", false);
 	ipClientConfig.bUseDHCP = m_preferences.getBool("clientUseDhcp",false);
 	ipClientConfig.sSSID = m_preferences.getString("clientSSID","");
-	ipClientConfig.sPassword = m_preferences.getString("clientSSID","");
+	ipClientConfig.sPassword = m_preferences.getString("clientPAssword","");
 	if(!ipClientConfig.bUseDHCP ) {
 		// load configured static IP
 		ipClientConfig.ip.fromString( m_preferences.getString("clientIP","169.254.254.123"));
 		ipClientConfig.netmask.fromString( m_preferences.getString("netmask","255.255.255.0å"));
 		ipClientConfig.gateway.fromString( m_preferences.getString("clientGateway","169.254.254.1"));
 		ipClientConfig.dns.fromString( m_preferences.getString("clientDNS","1.1.1.1"));
+	}
+	m_preferences.end();
+}
+
+void PodConfig::saveIpConfig(IPConfig ipClientConfig)
+{
+	m_preferences.begin("FloPod", false);
+	m_preferences.putBool("clientUseDhcp", ipClientConfig.bUseDHCP);
+	m_preferences.putString("clientSSID", ipClientConfig.sSSID);
+
+	m_preferences.getString("clientPassword", ipClientConfig.sPassword);
+	if(!ipClientConfig.bUseDHCP ) {
+		// load configured static IP
+		m_preferences.putString("clientIP",IpAddress2String(ipClientConfig.ip));
+		m_preferences.putString("netmask",IpAddress2String(ipClientConfig.netmask));
+		m_preferences.putString("clientGateway",IpAddress2String(ipClientConfig.gateway));
+		m_preferences.putString("clientDNS",IpAddress2String(ipClientConfig.dns));
 	}
 	m_preferences.end();
 }
@@ -192,29 +218,56 @@ void PodConfig::LoadApConfig(WIFIConfig &wifiApConfig)
 	m_preferences.end();
 }
 
+void PodConfig::saveApConfig(WIFIConfig wifiApConfig)
+{
+	m_preferences.begin("FloPod", false);
+	m_preferences.putString("APSSID", wifiApConfig.sSSID);
+	m_preferences.putString("APPassword",wifiApConfig.sPassword);
+	m_preferences.end();
+}
+
 void PodConfig::LoadPodConfig(Configuration &podConfig)
 {
 	m_preferences.begin("FloPod", false);
 	m_preferences.end();
+}
 
+void PodConfig::savePodConfig(Configuration podConfig)
+{
+	m_preferences.begin("FloPod", false);
+	m_preferences.end();
 }
 
 void PodConfig::LoadPowerConfig(PowerConfig &powerConfig)
 {
 	m_preferences.begin("FloPod", false);
 	m_preferences.end();
-
 }
 
-void PodConfig::LoadEncodeConfig(EncoderConfig &encoderConfig)
+void PodConfig::savePowerConfig(PowerConfig powerConfig)
 {
 	m_preferences.begin("FloPod", false);
-	encoderConfig.bNeedCalibration = m_preferences.getBool("bNeedCalibration", false);
+	m_preferences.end();
+}
+
+void PodConfig::LoadEncoderConfig(EncoderConfig &encoderConfig)
+{
+	m_preferences.begin("FloPod", false);
+	encoderConfig.bIsCalibrated = m_preferences.getBool("isCalibrated", false);
 	encoderConfig.closeAngle = m_preferences.getFloat("closeAngle",0);
 	encoderConfig.openAngle = m_preferences.getFloat("openAngle",0);
 
 	m_preferences.end();
+}
 
+void PodConfig::saveEncoderConfig(EncoderConfig encoderConfig)
+{
+	m_preferences.begin("FloPod", false);
+	m_preferences.putBool("isCalibrated", encoderConfig.bIsCalibrated);
+	m_preferences.putFloat("closeAngle",encoderConfig.closeAngle);
+	m_preferences.putFloat("openAngle",encoderConfig.openAngle);
+
+	m_preferences.end();
 }
 
 void PodConfig::setWifiDefault()
@@ -237,5 +290,8 @@ void PodConfig::getSerialNumber(String &serNum)
 	serNum = String(nSerNum, HEX);
 	DBPrintln("Serial : " + String(nSerNum, HEX));
 }
+
+
+PodConfig *globalPodConfig; // init GPIO, provide config management
 
 #endif

@@ -23,11 +23,12 @@ public:
 	void 	Open();
 	void 	Close();
 	void	Stop();
-	void 	getState(podStates &nState, MotorCalibrationSteps &nCalState);
+	void 	getState(MotorCalibrationSteps &nCalState);
 	void	OverCurrentStop();
+	bool	bIsEncoderCalibrated();
+
 private:
 	EncoderConfig m_EncoderConfig;
-	podStates m_nState = IDLE;
 	MotorStates m_nMotorState = M_STOPPED;
 	MotorCalibrationSteps m_CalsState = CAL_NONE;
 	void	getEncoderPosition(float &fDegrees);
@@ -43,8 +44,10 @@ motorCtrl::motorCtrl()
 	// read encoder
 	// compare with open/close position
 	// if in middle, set error, this will trigger a close
-	m_nState = IDLE;
 	m_nMotorState = M_STOPPED;
+	if(globalPodConfig) {
+		globalPodConfig->LoadEncoderConfig(m_EncoderConfig);
+	}
 }
 
 void motorCtrl::Calibrate()
@@ -77,6 +80,7 @@ void motorCtrl::Calibrate()
 			Stop();
 			m_nMotorState = M_STOPPED;
 			m_CalsState = CAL_NONE;
+			m_EncoderConfig.bIsCalibrated = true;
 			break;
 	}
 }
@@ -85,13 +89,11 @@ void motorCtrl::Calibrate()
 void motorCtrl::Open()
 {
 	// move to calibrated open position
-	m_nState = OPENING;
 }
 
 void motorCtrl::Close()
 {
 	// move to calibrated close position
-	m_nState = CLOSING;
 }
 
 void motorCtrl::Stop()
@@ -99,22 +101,21 @@ void motorCtrl::Stop()
 
 }
 
-void motorCtrl::getState(podStates &nState, MotorCalibrationSteps &nCalState)
+void motorCtrl::getState(MotorCalibrationSteps &nCalState)
 {
 	// get current position in degree as well as podStates;
-	nState = m_nState;
 	nCalState = m_CalsState;
-	// if the state is error, shut off power
-	if(m_nState == POD_ERROR) {
-		Stop();
-
-	}
-
 }
+
 
 void motorCtrl::getEncoderPosition(float &fDegrees)
 {
 
+}
+
+bool motorCtrl::bIsEncoderCalibrated()
+{
+	return m_EncoderConfig.bIsCalibrated;
 }
 
 #endif

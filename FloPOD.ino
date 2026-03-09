@@ -15,7 +15,6 @@
 #include "podController.h"
 
 String sLocalIPAdress = "";
-PodConfig *globalPodConfig; // init GPIO, provide config management
 WIFIConfig	wifiApConfig;
 IPConfig	wifiClientConfig;
 PowerConfig powerConfig;
@@ -62,6 +61,8 @@ void setup()
 
 	// create new motor controller, it will be used by MotorTask and by the PodController
 	PodMotorController = new motorCtrl();
+	// create new power controller, it will be used by the PodController
+	podPowerController = new powerPorts();
 
     // create tasks
     xTaskCreatePinnedToCore(MotorTask, "MotorTask", 10000, NULL, 8, NULL,  0); // priority 8 (medium) on Core 0
@@ -70,8 +71,8 @@ void setup()
 	// MAG_TRIG interrupt
 	attachInterrupt(MAG_TRIG, magnetHandler, FALLING);
 
-	// create Pod controllerm PodMotorController config will be set in MotorTask
-	podController = new PodController(PodMotorController);
+	// create Pod controller PodMotorController config will be set in MotorTask
+	podController = new PodController(PodMotorController, podPowerController);
 
 	// start Alpaca on the AP.
 /*/
@@ -118,11 +119,6 @@ void loop()
 void MotorTask(void *)
 {
 	const TickType_t xDelay = 50/ portTICK_PERIOD_MS; // 50ms task block to give time back
-	EncoderConfig motorEncoderConfig;
-	globalPodConfig->LoadEncodeConfig(motorEncoderConfig);
-	if(motorEncoderConfig.closeAngle <1 && motorEncoderConfig.openAngle <1) {
-		motorEncoderConfig.bNeedCalibration = true;
-	}
 	// make sure nothing is moving when we power up
 	PodMotorController->Stop();
 
@@ -143,7 +139,6 @@ void MotorTask(void *)
 void PowerTask(void *)
 {
 	const TickType_t xDelay = 50/ portTICK_PERIOD_MS; // 50ms task block to give time back
-	EncoderConfig motorEncoderConfig;
 	// set all interrupts
 	// OC_ALARM
 	attachInterrupt(OC_ALARM, overCurrentAlarm, FALLING);
@@ -152,13 +147,16 @@ void PowerTask(void *)
 	// read save port config
 	globalPodConfig->LoadPowerConfig(powerConfig);
 	// set port states
-	podPowerController = new powerPorts();
-	podPowerController->setPortState(DC1, powerConfig.bDc1On);
-	podPowerController->setPortState(DC2, powerConfig.bDc2On);
-	podPowerController->setPortState(PWM1, powerConfig.nPwm1Percent);
-	podPowerController->setPortState(PWM2, powerConfig.nPwm2Percent);
-	podPowerController->setPortState(USB_C, powerConfig.bUsbcOn);
+	if(podPowerController) {
+		podPowerController->setPortState(DC1, powerConfig.bDc1On);
+		podPowerController->setPortState(DC2, powerConfig.bDc2On);
+		podPowerController->setPortState(PWM1, powerConfig.nPwm1Percent);
+		podPowerController->setPortState(PWM2, powerConfig.nPwm2Percent);
+		podPowerController->setPortState(USB_C, powerConfig.bUsbcOn);
+	}
+	else {
 
+	}
 	for(;;) {
 		// do a whole lot of nothing
 		if(bOcTriggered) {

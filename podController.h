@@ -15,7 +15,7 @@ volatile bool bParked = false;
 class PodController
 {
 public:
-	PodController(motorCtrl *pMotionController);
+	PodController(motorCtrl *pMotionController, powerPorts *pPowerController);
 	podStates getShutterState();
 	float GetAzimuth();
 	float getAltitude();
@@ -25,28 +25,39 @@ public:
 	void SetParkAzimuth(float fAz);
 	void GoToAzimuth(float fAz);
 	void SyncPosition(float fAz);
-
+	bool isCalibrated();
+	void setIsCAlibrated(bool bCalibrated);
 
 private:
 	motorCtrl	*mPodMotor = nullptr;
-	float	m_fPartAzimuth = 0.0f;
-	float	m_fAz = 0.0f;
-
+	powerPorts	*mPowerController = nullptr;
+	float		m_fPartAzimuth = 0.0f;
+	float		m_fAz = 0.0f;
+	podStates 	m_nState = IDLE;
+	bool		m_isCalibrated = false;
 };
 
 PodController *podController = nullptr;
 
-PodController::PodController(motorCtrl *pMotionController)
+PodController::PodController(motorCtrl *pMotionController, powerPorts *pPowerController)
 {
 	// make sure we're not getting a nullptr
 	if(pMotionController) {
 		mPodMotor = pMotionController;
 	}
+	if(pPowerController) {
+		mPowerController = pPowerController;
+	}
 }
 
 podStates PodController::getShutterState()
 {
-	return IDLE;
+	// if the state is error, shut off power
+	if(m_nState == POD_ERROR) {
+		Abort();
+		// mPowerController->setPortState(); -> apparently no way to cut the motor power, need to check schematics
+	}
+	return m_nState;
 }
 
 float PodController::GetAzimuth()
@@ -61,19 +72,23 @@ float PodController::getAltitude()
 
 void PodController::Abort()
 {
-
+	mPodMotor->Stop();
 }
 
 void PodController::Open()
 {
-	if(mPodMotor)
+	if(mPodMotor) {
+		m_nState = OPENING;
 		mPodMotor->Open();
+	}
 }
 
 void PodController::Close()
 {
-	if(mPodMotor)
+	if(mPodMotor) {
+		m_nState = CLOSING;
 		mPodMotor->Close();
+	}
 }
 
 void PodController::SetParkAzimuth(float fAz)
@@ -91,5 +106,14 @@ void PodController::SyncPosition(float fAz)
 
 }
 
+bool PodController::isCalibrated()
+{
+	return m_isCalibrated;
+}
+
+void PodController::setIsCAlibrated(bool bCalibrated)
+{
+	m_isCalibrated = bCalibrated;
+}
 
 #endif
