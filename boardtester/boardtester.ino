@@ -37,12 +37,6 @@ void loop()
             Serial.println("  !");
             nDevices++;
         }
-        else if (error==4) {
-            Serial.print("Unknown error at address 0x");
-            if (address<16)
-                Serial.print("0");
-            Serial.println(address,HEX);
-        }
     }
 
     if (nDevices == 0) {
