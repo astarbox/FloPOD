@@ -95,7 +95,7 @@ void loop()
         podRainSensor = new RainSensor();
     }
 
-    if(podPowerController -> bMainInaPResent) {
+    if(podPowerController -> bMainInaPresent) {
         v = podPowerController->readVolts(INA260_MAIN);
         a = podPowerController->readAmps(INA260_MAIN);
         p = podPowerController->readPower(INA260_MAIN);
@@ -107,7 +107,7 @@ void loop()
         Serial.println("Main input INA260 not found");
     }
 
-    if(podPowerController -> bDC1InaPResent) {
+    if(podPowerController -> bDC1InaPresent) {
         v = podPowerController->readVolts(INA260_DC_1);
         a = podPowerController->readAmps(INA260_DC_1);
         p = podPowerController->readPower(INA260_DC_1);
@@ -119,7 +119,7 @@ void loop()
         Serial.println("DC1 INA260 not found");
     }
 
-    if(podPowerController -> bDC2InaPResent) {
+    if(podPowerController -> bDC2InaPresent) {
         v = podPowerController->readVolts(INA260_DC_2);
         a = podPowerController->readAmps(INA260_DC_2);
         p = podPowerController->readPower(INA260_DC_2);
@@ -131,7 +131,7 @@ void loop()
         Serial.println("DC2 INA260 not found");
     }
 
-    if(podPowerController -> bPWM1InaPResent) {
+    if(podPowerController -> bPWM1InaPresent) {
         v = podPowerController->readVolts(INA260_PWM1);
         a = podPowerController->readAmps(INA260_PWM1);
         p = podPowerController->readPower(INA260_PWM1);
@@ -143,7 +143,7 @@ void loop()
         Serial.println("PWM1 INA260 not found");
     }
 
-    if(podPowerController -> bPWM2InaPResent) {
+    if(podPowerController -> bPWM2InaPresent) {
         v = podPowerController->readVolts(INA260_PWM2);
         a = podPowerController->readAmps(INA260_PWM2);
         p = podPowerController->readPower(INA260_PWM2);
@@ -155,7 +155,7 @@ void loop()
         Serial.println("PWM2 INA260 not found");
     }
 
-    if(podPowerController -> bUSBCInaPResent) {
+    if(podPowerController -> bUSBCInaPresent) {
         v = podPowerController->readVolts(INA260_USB_C);
         a = podPowerController->readAmps(INA260_USB_C);
         p = podPowerController->readPower(INA260_USB_C);
@@ -167,7 +167,7 @@ void loop()
         Serial.println("USB-C INA260 not found");
     }
 
-    if(podPowerController -> bBATInaPResent) {
+    if(podPowerController -> bBATInaPresent) {
         v = podPowerController->readVolts(INA260_BAT);
         a = podPowerController->readAmps(INA260_BAT);
         p = podPowerController->readPower(INA260_BAT);
@@ -179,7 +179,7 @@ void loop()
         Serial.println("Battery INA260 not found");
     }
 
-    if(podPowerController -> bVMOTInaPResent) {
+    if(podPowerController -> bVMOTInaPresent) {
         v = podPowerController->readVolts(INA260_VMOT);
         a = podPowerController->readAmps(INA260_VMOT);
         p = podPowerController->readPower(INA260_VMOT);

@@ -51,14 +51,14 @@ public:
 	float readAmps(INA260 &INA);
 	float readPower(INA260 &INA);
 
-	bool bMainInaPResent = false;
-	bool bDC1InaPResent = false;
-	bool bDC2InaPResent = false;
-	bool bPWM1InaPResent = false;
-	bool bPWM2InaPResent = false;
-	bool bUSBCInaPResent = false;
-	bool bBATInaPResent = false;
-	bool bVMOTInaPResent = false;
+	bool bMainInaPresent = false;
+	bool bDC1InaPresent = false;
+	bool bDC2InaPresent = false;
+	bool bPWM1InaPresent = false;
+	bool bPWM2InaPresent = false;
+	bool bUSBCInaPresent = false;
+	bool bBATInaPresent = false;
+	bool bVMOTInaPresent = false;
 
 private:
 	float rawToAmps(int16_t value);
@@ -77,49 +77,49 @@ powerPorts::powerPorts()
 		// set error.. this one is not responding
 	}
 	else
-		bMainInaPResent = true;
+		bMainInaPresent = true;
 
 	if (!INA260_DC_1.begin()) {
 		// set error.. this one is not responding
 	}
 	else
-		bDC1InaPResent = true;
+		bDC1InaPresent = true;
 
 	if (!INA260_DC_2.begin()) {
 		// set error.. this one is not responding
 	}
 	else
-		bDC2InaPResent = true;
+		bDC2InaPresent = true;
 
 	if (!INA260_USB_C.begin()) {
 		// set error.. this one is not responding
 	}
 	else
-		bUSBCInaPResent = true;
+		bUSBCInaPresent = true;
 
 	if (!INA260_PWM1.begin()) {
 		// set error.. this one is not responding
 	}
 	else
-		bPWM1InaPResent = true;
+		bPWM1InaPresent = true;
 
 	if (!INA260_PWM2.begin()) {
 		// set error.. this one is not responding
 	}
 	else
-		bPWM2InaPResent = true;
+		bPWM2InaPresent = true;
 
 	if (!INA260_BAT.begin()) {
 		// set error.. this one is not responding
 	}
 	else
-		bBATInaPResent = true;
+		bBATInaPresent = true;
 
 	if (!INA260_VMOT.begin()) {
 		// set error.. this one is not responding
 	}
 	else
-		bVMOTInaPResent = true;
+		bVMOTInaPresent = true;
 
 }
 
