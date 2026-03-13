@@ -188,11 +188,11 @@ void EnvTask(void *)
 {
 	const TickType_t xDelay = 50/ portTICK_PERIOD_MS; // 50ms task block to give time back
 
-	envSensor = new HumTempSensor();
+	humTempSensor = new HumTempSensor();
 	podRainSensor = new RainSensor();
 
 	for(;;) {
-		envSensor->getTempAndHum(fTemperature, fHumidity);
+		humTempSensor->getTempAndHum(fTemperature, fHumidity);
 		rainSensorAdcValue = podRainSensor->getADCValue();
 		// FreeRTOS task management
 		vTaskDelay(xDelay);

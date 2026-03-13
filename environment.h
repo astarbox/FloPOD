@@ -10,7 +10,8 @@
 #include <Adafruit_MCP3421.h>
 #include <Wire.h>
 
-using HDC1080 =  GuL::HDC1080;
+using HDC1080 = GuL::HDC1080;
+
 #define MCP3421_ADDR    0x68
 
 class HumTempSensor
@@ -46,7 +47,7 @@ void HumTempSensor::getTempAndHum(float &temperature, float &humidity)
 }
 
 
-HumTempSensor *envSensor;
+HumTempSensor *humTempSensor;
 
 
 class RainSensor
