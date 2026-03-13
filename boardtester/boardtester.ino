@@ -58,7 +58,7 @@ void loop()
     int nDevices = 0;
     byte error, address;
     float v,a,p;
-	TickType_t xDelay = 1000/ portTICK_PERIOD_MS; // 1s
+	TickType_t xDelay = 1000/portTICK_PERIOD_MS; // 1s
 
     Serial.println("Scanning...");
     for(address = 1; address < 127; address++ ) {
@@ -80,6 +80,8 @@ void loop()
 
     if (nDevices == 0) {
         Serial.println("No I2C devices found\n");
+        vTaskDelay(xDelay);
+        taskYIELD();
         return;
     }
 
