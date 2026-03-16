@@ -8,8 +8,8 @@
 #define __MOT_ENC__
 // #include <JMotor.h>
 
-
 #include "config.h"
+#include "ams_as5048b.h"
 
 #define AS5048B_ADDR	0x41
 
