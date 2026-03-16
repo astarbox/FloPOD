@@ -26,12 +26,12 @@ public:
 	void 	getState(MotorCalibrationSteps &nCalState);
 	void	OverCurrentStop();
 	bool	bIsEncoderCalibrated();
+	void	getEncoderPosition(float &fDegrees);
 
 private:
 	EncoderConfig m_EncoderConfig;
 	MotorStates m_nMotorState = M_STOPPED;
 	MotorCalibrationSteps m_CalsState = CAL_NONE;
-	void	getEncoderPosition(float &fDegrees);
 
 	AMS_AS5048B *m_AMS_AS5048B;
 };
@@ -113,7 +113,7 @@ void motorCtrl::getState(MotorCalibrationSteps &nCalState)
 
 void motorCtrl::getEncoderPosition(float &fDegrees)
 {
-	fDegrees = m_AMS_AS5048B->angleR(U_DEG, true);
+	fDegrees = float(m_AMS_AS5048B->angleR(U_DEG, true));
 }
 
 bool motorCtrl::bIsEncoderCalibrated()

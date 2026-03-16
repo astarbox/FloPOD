@@ -9,6 +9,7 @@
 
 #include "../powerManagement.h"
 #include "../environment.h"
+#include "../motorCtrl.h"
 
 // network interfaces
 #define PodEthernet ETH
@@ -58,6 +59,7 @@ void loop()
     int nDevices = 0;
     byte error, address;
     float v,a,p;
+    float fDeg;
 	TickType_t xDelay = 1000/portTICK_PERIOD_MS; // 1s
 
     Serial.println("Scanning...");
@@ -95,6 +97,10 @@ void loop()
     }
     if (podRainSensor == nullptr) {
         podRainSensor = new RainSensor();
+    }
+
+    if(PodMotorController == nullptr) {
+        PodMotorController = new motorCtrl();
     }
 
     if(podPowerController -> bMainInaPresent) {
@@ -212,6 +218,11 @@ void loop()
 
     rainSensorAdcValue = podRainSensor->getADCValue();
     Serial.println("Rain Sensor ADC : " + String(rainSensorAdcValue));
+
+    if(PodMotorController) {
+        PodMotorController->getEncoderPosition(fDeg);
+        Serial.println("AMS encoder angle : " + String(fDeg));
+    }
 
     if(ethernetPresent) {
         Serial.println("W5500 Ok.");
