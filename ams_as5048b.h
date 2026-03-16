@@ -89,9 +89,6 @@
 #define U_MILRU 10
 
 
-
-
-
 class AMS_AS5048B {
  public:
 	AMS_AS5048B(void);

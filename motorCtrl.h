@@ -32,6 +32,8 @@ private:
 	MotorStates m_nMotorState = M_STOPPED;
 	MotorCalibrationSteps m_CalsState = CAL_NONE;
 	void	getEncoderPosition(float &fDegrees);
+
+	AMS_AS5048B *m_AMS_AS5048B;
 };
 
 motorCtrl *PodMotorController = nullptr;
@@ -48,6 +50,7 @@ motorCtrl::motorCtrl()
 	if(globalPodConfig) {
 		globalPodConfig->LoadEncoderConfig(m_EncoderConfig);
 	}
+	m_AMS_AS5048B = new AMS_AS5048B();
 }
 
 void motorCtrl::Calibrate()
@@ -110,7 +113,7 @@ void motorCtrl::getState(MotorCalibrationSteps &nCalState)
 
 void motorCtrl::getEncoderPosition(float &fDegrees)
 {
-
+	fDegrees = m_AMS_AS5048B->angleR(U_DEG, true);
 }
 
 bool motorCtrl::bIsEncoderCalibrated()
