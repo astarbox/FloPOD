@@ -35,6 +35,7 @@ float fHumidity = 0.0f;
 int32_t	rainSensorAdcValue = 0;
 volatile bool ethernetPresent = false;
 volatile bool bDhcpOk = false;
+volatile bool bDcPortOn = false;
 
 void setup()
 {
@@ -62,11 +63,23 @@ void loop()
     float fDeg;
 	TickType_t xDelay = 1000/portTICK_PERIOD_MS; // 1s
 
-    Serial.println("Scanning...");
-    for(address = 1; address < 127; address++ ) {
-        // The i2c_scanner uses the return value of
+    if(ethernetPresent) {
+        Serial.println("W5500 Ok.");
+        if(PodEthernet.linkUp()) {
+            Serial.println("W5500 IP = " + IpAddress2String(PodEthernet.localIP()));
+        }
+        else {
+            Serial.println("W5500 waiting for link");
+
+        }
+    }
+
+    Serial.println("Scanning I2C bus ...");
+    for(address = 8; address < 127; address++ ) {
+        // This uses the return value of
         // the Write.endTransmisstion to see if
         // a device did acknowledge to the address.
+        // addresses 0 to 7 are reserved so we start scanning at 8
         Wire.beginTransmission(address);
         error = Wire.endTransmission();
 
@@ -219,22 +232,32 @@ void loop()
     rainSensorAdcValue = podRainSensor->getADCValue();
     Serial.println("Rain Sensor ADC : " + String(rainSensorAdcValue));
 
-    if(PodMotorController) {
-        PodMotorController->getEncoderPosition(fDeg);
-        Serial.println("AMS encoder angle : " + String(fDeg));
+    PodMotorController->getEncoderPosition(fDeg);
+    Serial.println("AMS encoder angle : " + String(fDeg));
+
+
+    if(!bDcPortOn) {
+        // switch ports on
+        bDcPortOn = true;
+        podPowerController->setPortState(USB_C, true);
+        podPowerController->setPortState(DC1, true);
+        podPowerController->setPortState(DC2, true);
+        podPowerController->setPwmPortState(PWM1, 50);
+        podPowerController->setPwmPortState(PWM2, 50);
+        // set motor on
+
     }
+    else {
+        // switch ports off
+        bDcPortOn = false;
+        podPowerController->setPortState(USB_C, false);
+        podPowerController->setPortState(DC1, false);
+        podPowerController->setPortState(DC2, false);
+        podPowerController->setPwmPortState(PWM1, 0);
+        podPowerController->setPwmPortState(PWM2, 0);
+        // set motor off
 
-    if(ethernetPresent) {
-        Serial.println("W5500 Ok.");
-        if(PodEthernet.linkUp()) {
-            Serial.println("W5500 IP = " + IpAddress2String(PodEthernet.localIP()));
-        }
-        else {
-            Serial.println("W5500 waiting for link");
-
-        }
     }
-
     vTaskDelay(xDelay);
     taskYIELD();
 }

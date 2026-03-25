@@ -51,6 +51,15 @@
 #define MOT_SLEEP       41  // MOT3
 #define MOT_FAULT       42  // MOT4
 
+// PWM port settingz
+const int PWM_FREQ = 500;
+const int PWM_RESOLUTION = 8;
+const int MAX_DUTY_CYCLE = (int)(pow(2, PWM_RESOLUTION) - 1);
+
+const int MotorPwmChannel = 0;
+const int PWM1PwmChannel = 1;
+const int PWM2PwmChannel = 2;
+
 
 // config for station mode
 typedef struct IPCONFIG {

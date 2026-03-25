@@ -45,6 +45,8 @@ public:
 	bool setAlarmAmps(INA260 &INA, float nAmps);
 	bool setAlarmVoltage(INA260 &INA, float nVolts);
 	void setPortState(int nPort, bool bOn);
+	void setPortToPWM(int nPort, int nChanne);
+	void setPwmPortState(int nPort, int nPercent);
 	bool checkAlert(INA260 &INA);
 
 	float readVolts(INA260 &INA);
@@ -67,6 +69,8 @@ private:
 	uint16_t voltsToRaw(float value);
 	float rawToWatts(uint16_t value);
 	uint16_t wattsToRaw(float value);
+
+	SemaphoreHandle_t m_xSemaphore = NULL;
 };
 
 powerPorts *podPowerController = nullptr;
@@ -120,7 +124,12 @@ powerPorts::powerPorts()
 	}
 	else
 		bVMOTInaPresent = true;
-
+	
+	// set PWM pins
+	setPortToPWM(PWM1,PWM1PwmChannel);
+	setPwmPortState(PWM1,0);
+	setPortToPWM(PWM2,PWM2PwmChannel);
+	setPwmPortState(PWM2,0);
 }
 
 bool powerPorts::setAlarmAmps(INA260 &INA, float nAmps)
@@ -160,6 +169,20 @@ void powerPorts::setPortState(int nPort, bool bOn)
 	digitalWrite(nPort, bOn?1:0);
 }
 
+void powerPorts::setPortToPWM(int nPort, int nChannel)
+{
+	ledcAttachChannel(nPort, PWM_FREQ, PWM_RESOLUTION, nChannel);
+}
+
+void powerPorts::setPwmPortState(int nPort, int nPercent)
+{
+	int dutyCycle = int((float(nPercent)/100.0f) * 255);
+
+	if(dutyCycle > MAX_DUTY_CYCLE)
+		dutyCycle = MAX_DUTY_CYCLE;
+    ledcWriteChannel(nPort, dutyCycle);
+}
+
 bool powerPorts::checkAlert(INA260 &INA)
 {
 	bool bAlertTRiggered = false;
@@ -174,24 +197,23 @@ bool powerPorts::checkAlert(INA260 &INA)
 float powerPorts::readVolts(INA260 &INA)
 {
 	float fValue;
-
+	fValue = INA.getBusVoltage();
 	return fValue;
 }
 
 float powerPorts::readAmps(INA260 &INA)
 {
 	float fValue;
-
+	fValue = INA.getCurrent();
 	return fValue;
 }
 
 float powerPorts::readPower(INA260 &INA)
 {
 	float fValue;
-
+	fValue = INA.getPower();
 	return fValue;
 }
-
 
 float powerPorts::rawToAmps(int16_t value)
 {
