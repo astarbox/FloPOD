@@ -605,8 +605,10 @@ void getDomeState(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	double Alt, Az;
-	double dParkPos, dCurrentAz;
+	float Alt, Az;
+	float dParkPos, dCurrentAz;
+	bool bParked = false;
+	int nState;
 
 	DBPrintln("[ ********** getDomeState ********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
@@ -614,22 +616,39 @@ void getDomeState(Request &req, Response &res)
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
+
 	// add states to response
 
-	jsTmp.clear();
-	jsTmp["Azimuth"] = podController->GetAzimuth();
+	nState = podController->getShutterState();
+	if(nState == OPEN)
+		Alt = 90.0f;
+	else if (nState == CLOSED)
+		Alt = 0.0f;
+	else {
+		Alt = podController->getAltitude();
+	}
+	jsTmp["Name"] = "Altitude";
+	jsTmp["Value"] = Alt;
 	AlpacaResp["Value"].add(jsTmp);
-
 	jsTmp.clear();
-	jsTmp["ShutterStatus"] = getAlpacaShutterState();
+
+	jsTmp["Name"] = "Azimuth";
+	jsTmp["Value"] = podController->GetAzimuth();
 	AlpacaResp["Value"].add(jsTmp);
-
 	jsTmp.clear();
+
+	jsTmp["Name"] = "ShutterStatus";
+	jsTmp["Value"] = getAlpacaShutterState();
+	AlpacaResp["Value"].add(jsTmp);
+	jsTmp.clear();
+
+
+	jsTmp["Name"] = "Slewing";
 	if(podController->getShutterState() != IDLE) {
-		AlpacaResp["Slewing"] = true;
+		jsTmp["Value"] = true;
 	}
 	else {
-		AlpacaResp["Slewing"] = false;
+		jsTmp["Value"] = false;
 	}
 	AlpacaResp["Value"].add(jsTmp);
 
