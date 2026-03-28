@@ -3,20 +3,17 @@
 // then will test the eeprom on the shield
 // -----------------------------------------
 
+
+#define USE_ETHERNET 
+
+#ifdef USE_ETHERNET
+#pragma message "Ethernet enabled"
 #include <ETH.h>
-#include <Network.h>
-#include <Wire.h>
-
-#include "../powerManagement.h"
-#include "../environment.h"
-#include "../motorCtrl.h"
-
 // network interfaces
 #define PodEthernet ETH
 
 #define ETHERNET_CS     5
-#define ETHERNET_INT	-1
-#define ETHERNET_RESET  4
+#define ETHERNET_RESET  46
 
 #define ETH_PHY_TYPE ETH_PHY_W5500
 #define ETH_PHY_ADDR 1
@@ -25,34 +22,109 @@
 #define ETH_PHY_RST  ETHERNET_RESET
 
 // SPI pins
-#define ETH_SPI_SCK  14
-#define ETH_SPI_MISO 12
-#define ETH_SPI_MOSI 13
+#define ETH_SPI_SCK         SCK
+#define ETH_SPI_MISO        MISO
+#define ETH_SPI_MOSI        MOSI
+
+byte MAC_Address[6];
+#endif // USE_ETHERNET
+
+#include <Network.h>
+#include <Wire.h>
+
+#include "../powerManagement.h"
+#include "../environment.h"
+#include "../motorCtrl.h"
+
 
 
 float fTemperature = 0.0f;
 float fHumidity = 0.0f;
 int32_t	rainSensorAdcValue = 0;
+#ifdef USE_ETHERNET
 volatile bool ethernetPresent = false;
 volatile bool bDhcpOk = false;
+#endif // #ifdef USE_ETHERNET
+
 volatile bool bDcPortOn = false;
+
+#ifdef USE_ETHERNET
+bool initEthernet()
+{
+	char macBuffer[20];
+	bool bDhcpOk = false;
+	int nTimeout = 0;
+
+	Serial.println("========== Init Ethernet ==========");
+	// resetChip(ETHERNET_RESET);
+	SPI.begin(ETH_SPI_SCK, ETH_SPI_MISO, ETH_SPI_MOSI);
+	// network configuration
+	if(!ETH.begin(ETH_PHY_TYPE, ETH_PHY_ADDR, ETH_PHY_CS, ETH_PHY_IRQ, ETH_PHY_RST, SPI)) {
+		Serial.println("No Ethernet hardware detected");
+		return false;
+	}
+    ethernetPresent = true;
+	// set an ip so we can get the link status
+	PodEthernet.config("192.168.0.100", "192.168.0.1", "255.255.255.0");
+	while(!PodEthernet.linkUp() ) {
+		vTaskDelay(250 / portTICK_PERIOD_MS);
+		nTimeout++;
+		if(nTimeout == 10) {
+			return false;
+		}
+	}
+
+	PodEthernet.macAddress(MAC_Address);
+	PodEthernet.setHostname("FLO-Pod");
+
+	Serial.println("========== Setting IP config ==========");
+    bDhcpOk = PodEthernet.config(IPAddress(0, 0, 0, 0), IPAddress(0, 0, 0, 0), IPAddress(0, 0, 0, 0)); // all value set to the default 0 means use dhcp.
+    if(bDhcpOk) {
+        nTimeout = 0;
+        while(PodEthernet.localIP() == IPAddress(0,0,0,0) ) {
+            vTaskDelay(250 / portTICK_PERIOD_MS);
+            nTimeout++;
+            if(nTimeout == 30) {
+                break;
+            }
+        }
+    }
+
+	if(PodEthernet.localIP() == IPAddress(0,0,0,0)) {
+			PodEthernet.config("192.168.0.100", "192.168.0.1", "255.255.255.0");
+            PodEthernet.dnsIP(0,"1.1.1.1");
+            vTaskDelay(250 / portTICK_PERIOD_MS);
+	}
+
+	PodEthernet.setDefault();
+
+	Serial.println("========== Checking hardware status ==========");
+	Serial.println("W5500 Ok.");
+	Serial.println("W5500 IP = " + IpAddress2String(PodEthernet.localIP()));
+	snprintf(macBuffer,20,"%02x:%02x:%02x:%02x:%02x:%02x",
+		MAC_Address[0],
+		MAC_Address[1],
+		MAC_Address[2],
+		MAC_Address[3],
+		MAC_Address[4],
+		MAC_Address[5]);
+	Serial.println("Dome MAC : " + String(macBuffer));
+	return true;
+}
+#endif
 
 void setup()
 {
+    int nTimeout;
     Wire.begin();
     Serial.begin(115200);
     Serial.println("\nI2C Scanner & FloPOD tester");
-	if(!ETH.begin(ETH_PHY_TYPE, ETH_PHY_ADDR, ETH_PHY_CS, -1, ETH_PHY_RST, SPI)) {
-		Serial.println("No Thernet hardware detected");
-	}
-    else {
-        ethernetPresent = true;
-    }
 
-    if(ethernetPresent) {
-        bDhcpOk = PodEthernet.config(IPAddress(0, 0, 0, 0), IPAddress(0, 0, 0, 0), IPAddress(0, 0, 0, 0)); // all value set to the default 0 means use dhcp.
+	Network.begin();
+#ifdef USE_ETHERNET
+    initEthernet();
+#endif
 
-    }
 }
 
 void loop()
@@ -61,8 +133,9 @@ void loop()
     byte error, address;
     float v,a,p;
     float fDeg;
-	TickType_t xDelay = 1000/portTICK_PERIOD_MS; // 1s
+	static TickType_t xDelay = 1000/portTICK_PERIOD_MS; // 1s
 
+#ifdef USE_ETHERNET
     if(ethernetPresent) {
         Serial.println("W5500 Ok.");
         if(PodEthernet.linkUp()) {
@@ -73,6 +146,7 @@ void loop()
 
         }
     }
+#endif 
 
     Serial.println("Scanning I2C bus ...");
     for(address = 8; address < 127; address++ ) {

@@ -12,6 +12,8 @@
 
 #define PodWiFi WiFi
 
+// #define USE_ETHERNET 
+
 #define DEBUG   // enable debug to serial port defined as DebugPort
 
 #ifdef DEBUG
@@ -26,6 +28,30 @@
 #define DBPrintln(x)
 #define DBPrintHex(x)
 #endif // DEBUG
+
+
+#ifdef USE_ETHERNET
+#pragma message "Ethernet enabled"
+#include <ETH.h>
+// network interfaces
+#define PodEthernet ETH
+
+#define ETHERNET_CS     5
+#define ETHERNET_RESET  46
+
+#define ETH_PHY_TYPE ETH_PHY_W5500
+#define ETH_PHY_ADDR 1
+#define ETH_PHY_CS   ETHERNET_CS
+#define ETH_PHY_IRQ  -1
+#define ETH_PHY_RST  ETHERNET_RESET
+
+// SPI pins
+#define ETH_SPI_SCK         SCK
+#define ETH_SPI_MISO        MISO
+#define ETH_SPI_MOSI        MOSI
+
+byte MAC_Address[6];
+#endif // USE_ETHERNET
 
 
 #define VERSION "0.1"

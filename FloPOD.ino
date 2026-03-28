@@ -63,6 +63,9 @@ void setup()
 	Network.begin();
 	// Start local hostspot and connect to local wifi if configured and available
 	configureWiFi();
+#ifdef USE_ETHERNET
+    initEthernet();
+#endif
 
     // start I2C
     Wire.begin();
@@ -120,7 +123,6 @@ void loop()
 	esp_task_wdt_reset();
 
 }
-
 
 
 // core 0  task(s)
@@ -265,3 +267,68 @@ void configureWiFi()
 	PodWiFi.setHostname("FLOPod");
 	DBPrintln("WiFi IP = " + IpAddress2String(WiFi.softAPIP()));
 }
+
+#ifdef USE_ETHERNET
+bool initEthernet()
+{
+	char macBuffer[20];
+	bool bDhcpOk = false;
+	int nTimeout = 0;
+
+	DBPrintln("========== Init Ethernet ==========");
+	// resetChip(ETHERNET_RESET);
+	SPI.begin(ETH_SPI_SCK, ETH_SPI_MISO, ETH_SPI_MOSI);
+	// network configuration
+	if(!ETH.begin(ETH_PHY_TYPE, ETH_PHY_ADDR, ETH_PHY_CS, ETH_PHY_IRQ, ETH_PHY_RST, SPI)) {
+		DBPrintln("No Ethernet hardware detected");
+		return false;
+	}
+
+	// set an ip so we can get the link status
+	PodEthernet.config("192.168.0.100", "192.168.0.1", "255.255.255.0");
+	while(!PodEthernet.linkUp() ) {
+		vTaskDelay(250 / portTICK_PERIOD_MS);
+		nTimeout++;
+		if(nTimeout == 10) {
+			return false;
+		}
+	}
+
+	PodEthernet.macAddress(MAC_Address);
+	PodEthernet.setHostname("FLO-Pod");
+
+	DBPrintln("========== Setting IP config ==========");
+    bDhcpOk = PodEthernet.config(IPAddress(0, 0, 0, 0), IPAddress(0, 0, 0, 0), IPAddress(0, 0, 0, 0)); // all value set to the default 0 means use dhcp.
+    if(bDhcpOk) {
+        nTimeout = 0;
+        while(PodEthernet.localIP() == IPAddress(0,0,0,0) ) {
+            vTaskDelay(250 / portTICK_PERIOD_MS);
+            nTimeout++;
+            if(nTimeout == 30) {
+                break;
+            }
+        }
+    }
+
+	if(PodEthernet.localIP() == IPAddress(0,0,0,0)) {
+			PodEthernet.config("192.168.0.100", "192.168.0.1", "255.255.255.0");
+            PodEthernet.dnsIP(0,"1.1.1.1");
+            vTaskDelay(250 / portTICK_PERIOD_MS);
+	}
+
+	PodEthernet.setDefault();
+
+	DBPrintln("========== Checking hardware status ==========");
+	DBPrintln("W5500 Ok.");
+	DBPrintln("W5500 IP = " + IpAddress2String(PodEthernet.localIP()));
+	snprintf(macBuffer,20,"%02x:%02x:%02x:%02x:%02x:%02x",
+		MAC_Address[0],
+		MAC_Address[1],
+		MAC_Address[2],
+		MAC_Address[3],
+		MAC_Address[4],
+		MAC_Address[5]);
+	DBPrintln("Dome MAC : " + String(macBuffer));
+	return true;
+}
+#endif
