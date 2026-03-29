@@ -4,7 +4,7 @@
 // -----------------------------------------
 
 
-#define USE_ETHERNET 
+// #define USE_ETHERNET 
 
 #ifdef USE_ETHERNET
 #pragma message "Ethernet enabled"

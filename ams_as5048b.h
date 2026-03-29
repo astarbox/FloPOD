@@ -108,12 +108,12 @@ class AMS_AS5048B {
 	uint16_t	angleRegR(void); //read raw value of the angle register
 	uint8_t		diagR(void); //read diagnostic register
 	uint16_t	magnitudeR(void); //read current magnitude
-	double		angleR(int unit = U_RAW, boolean newVal = true); //Read current angle or get last measure with unit conversion : RAW, TRN, DEG, RAD, GRAD, MOA, SOA, MILNATO, MILSE, MILRU
+	float		angleR(int unit = U_RAW, boolean newVal = true); //Read current angle or get last measure with unit conversion : RAW, TRN, DEG, RAD, GRAD, MOA, SOA, MILNATO, MILSE, MILRU
 	uint8_t		getAutoGain(void);
 	uint8_t		getDiagReg(void);
 
 	void		updateMovingAvgExp(void); //measure the current angle and feed the Exponential Moving Average calculation
-	double		getMovingAvgExp(int unit = U_RAW); //get Exponential Moving Average calculation
+	float		getMovingAvgExp(int unit = U_RAW); //get Exponential Moving Average calculation
 	void		resetMovingAvgExp(void); //reset Exponential Moving Average calculation values
 
  private:
@@ -123,19 +123,19 @@ class AMS_AS5048B {
 	uint8_t		_chipAddress;
 	uint8_t		_addressRegVal;
 	uint16_t	_zeroRegVal;
-	double		_lastAngleRaw;
-	double		_movingAvgExpAngle;
-	double		_movingAvgExpSin;
-	double		_movingAvgExpCos;
-	double		_movingAvgExpAlpha;
+	float		_lastAngleRaw;
+	float		_movingAvgExpAngle;
+	float		_movingAvgExpSin;
+	float		_movingAvgExpCos;
+	float		_movingAvgExpAlpha;
 	int		_movingAvgCountLoop;
 
 	//methods
 	uint8_t		readReg8(uint8_t address);
 	uint16_t	readReg16(uint8_t address); //16 bit value got from 2x8bits registers (7..0 MSB + 5..0 LSB) => 14 bits value
 	void		writeReg(uint8_t address, uint8_t value);
-	double		convertAngle(int unit, double angle); //RAW, TRN, DEG, RAD, GRAD, MOA, SOA, MILNATO, MILSE, MILRU
-	double		getExpAvgRawAngle(void);
+	float		convertAngle(int unit, float angle); //RAW, TRN, DEG, RAD, GRAD, MOA, SOA, MILNATO, MILSE, MILRU
+	float		getExpAvgRawAngle(void);
 	void		printDebug(void);
 };
 
@@ -452,19 +452,19 @@ uint8_t AMS_AS5048B::getDiagReg(void) {
     @params[in]
 				Boolean newVal : have a new measurement or use the last read one. True as default
     @returns
-				Double angle value converted into the desired unit
+				float angle value converted into the desired unit
 */
 /**************************************************************************/
-double AMS_AS5048B::angleR(int unit, boolean newVal) {
+float AMS_AS5048B::angleR(int unit, boolean newVal) {
 
-	double angleRaw;
+	float angleRaw;
 
 	if (newVal) {
 		if(_clockWise) {
-			angleRaw = (double) (0b11111111111111 - AMS_AS5048B::readReg16(AS5048B_ANGLMSB_REG));
+			angleRaw = (float) (0b11111111111111 - AMS_AS5048B::readReg16(AS5048B_ANGLMSB_REG));
 		}
 		else {
-			angleRaw = (double) AMS_AS5048B::readReg16(AS5048B_ANGLMSB_REG);
+			angleRaw = (float) AMS_AS5048B::readReg16(AS5048B_ANGLMSB_REG);
 		}
 		_lastAngleRaw = angleRaw;
 	}
@@ -490,7 +490,7 @@ void AMS_AS5048B::updateMovingAvgExp(void) {
 
 	//sine and cosine calculation on angles in radian
 
-	double angle = AMS_AS5048B::angleR(U_RAD, true);
+	float angle = AMS_AS5048B::angleR(U_RAD, true);
 
 	if (_movingAvgCountLoop < EXP_MOVAVG_LOOP) {
 		_movingAvgExpSin += sin(angle);
@@ -502,8 +502,8 @@ void AMS_AS5048B::updateMovingAvgExp(void) {
 		_movingAvgCountLoop ++;
 	}
 	else {
-		double movavgexpsin = _movingAvgExpSin + _movingAvgExpAlpha * (sin(angle) - _movingAvgExpSin);
-		double movavgexpcos = _movingAvgExpCos + _movingAvgExpAlpha * (cos(angle) - _movingAvgExpCos);
+		float movavgexpsin = _movingAvgExpSin + _movingAvgExpAlpha * (sin(angle) - _movingAvgExpSin);
+		float movavgexpcos = _movingAvgExpCos + _movingAvgExpAlpha * (cos(angle) - _movingAvgExpCos);
 		_movingAvgExpSin = movavgexpsin;
 		_movingAvgExpCos = movavgexpcos;
 		_movingAvgExpAngle = getExpAvgRawAngle();
@@ -519,10 +519,10 @@ void AMS_AS5048B::updateMovingAvgExp(void) {
     @params[in]
 				String unit : string expressing the unit of the angle. Sensor raw value as default
     @returns
-				Double exponential moving averaged angle value
+				float exponential moving averaged angle value
 */
 /**************************************************************************/
-double AMS_AS5048B::getMovingAvgExp(int unit) {
+float AMS_AS5048B::getMovingAvgExp(int unit) {
 
 	return AMS_AS5048B::convertAngle(unit, _movingAvgExpAngle);
 }
@@ -602,11 +602,11 @@ void AMS_AS5048B::writeReg(uint8_t address, uint8_t value) {
 	return;
 }
 
-double AMS_AS5048B::convertAngle(int unit, double angle) {
+float AMS_AS5048B::convertAngle(int unit, float angle) {
 
 	// convert raw sensor reading into angle unit
 
-	double angleConv;
+	float angleConv;
 
 	switch (unit) {
 		case U_RAW:
@@ -657,10 +657,10 @@ double AMS_AS5048B::convertAngle(int unit, double angle) {
 	return angleConv;
 }
 
-double AMS_AS5048B::getExpAvgRawAngle(void) {
+float AMS_AS5048B::getExpAvgRawAngle(void) {
 
-	double angle;
-	double twopi = 2 * M_PI;
+	float angle;
+	float twopi = 2 * M_PI;
 
 	if (_movingAvgExpSin < 0.0) {
 		angle = twopi - acos(_movingAvgExpCos);
