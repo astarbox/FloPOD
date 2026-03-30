@@ -30,7 +30,7 @@ public:
 	void	getEncoderPosition(float &fDegrees);
 
 private:
-	void	motorMove(float fPosition);
+	void	motorMoveTo(double fPosition);
 
 	EncoderConfig m_EncoderConfig;
 	MotorStates m_nMotorState = M_STOPPED;
@@ -38,15 +38,15 @@ private:
 
 	AMS_AS5048B *m_AMS_AS5048B;
 
-	double	m_fEncoderValue;
-	double	m_fTargetPosition;
+	double	m_dEncoderValue;
+	double	m_dTargetPosition;
 
-	double Kp = 2.00;	// Proportional gain — how strongly the controller reacts to the current error
-	double Ki = 5.00;	// Integral gain — how strongly it reacts to accumulated error over time
-	double Kd = 1.00;	// Derivative gain — how strongly it reacts to the rate of error change
+	// these will need to be set once I can test on the real hardware.
+	double m_dKp = 2.00;	// Proportional gain — how strongly the controller reacts to the current error
+	double m_dKi = 5.00;	// Integral gain — how strongly it reacts to accumulated error over time
+	double m_dKd = 1.00;	// Derivative gain — how strongly it reacts to the rate of error change
 
-	double 	pid_input = 0;
-	double	pid_output = 0;
+	double	m_dPidOutput = 0;
 	PID 	*myPID = nullptr;
 };
 
@@ -66,7 +66,7 @@ motorCtrl::motorCtrl()
 	}
 	m_AMS_AS5048B = new AMS_AS5048B();
 	m_AMS_AS5048B->begin();
-	myPID = new PID(&pid_input, &pid_output, &m_fTargetPosition, Kp, Ki, Kd, DIRECT);
+	myPID = new PID(&m_dEncoderValue, &m_dPidOutput, &m_dTargetPosition, m_dKp, m_dKi, m_dKd, DIRECT);
 	myPID->SetMode(AUTOMATIC);    // Enable PID
 	myPID->SetOutputLimits(0, 100); // Limit PWM output range to 100%
 }
@@ -110,13 +110,13 @@ void motorCtrl::Calibrate()
 void motorCtrl::Open()
 {
 	// move to calibrated open position
-	motorMove(m_EncoderConfig.openAngle);
+	motorMoveTo(m_EncoderConfig.openAngle);
 }
 
 void motorCtrl::Close()
 {
 	// move to calibrated close position
-	motorMove(m_EncoderConfig.closeAngle);
+	motorMoveTo(m_EncoderConfig.closeAngle);
 }
 
 void motorCtrl::Stop()
@@ -126,8 +126,11 @@ void motorCtrl::Stop()
 
 void motorCtrl::Run()
 {
-	pid_input = m_AMS_AS5048B->angleR(U_DEG);
+	m_dEncoderValue = m_AMS_AS5048B->angleR(U_DEG);
 	myPID->Compute();
+	// are we at the target position ?
+	// Yes -> stop motor PWM
+	// No -> set motor ouput PWM
 }
 
 void motorCtrl::getState(MotorCalibrationSteps &nCalState)
@@ -147,10 +150,9 @@ bool motorCtrl::bIsEncoderCalibrated()
 	return m_EncoderConfig.bIsCalibrated;
 }
 
-
-void motorCtrl::motorMove(float fPosition)
+void motorCtrl::motorMoveTo(double dPosition)
 {
-	m_fTargetPosition = fPosition;
+	m_dTargetPosition = dPosition;
 }
 
 
