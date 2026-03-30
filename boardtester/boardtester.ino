@@ -46,8 +46,6 @@ volatile bool ethernetPresent = false;
 volatile bool bDhcpOk = false;
 #endif // #ifdef USE_ETHERNET
 
-volatile bool bDcPortOn = false;
-
 #ifdef USE_ETHERNET
 bool initEthernet()
 {
@@ -124,6 +122,12 @@ void setup()
 #ifdef USE_ETHERNET
     initEthernet();
 #endif
+    // set all ports on 
+    podPowerController->setPortState(USB_C, true);
+    podPowerController->setPortState(DC1, true);
+    podPowerController->setPortState(DC2, true);
+    podPowerController->setPwmPortState(PWM1, 50);
+    podPowerController->setPwmPortState(PWM2, 50);
 
 }
 
@@ -303,35 +307,14 @@ void loop()
     humTempSensor->getTempAndHum(fTemperature, fHumidity);
     Serial.printf("HDC1080 : %f degC \n %f %% \n",fTemperature,fHumidity);
 
-    rainSensorAdcValue = podRainSensor->getADCValue();
-    Serial.println("Rain Sensor ADC : " + String(rainSensorAdcValue));
+    if(podRainSensor->isPresent()) {
+        rainSensorAdcValue = podRainSensor->getADCValue();
+        Serial.println("Rain Sensor ADC : " + String(rainSensorAdcValue));
+    }
 
     PodMotorController->getEncoderPosition(fDeg);
     Serial.println("AMS encoder angle : " + String(fDeg));
 
-
-    if(!bDcPortOn) {
-        // switch ports on
-        bDcPortOn = true;
-        podPowerController->setPortState(USB_C, true);
-        podPowerController->setPortState(DC1, true);
-        podPowerController->setPortState(DC2, true);
-        podPowerController->setPwmPortState(PWM1, 50);
-        podPowerController->setPwmPortState(PWM2, 50);
-        // set motor on
-
-    }
-    else {
-        // switch ports off
-        bDcPortOn = false;
-        podPowerController->setPortState(USB_C, false);
-        podPowerController->setPortState(DC1, false);
-        podPowerController->setPortState(DC2, false);
-        podPowerController->setPwmPortState(PWM1, 0);
-        podPowerController->setPwmPortState(PWM2, 0);
-        // set motor off
-
-    }
     vTaskDelay(xDelay);
     taskYIELD();
 }

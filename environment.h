@@ -27,6 +27,7 @@ private:
 HumTempSensor::HumTempSensor()
 {
     m_hdc = new HDC1080(Wire);
+    m_hdc->getManufacturerID(); // we can use this to check if device is present.
     m_hdc->resetConfiguration();
     m_hdc->enableHeater();
     m_hdc->setHumidityResolution(GuL::HDC1080::HumidityMeasurementResolution::HUM_RES_14BIT);
@@ -55,17 +56,22 @@ class RainSensor
 public:
     RainSensor();
     ~RainSensor();
+    bool isPresent();
 
     int32_t getADCValue();
 private:
     Adafruit_MCP3421 m_mcp;
     int32_t m_nLastValue;
+    bool m_bPresent = false;
 
 };
 
 RainSensor::RainSensor()
 {
-    m_mcp.begin(MCP3421_ADDR);
+    if(!m_mcp.begin(MCP3421_ADDR)) {
+        m_bPresent = false;
+        return;
+    }
     m_mcp.setGain(GAIN_1X);
     m_mcp.setResolution(RESOLUTION_18_BIT); // 3.75 SPS
     m_mcp.setMode(MODE_CONTINUOUS);
@@ -74,6 +80,11 @@ RainSensor::RainSensor()
 RainSensor::~RainSensor()
 {
 
+}
+
+bool RainSensor::isPresent()
+{
+    return m_bPresent;
 }
 
 int32_t RainSensor::getADCValue()

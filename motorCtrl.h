@@ -67,6 +67,8 @@ motorCtrl::motorCtrl()
 		globalPodConfig->LoadEncoderConfig(m_EncoderConfig);
 	}
 	m_AMS_AS5048B = new AMS_AS5048B();
+	m_AMS_AS5048B->begin();
+	
 }
 
 void motorCtrl::Calibrate()
