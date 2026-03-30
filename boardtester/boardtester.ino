@@ -290,17 +290,17 @@ void loop()
         Serial.println("Motor 1 INA260 not found");
     }
 
-//        if(podPowerController -> bVMOT2naPResent) {
-        // v = podPowerController->readVolts(INA260_VMOT2);
-        // a = podPowerController->readAmps(INA260_VMOT2);
-        // p = podPowerController->readPower(INA260_VMOT2);
-        // Serial.println("Motor 2 :");
-        // Serial.println("\tVolts : " + String(v));
-        // Serial.println("\tAmps  : " + String(a));
-        // Serial.println("\tWatts : " + String(p));
-//        } else {
-//            Serial.println("Motor 2 INA260 not found");
-//        }
+    if(podPowerController -> bVMOT2InaPresent) {
+        v = podPowerController->readVolts(INA260_VMOT2);
+        a = podPowerController->readAmps(INA260_VMOT2);
+        p = podPowerController->readPower(INA260_VMOT2);
+        Serial.println("Motor 2 :");
+        Serial.println("\tVolts : " + String(v));
+        Serial.println("\tAmps  : " + String(a));
+        Serial.println("\tWatts : " + String(p));
+    } else {
+        Serial.println("Motor 2 INA260 not found");
+    }
 
 
     // Environment sensors

@@ -61,7 +61,8 @@ public:
 	bool bUSBCInaPresent = false;
 	bool bBATInaPresent = false;
 	bool bVMOTInaPresent = false;
-
+	bool bVMOT2InaPresent = false;
+	
 private:
 	float rawToAmps(int16_t value);
 	int16_t ampsToRaw(float value);
@@ -124,7 +125,13 @@ powerPorts::powerPorts()
 	}
 	else
 		bVMOTInaPresent = true;
-	
+
+	if (!INA260_VMOT2.begin()) {
+		// set error.. this one is not responding
+	}
+	else
+		bVMOT2InaPresent = true;
+
 	// set PWM pins
 	setPortToPWM(PWM1,PWM1PwmChannel);
 	setPwmPortState(PWM1,0);
