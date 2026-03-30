@@ -6,7 +6,7 @@
 
 #ifndef __MOT_ENC__
 #define __MOT_ENC__
-// #include <JMotor.h>
+#include <PID_v1.h>
 
 #include "config.h"
 #include "ams_as5048b.h"
@@ -38,18 +38,16 @@ private:
 
 	AMS_AS5048B *m_AMS_AS5048B;
 
-	float	m_fEncoderValue;
-	float	m_fTargetPosition;
-	float 	m_e;
-	float	m_e_prev = 0;
-	float	m_inte;
-	float	m_inte_prev = 0;
-	float	m_fEncoderValue_prev;
-	unsigned long	m_t_prev = 0;
+	double	m_fEncoderValue;
+	double	m_fTargetPosition;
 
-	// sign will be used for direction
-	float	m_Vmax = 12;
-	float	m_Vmin = -12; 
+	double Kp = 2.00;	// Proportional gain — how strongly the controller reacts to the current error
+	double Ki = 5.00;	// Integral gain — how strongly it reacts to accumulated error over time
+	double Kd = 1.00;	// Derivative gain — how strongly it reacts to the rate of error change
+
+	double 	pid_input = 0;
+	double	pid_output = 0;
+	PID 	*myPID = nullptr;
 };
 
 motorCtrl *PodMotorController = nullptr;
@@ -68,7 +66,9 @@ motorCtrl::motorCtrl()
 	}
 	m_AMS_AS5048B = new AMS_AS5048B();
 	m_AMS_AS5048B->begin();
-	
+	myPID = new PID(&pid_input, &pid_output, &m_fTargetPosition, Kp, Ki, Kd, DIRECT);
+	myPID->SetMode(AUTOMATIC);    // Enable PID
+	myPID->SetOutputLimits(0, 100); // Limit PWM output range to 100%
 }
 
 void motorCtrl::Calibrate()
@@ -126,45 +126,8 @@ void motorCtrl::Stop()
 
 void motorCtrl::Run()
 {
-	float kp = 0.2;
-	float ki = 0.00000 ;
-	float kd = 2.00;
-	float Theta, Theta_d;
-	int dt;
-	unsigned long t;
-	unsigned long t_prev = 0;
-	int val_prev =0;
-	float V;
-	float val;
-
-	m_fEncoderValue = m_AMS_AS5048B->angleR(U_DEG);
-	t = millis();
-	dt = (t - m_t_prev);				// Time step
-	Theta = m_fEncoderValue;		// Theta = Actual Angular Position of the Motor
-	Theta_d = m_fTargetPosition;	// Theta_d = Desired Angular Position of the Motor
-
-	m_e = Theta_d - Theta;			// Error
-	m_inte = m_inte_prev + (dt * (m_e + m_e_prev) / 2);	// Integration of Error
-	
-	V = kp * m_e + ki * m_inte + (kd * (m_e - m_e_prev) / dt) ; // Controlling Function
-
-	if (V > m_Vmax) {
-		V = m_Vmax;
-		m_inte = m_inte_prev;
-	}
-
-	if (V < m_Vmin) {
-		V = m_Vmin;
-		m_inte = m_inte_prev;
-		m_fEncoderValue_prev=  m_fEncoderValue;
-	}
-/*
-  WriteDriverVoltage(V, m_Vmax);
-*/
-	m_t_prev = t;
-	m_inte_prev = m_inte;
-	m_e_prev = m_e;
-
+	pid_input = m_AMS_AS5048B->angleR(U_DEG);
+	myPID->Compute();
 }
 
 void motorCtrl::getState(MotorCalibrationSteps &nCalState)
