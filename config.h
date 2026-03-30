@@ -5,6 +5,8 @@
 //
 #ifndef __P_CONFIG__
 #define __P_CONFIG__
+#include <Network.h>
+#include <Wire.h>
 #include <Preferences.h>
 #include <nvs_flash.h>
 #include <Network.h>

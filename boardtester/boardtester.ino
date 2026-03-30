@@ -3,40 +3,9 @@
 // then will test the eeprom on the shield
 // -----------------------------------------
 
-
-// #define USE_ETHERNET 
-
-#ifdef USE_ETHERNET
-#pragma message "Ethernet enabled"
-#include <ETH.h>
-// network interfaces
-#define PodEthernet ETH
-
-#define ETHERNET_CS     5
-#define ETHERNET_RESET  46
-
-#define ETH_PHY_TYPE ETH_PHY_W5500
-#define ETH_PHY_ADDR 1
-#define ETH_PHY_CS   ETHERNET_CS
-#define ETH_PHY_IRQ  -1
-#define ETH_PHY_RST  ETHERNET_RESET
-
-// SPI pins
-#define ETH_SPI_SCK         SCK
-#define ETH_SPI_MISO        MISO
-#define ETH_SPI_MOSI        MOSI
-
-byte MAC_Address[6];
-#endif // USE_ETHERNET
-
-#include <Network.h>
-#include <Wire.h>
-
 #include "../powerManagement.h"
 #include "../environment.h"
 #include "../motorCtrl.h"
-
-
 
 float fTemperature = 0.0f;
 float fHumidity = 0.0f;
