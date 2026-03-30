@@ -68,7 +68,7 @@ motorCtrl::motorCtrl()
 	m_AMS_AS5048B->begin();
 	myPID = new PID(&m_dEncoderValue, &m_dPidOutput, &m_dTargetPosition, m_dKp, m_dKi, m_dKd, DIRECT);
 	myPID->SetMode(AUTOMATIC);    // Enable PID
-	myPID->SetOutputLimits(0, 100); // Limit PWM output range to 100%
+	myPID->SetOutputLimits(0, 360); // Limit output to 0 - 360 as it's an angle
 }
 
 void motorCtrl::Calibrate()
