@@ -63,6 +63,7 @@ byte MAC_Address[6];
 #define MAIN_OC_ALARM   20
 
 // ouput
+#define MOTOR_V_EN		7
 #define HEATER          15
 #define USB_C           16
 #define BAT_EN          17
