@@ -11,6 +11,7 @@
 #include <nvs_flash.h>
 #include <Network.h>
 #include <WiFi.h>
+#include <esp32-hal-ledc.h>
 
 #define PodWiFi WiFi
 
@@ -81,9 +82,11 @@ byte MAC_Address[6];
 #define MOT_FAULT       42  // MOT4
 
 // PWM port settingz
-const int PWM_FREQ = 500;
-const int PWM_RESOLUTION = 8;
-const int MAX_DUTY_CYCLE = (int)(pow(2, PWM_RESOLUTION) - 1);
+#define PWM_FREQ 			5000
+#define PWM_RESOLUTION		8
+#define LEDC_TIMER_12_BIT	12
+
+const int MAX_DUTY_CYCLE = (int)(pow(2, LEDC_TIMER_12_BIT) - 1);
 
 const int MotorPwmChannel = 0;
 const int PWM1PwmChannel = 1;
@@ -190,6 +193,9 @@ PodConfig::PodConfig()
 
 	}
     m_preferences.end();
+
+	// set pwm clock source
+	ledcSetClockSource(LEDC_AUTO_CLK);
 
     // configure input pins
 	pinMode(MOTOR_CURRENT,      INPUT_PULLUP);

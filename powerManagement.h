@@ -45,8 +45,8 @@ public:
 	bool setAlarmAmps(INA260 &INA, float nAmps);
 	bool setAlarmVoltage(INA260 &INA, float nVolts);
 	void setPortState(int nPort, bool bOn);
-	void setPortToPWM(int nPort, int nChanne);
-	void setPwmPortState(int nPort, int nPercent);
+	bool setPortToPWM(int nPort, int nChanne);
+	bool setPwmPortState(int nPort, int nPercent);
 	bool checkAlert(INA260 &INA);
 
 	float readVolts(INA260 &INA);
@@ -78,6 +78,7 @@ powerPorts *podPowerController = nullptr;
 
 powerPorts::powerPorts()
 {
+
 	if (!INA260_MAIN.begin()) {
 		// set error.. this one is not responding
 	}
@@ -134,9 +135,9 @@ powerPorts::powerPorts()
 
 	// set PWM pins
 	setPortToPWM(PWM1,PWM1PwmChannel);
-	setPwmPortState(PWM1,0);
+	setPwmPortState(PWM1PwmChannel,0);
 	setPortToPWM(PWM2,PWM2PwmChannel);
-	setPwmPortState(PWM2,0);
+	setPwmPortState(PWM2PwmChannel,0);
 }
 
 bool powerPorts::setAlarmAmps(INA260 &INA, float nAmps)
@@ -176,18 +177,22 @@ void powerPorts::setPortState(int nPort, bool bOn)
 	digitalWrite(nPort, bOn?1:0);
 }
 
-void powerPorts::setPortToPWM(int nPort, int nChannel)
+bool powerPorts::setPortToPWM(int nPort, int nChannel)
 {
-	ledcAttachChannel(nPort, PWM_FREQ, PWM_RESOLUTION, nChannel);
+	bool bOk = true;
+	bOk = ledcAttachChannel(nPort, PWM_FREQ, LEDC_TIMER_12_BIT, nChannel);
+	return bOk;
 }
 
-void powerPorts::setPwmPortState(int nPort, int nPercent)
+bool powerPorts::setPwmPortState(int nChannel, int nPercent)
 {
-	int dutyCycle = int((float(nPercent)/100.0f) * 255);
+	bool bOk = true;
+	int dutyCycle = int((float(nPercent)/100.0f) * MAX_DUTY_CYCLE);
 
 	if(dutyCycle > MAX_DUTY_CYCLE)
 		dutyCycle = MAX_DUTY_CYCLE;
-    ledcWriteChannel(nPort, dutyCycle);
+    bOk = ledcWriteChannel(nChannel, dutyCycle);
+	return bOk;
 }
 
 bool powerPorts::checkAlert(INA260 &INA)
@@ -199,7 +204,6 @@ bool powerPorts::checkAlert(INA260 &INA)
 	}
 	return bAlertTRiggered;
 }
-
 
 float powerPorts::readVolts(INA260 &INA)
 {
