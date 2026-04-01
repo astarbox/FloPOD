@@ -83,7 +83,6 @@ byte MAC_Address[6];
 
 // PWM port settingz
 #define PWM_FREQ 			5000
-#define PWM_RESOLUTION		8
 #define LEDC_TIMER_12_BIT	12
 
 const int MAX_DUTY_CYCLE = (int)(pow(2, LEDC_TIMER_12_BIT) - 1);

@@ -55,6 +55,8 @@ motorCtrl *PodMotorController = nullptr;
 motorCtrl::motorCtrl()
 {
 	// init dir pin and led pwm pin
+	ledcAttachChannel(MOT_EN, PWM_FREQ, LEDC_TIMER_12_BIT, MotorPwmChannel);
+	ledcWriteChannel(MotorPwmChannel, 0); // make sure we're not moving.
 	// attach interrupt for motor over current
 	// get power up state;
 	// read encoder
