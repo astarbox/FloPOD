@@ -119,8 +119,6 @@ void loop()
     // FreeRTOS task management
     vTaskDelay(xDelay);
 	taskYIELD();
-	esp_task_wdt_reset();
-
 }
 
 
@@ -142,7 +140,6 @@ void MotorTask(void *)
 		// FreeRTOS task management
 		vTaskDelay(xDelay);
 		taskYIELD();
-		esp_task_wdt_reset();
 	}
 }
 
@@ -181,7 +178,6 @@ void PowerTask(void *)
 		// FreeRTOS task management
 		vTaskDelay(xDelay);
 		taskYIELD();
-		esp_task_wdt_reset();
 	}
 }
 
@@ -198,7 +194,6 @@ void EnvTask(void *)
 		// FreeRTOS task management
 		vTaskDelay(xDelay);
 		taskYIELD();
-		esp_task_wdt_reset();
 	}
 }
 
