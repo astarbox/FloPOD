@@ -6,13 +6,11 @@
 
 #ifndef __ENV_SENSOR__
 #define __ENV_SENSOR__
-#include <HDC1080.h>
-#include <Adafruit_MCP3421.h>
 #include <Wire.h>
+#include <HDC1080.h>
+#include <Protocentral_FDC1004.h>
 
 using HDC1080 = GuL::HDC1080;
-
-#define MCP3421_ADDR    0x68
 
 class HumTempSensor
 {
@@ -58,23 +56,26 @@ public:
     ~RainSensor();
     bool isPresent();
 
-    int32_t getADCValue();
+    float getValue();
 private:
-    Adafruit_MCP3421 m_mcp;
-    int32_t m_nLastValue;
+    FDC1004 *capacitanceSensor;
+    float m_fLastValue = 0.0f;
     bool m_bPresent = false;
 
 };
 
 RainSensor::RainSensor()
 {
-    if(!m_mcp.begin(MCP3421_ADDR)) {
+    capacitanceSensor = new FDC1004(FDC1004_RATE_100HZ);
+    if(!capacitanceSensor->begin()) {
         m_bPresent = false;
         return;
     }
-    m_mcp.setGain(GAIN_1X);
-    m_mcp.setResolution(RESOLUTION_18_BIT); // 3.75 SPS
-    m_mcp.setMode(MODE_CONTINUOUS);
+    if (!capacitanceSensor->isConnected()) {
+        m_bPresent = false;
+        return;
+    }
+    m_bPresent = true;
 }
 
 RainSensor::~RainSensor()
@@ -87,13 +88,16 @@ bool RainSensor::isPresent()
     return m_bPresent;
 }
 
-int32_t RainSensor::getADCValue()
+float RainSensor::getValue()
 {
-    // Check if MCP3421 has completed a conversion in continuous mode
-    if (m_mcp.isReady()) {
-        m_nLastValue = m_mcp.readADC(); // Read ADC value;
+    if(m_bPresent) {
+        fdc1004_capacitance_t measurement = capacitanceSensor->getCapacitanceMeasurement(FDC1004_CHANNEL_0);
+        // Check if FDC1004 has returned a proper value
+        if (!isnan(measurement.capacitance_pf)) {
+            m_fLastValue = measurement.capacitance_pf;
+        }
     }
-    return m_nLastValue;
+    return m_fLastValue;
 }
 
 RainSensor *podRainSensor;

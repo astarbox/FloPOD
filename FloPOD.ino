@@ -39,7 +39,7 @@ void EnvTask(void *);
 // Environment global variables
 float fTemperature;
 float fHumidity;
-int32_t	rainSensorAdcValue;
+float rainSensorValuePf;
 
 // other object
 esp_task_wdt_config_t twdt_config = {
@@ -190,7 +190,7 @@ void EnvTask(void *)
 
 	for(;;) {
 		humTempSensor->getTempAndHum(fTemperature, fHumidity);
-		rainSensorAdcValue = podRainSensor->getADCValue();
+		rainSensorValuePf = podRainSensor->getValue();
 		// FreeRTOS task management
 		vTaskDelay(xDelay);
 		taskYIELD();

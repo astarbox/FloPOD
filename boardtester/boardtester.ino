@@ -9,7 +9,7 @@
 
 float fTemperature = 0.0f;
 float fHumidity = 0.0f;
-int32_t	rainSensorAdcValue = 0;
+int32_t	rainSensorValuePf = 0;
 
 volatile bool bPortOn = false;
 int nbLoop = 0;
@@ -90,6 +90,9 @@ void loop()
             Serial.println("  !");
             nDevices++;
         }
+        vTaskDelay(10); // wait 10ms
+        taskYIELD();
+
     }
 
     if (nDevices == 0) {
@@ -235,9 +238,11 @@ void loop()
     Serial.println("");
 
     if(podRainSensor->isPresent()) {
-        rainSensorAdcValue = podRainSensor->getADCValue();
-        Serial.println("Rain Sensor ADC : " + String(rainSensorAdcValue));
+        rainSensorValuePf = podRainSensor->getValue();
+        Serial.println("Rain Sensor  : " + String(rainSensorValuePf) + "pF");
         Serial.println("");
+    } else {
+        Serial.println("No FDC1004 sensor detected");
     }
 
     PodMotorController->getEncoderPosition(fDeg);
