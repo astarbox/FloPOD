@@ -14,6 +14,7 @@
 #define AS5048B_ADDR	0x41
 
 enum MotorStates {M_STOPPED, M_RUNNING, M_CALIBRATING};
+enum PodShutterState {PS_UNKNOWN, PS_CLOSED, PS_OPEN, PS_CLOSING, PS_OPENING};
 enum MotorCalibrationSteps {CAL_NONE, CAL_FIRST_CLOSE,CAL_OPENING, CAL_FINISH_CLOSE};
 class motorCtrl
 {
@@ -24,17 +25,20 @@ public:
 	void 	Close();
 	void	Stop();
 	void	Run();
-	void 	getState(MotorCalibrationSteps &nCalState);
+	void 	getCalState(MotorCalibrationSteps &nCalState);
+	void	getShutterStae(PodShutterState &nPsState);
 	void	OverCurrentStop();
 	bool	bIsEncoderCalibrated();
 	void	getEncoderPosition(float &fDegrees);
 
 private:
 	void	motorMoveTo(double fPosition);
+	bool	checkBoundaries(float dTarget, float dCurentPos, float dMargin);
 
 	EncoderConfig m_EncoderConfig;
 	MotorStates m_nMotorState = M_STOPPED;
 	MotorCalibrationSteps m_CalsState = CAL_NONE;
+	PodShutterState m_nPsState = PS_UNKNOWN;
 
 	AMS_AS5048B *m_AMS_AS5048B;
 
@@ -70,7 +74,7 @@ motorCtrl::motorCtrl()
 	m_AMS_AS5048B->begin();
 	myPID = new PID(&m_dEncoderValue, &m_dPidOutput, &m_dTargetPosition, m_dKp, m_dKi, m_dKd, DIRECT);
 	myPID->SetMode(AUTOMATIC);    // Enable PID
-	myPID->SetOutputLimits(0, 360); // Limit output to 0 - 360 as it's an angle
+	myPID->SetOutputLimits(-255, 255); // Limit output to -255 to 255 as it's the PWM ratio
 }
 
 void motorCtrl::Calibrate()
@@ -111,31 +115,70 @@ void motorCtrl::Calibrate()
 
 void motorCtrl::Open()
 {
+	// set direction
 	// move to calibrated open position
 	motorMoveTo(m_EncoderConfig.openAngle);
+	m_nMotorState = M_RUNNING;
+	m_nPsState = PS_OPENING;
+
 }
 
 void motorCtrl::Close()
 {
+	// set direction
 	// move to calibrated close position
 	motorMoveTo(m_EncoderConfig.closeAngle);
+	m_nMotorState = M_RUNNING;
+	m_nPsState = PS_CLOSING;
 }
 
 void motorCtrl::Stop()
 {
-
+	ledcWriteChannel(MotorPwmChannel, 0); // make sure we're not moving.
 }
 
 void motorCtrl::Run()
 {
+	double newPWM = 0;
+
+	if(m_nMotorState == M_STOPPED)
+		return;
+
 	m_dEncoderValue = m_AMS_AS5048B->angleR(U_DEG);
 	myPID->Compute();
+	DBPrintln("m_dPidOutput = " + String(m_dPidOutput));
+
 	// are we at the target position ?
 	// Yes -> stop motor PWM
+	if (checkBoundaries(m_dTargetPosition, m_dEncoderValue, 0.1)) {
+		Stop();
+		m_nMotorState = M_STOPPED;
+		switch(m_nPsState) {
+			case PS_OPENING:
+				m_nPsState = PS_OPEN;
+				break;
+			case PS_CLOSING:
+				m_nPsState = PS_CLOSED;
+				break;
+			default:
+				m_nPsState = PS_UNKNOWN;
+		}
+	}
 	// No -> set motor ouput PWM
+	else {
+		newPWM = fabs(m_dPidOutput);
+		if(m_dPidOutput<0) {
+			// set directiobn to reverse
+		}
+		else {
+			// set directiobn to forward
+
+		}
+		ledcWriteChannel(MotorPwmChannel, newPWM); // make sure we're not moving.
+	}
 }
 
-void motorCtrl::getState(MotorCalibrationSteps &nCalState)
+void motorCtrl::getCalState(MotorCalibrationSteps &nCalState)
 {
 	// get current position in degree as well as podStates;
 	nCalState = m_CalsState;
@@ -157,5 +200,21 @@ void motorCtrl::motorMoveTo(double dPosition)
 	m_dTargetPosition = dPosition;
 }
 
+bool motorCtrl::checkBoundaries(float fTarget, float fCurentPos, float fMargin)
+{
+	int highMark;
+	int lowMark;
+	int roundedTarget;
+
+	highMark = int((fCurentPos+fMargin) * 100);
+	lowMark = int((fCurentPos-fMargin) * 100);
+	roundedTarget = int((fTarget) * 100);
+
+	if (roundedTarget > lowMark && roundedTarget <= highMark) {
+		return true;
+	}
+
+	return false;
+}
 
 #endif

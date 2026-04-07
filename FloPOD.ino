@@ -136,7 +136,7 @@ void MotorTask(void *)
 
 		}
 		// run motor if needed
-
+		PodMotorController->Run();
 		// FreeRTOS task management
 		vTaskDelay(xDelay);
 		taskYIELD();

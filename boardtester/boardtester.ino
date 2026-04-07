@@ -24,7 +24,7 @@ bool initEthernet();
 
 void setup()
 {
-    // this enables all the pins mode for the pod.
+    // Create Pod controller. This configure all GPIO
     globalPodConfig = new PodConfig();
 
     int nTimeout;
@@ -71,7 +71,7 @@ void loop()
 
         }
     }
-#endif 
+#endif
 
     Serial.println("Scanning I2C bus ...");
     for(address = 8; address < 127; address++ ) {
@@ -341,4 +341,3 @@ bool initEthernet()
 	return true;
 }
 #endif
-
