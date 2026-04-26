@@ -9,8 +9,9 @@
 #include <Wire.h>
 #include <HDC1080.h>
 #include <Protocentral_FDC1004.h>
+#include "config.h"
 
-#define IT_S_RAINING 100 // value in pF .. for now.
+#define IT_S_RAINING 65 // value in pF .. for now.
 
 using HDC1080 = GuL::HDC1080;
 
@@ -19,7 +20,7 @@ class HumTempSensor
 public:
 	HumTempSensor();
 	~HumTempSensor();
-	void getTempAndHum(float &temperature, float &humidity);
+	void getTempAndHum(float &temperature, float &humidity);	
 private:
 	HDC1080 *m_hdc;
 };
@@ -57,7 +58,7 @@ public:
 	RainSensor();
 	~RainSensor();
 	bool isPresent();
-
+	void enableHeater(bool bOn=true);
 	float getValue();
 private:
 	FDC1004 *capacitanceSensor;
@@ -88,6 +89,11 @@ RainSensor::~RainSensor()
 bool RainSensor::isPresent()
 {
 	return m_bPresent;
+}
+
+void RainSensor::enableHeater(bool bOn)
+{
+	digitalWrite(HEATER, bOn?1:0);
 }
 
 float RainSensor::getValue()

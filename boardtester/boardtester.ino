@@ -108,6 +108,7 @@ void loop()
     }
     if (podRainSensor == nullptr) {
         podRainSensor = new RainSensor();
+        podRainSensor->enableHeater(true);
     }
 
     if(PodMotorController == nullptr) {
