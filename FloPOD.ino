@@ -16,8 +16,9 @@
 
 String sLocalIPAdress = "";
 WIFIConfig	wifiApConfig;
-IPConfig	wifiClientConfig;
-IPConfig	wifiConfig;
+WIFIConfig	wifiClientConfig;
+IPConfig	wifiClientIpConfig;
+IPConfig	ethernetClientIpConfig;
 PowerConfig powerConfig;
 
 // include Alpaca here so it gets the definition above.
@@ -50,34 +51,38 @@ esp_task_wdt_config_t twdt_config = {
 
 void setup()
 {
-    // configure all pins
+	String sNumber;
+	// configure all pins
 	globalPodConfig = new PodConfig();
-    // rtc_wdt_protect_off();
 	esp_task_wdt_deinit();
 	esp_task_wdt_init(&twdt_config);
 	esp_task_wdt_add(NULL);
 	disableCore0WDT();
 	disableCore1WDT();
+	globalPodConfig->getSerialNumber(sNumber);
+	podHostname = "FLO-ImaginPod-"+sNumber;
+
 	// start the network stack so all server sees all interfaces.
 	Network.begin();
 	// Start local hostspot and connect to local wifi if configured and available
 	configureWiFi();
 #ifdef USE_ETHERNET
-    initEthernet();
+	// configure the Ethernet cxonnection if the W5500 is present
+	initEthernet();
 #endif
 
-    // start I2C
-    Wire.begin();
+	// start I2C
+	Wire.begin();
 
 	// create new motor controller, it will be used by MotorTask and by the PodController
 	PodMotorController = new motorCtrl();
 	// create new power controller, it will be used by the PodController
 	podPowerController = new powerPorts();
 
-    // create tasks
-    xTaskCreatePinnedToCore(MotorTask, "MotorTask", 10000, NULL, 8, NULL,  0); // priority 8 (medium) on Core 0
-    xTaskCreatePinnedToCore(PowerTask, "PowerTask", 10000, NULL, 16, NULL,  0); // priority 16 (High) on Core 0
-    xTaskCreatePinnedToCore(EnvTask, "EnvTask", 10000, NULL, 12, NULL,  0); // priority 12 (between medium and high) on Core 0
+	// create tasks
+	xTaskCreatePinnedToCore(MotorTask, "MotorTask", 10000, NULL, 8, NULL,  0); // priority 8 (medium) on Core 0
+	xTaskCreatePinnedToCore(PowerTask, "PowerTask", 10000, NULL, 16, NULL,  0); // priority 16 (High) on Core 0
+	xTaskCreatePinnedToCore(EnvTask, "EnvTask", 10000, NULL, 12, NULL,  0); // priority 12 (between medium and high) on Core 0
 
 	// MAG_TRIG interrupt
 	attachInterrupt(MAG_TRIG, magnetHandler, FALLING);
@@ -86,38 +91,20 @@ void setup()
 	podController = new PodController(PodMotorController, podPowerController);
 
 	// start Alpaca on the AP.
-/*/
-	podAp_AlpacaDiscoveryServer = new AlpacaDiscoveryServer(PodWiFi.softAPIP());
-	podAp_AlpacaDiscoveryServer->startServer();
-	podAp_AlpacaServer = new AlpacaServer(PodWiFi.softAPIP());
-	podAp_AlpacaServer->startServer();
-
-	// start Alpaca on the client connection to local wifi
-	if(PodWiFi.status() == WL_CONNECTED) {
-*/
-		pod_AlpacaDiscoveryServer = new AlpacaDiscoveryServer();
-		// pod_AlpacaDiscoveryServer = new AlpacaDiscoveryServer(PodWiFi.localIP());
-		pod_AlpacaDiscoveryServer->startServer();
-		pod_AlpacaServer = new AlpacaServer();
-		// pod_AlpacaServer = new AlpacaServer(PodWiFi.localIP());
-		pod_AlpacaServer->startServer();
-//	}
+	pod_AlpacaDiscoveryServer = new AlpacaDiscoveryServer();
+	pod_AlpacaDiscoveryServer->startServer();
+	pod_AlpacaServer = new AlpacaServer();
+	pod_AlpacaServer->startServer();
 }
 
 // core 1 main loop takes care of Alpaca coms
 void loop()
 {
-    const TickType_t xDelay = 1 / portTICK_PERIOD_MS;
+	const TickType_t xDelay = 1 / portTICK_PERIOD_MS;
 
-	// podAp_AlpacaDiscoveryServer->checkForRequest();
-    //podAp_AlpacaServer->checkForRequest();
-
-	//if(PodWiFi.status() == WL_CONNECTED) {
-		pod_AlpacaDiscoveryServer->checkForRequest();
-		pod_AlpacaServer->checkForRequest();
-	//}
-    // FreeRTOS task management
-    vTaskDelay(xDelay);
+	pod_AlpacaDiscoveryServer->checkForRequest();
+	pod_AlpacaServer->checkForRequest();
+	vTaskDelay(xDelay);
 	taskYIELD();
 }
 
@@ -191,6 +178,11 @@ void EnvTask(void *)
 	for(;;) {
 		humTempSensor->getTempAndHum(fTemperature, fHumidity);
 		rainSensorValuePf = podRainSensor->getValue();
+		if(rainSensorValuePf > IT_S_RAINING) {
+			if(podController->getShutterState() == OPEN) {
+				podController->Close();
+			}
+		}
 		// FreeRTOS task management
 		vTaskDelay(xDelay);
 		taskYIELD();
@@ -231,8 +223,9 @@ void configureWiFi()
 	int nTimeout = 0;
 
 	DBPrintln("========== Configuring WiFi ==========");
-	globalPodConfig->LoadIpConfig(wifiClientConfig);
+	globalPodConfig->LoadIpConfig(wifiClientIpConfig);
 	globalPodConfig->LoadApConfig(wifiApConfig);
+	globalPodConfig->LoadStaConfig(wifiClientConfig);
 	if(wifiApConfig.sSSID.length() < 8) {
 		globalPodConfig->setWifiDefault();
 	}
@@ -240,7 +233,9 @@ void configureWiFi()
 	PodWiFi.mode(WIFI_AP_STA);
 	// Start AP (aka Hotspot)
 	if(wifiApConfig.sSSID.length()) {
-		bWiFiAPOk = PodWiFi.softAP(wifiApConfig.sSSID.c_str(), wifiApConfig.sPassword.c_str());
+		bWiFiAPOk = PodWiFi.softAP(wifiApConfig.sSSID.c_str(),
+									wifiApConfig.sPassword.c_str(),
+									wifiApConfig.nChannel);
 	}
 
 	// connect to local WiFi
@@ -258,7 +253,7 @@ void configureWiFi()
 
 	}
 
-	PodWiFi.setHostname("FLOPod");
+	PodWiFi.setHostname(podHostname.c_str());
 	DBPrintln("WiFi IP = " + IpAddress2String(WiFi.softAPIP()));
 }
 
@@ -289,28 +284,28 @@ bool initEthernet()
 	}
 
 	PodEthernet.macAddress(MAC_Address);
-	PodEthernet.setHostname("FLO-Pod");
+	PodEthernet.setHostname(podHostname.c_str());
 
 	DBPrintln("========== Setting IP config ==========");
-    bDhcpOk = PodEthernet.config(IPAddress(0, 0, 0, 0), IPAddress(0, 0, 0, 0), IPAddress(0, 0, 0, 0)); // all value set to the default 0 means use dhcp.
-    if(bDhcpOk) {
-        nTimeout = 0;
-        while(PodEthernet.localIP() == IPAddress(0,0,0,0) ) {
-            vTaskDelay(250 / portTICK_PERIOD_MS);
-            nTimeout++;
-            if(nTimeout == 30) {
-                break;
-            }
-        }
-    }
+	bDhcpOk = PodEthernet.config(IPAddress(0, 0, 0, 0), IPAddress(0, 0, 0, 0), IPAddress(0, 0, 0, 0)); // all value set to the default 0 means use dhcp.
+	if(bDhcpOk) {
+		nTimeout = 0;
+		while(PodEthernet.localIP() == IPAddress(0,0,0,0) ) {
+			vTaskDelay(250 / portTICK_PERIOD_MS);
+			nTimeout++;
+			if(nTimeout == 30) {
+				break;
+			}
+		}
+	}
 
 	if(PodEthernet.localIP() == IPAddress(0,0,0,0)) {
 			PodEthernet.config("192.168.0.100", "192.168.0.1", "255.255.255.0");
-            PodEthernet.dnsIP(0,"1.1.1.1");
-            vTaskDelay(250 / portTICK_PERIOD_MS);
+			PodEthernet.dnsIP(0,"1.1.1.1");
+			vTaskDelay(250 / portTICK_PERIOD_MS);
 	}
-
-	PodEthernet.setDefault();
+	// if we have Ethernet, make it the default interface.
+	Network.setDefaultInterface(PodEthernet);
 
 	DBPrintln("========== Checking hardware status ==========");
 	DBPrintln("W5500 Ok.");

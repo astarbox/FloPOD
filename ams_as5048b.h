@@ -1,44 +1,44 @@
 /**************************************************************************/
 /*!
-    @file     ams_as5048b.h
-    @author   SOSAndroid.fr (E. Ha.)
+	@file     ams_as5048b.h
+	@author   SOSAndroid.fr (E. Ha.)
 
-    @section  HISTORY
+	@section  HISTORY
 
-    v1.0 - First release
+	v1.0 - First release
 	v1.0.1 - Typo to allow compiling on Codebender.cc (Math.h vs math.h)
 	v1.0.2 - Small bug fix and improvement by @DavidHowlett
 
-    Library to interface the AS5048B magnetic rotary encoder from AMS over the I2C bus
+	Library to interface the AS5048B magnetic rotary encoder from AMS over the I2C bus
 
-    @section LICENSE
+	@section LICENSE
 
-    Software License Agreement (BSD License)
+	Software License Agreement (BSD License)
 
-    Copyright (c) 2013, SOSAndroid.fr (E. Ha.)
-    All rights reserved.
+	Copyright (c) 2013, SOSAndroid.fr (E. Ha.)
+	All rights reserved.
 
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions are met:
-    1. Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
-    2. Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
-    3. Neither the name of the copyright holders nor the
-    names of its contributors may be used to endorse or promote products
-    derived from this software without specific prior written permission.
+	Redistribution and use in source and binary forms, with or without
+	modification, are permitted provided that the following conditions are met:
+	1. Redistributions of source code must retain the above copyright
+	notice, this list of conditions and the following disclaimer.
+	2. Redistributions in binary form must reproduce the above copyright
+	notice, this list of conditions and the following disclaimer in the
+	documentation and/or other materials provided with the distribution.
+	3. Neither the name of the copyright holders nor the
+	names of its contributors may be used to endorse or promote products
+	derived from this software without specific prior written permission.
 
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY
-    EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
-    DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-    ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY
+	EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+	WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+	DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+	DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+	(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+	ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+	(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 /**************************************************************************/
 
@@ -145,7 +145,7 @@ class AMS_AS5048B {
 
 /**************************************************************************/
 /*!
-    Constructor
+	Constructor
 */
 /**************************************************************************/
 AMS_AS5048B::AMS_AS5048B(void) {
@@ -164,11 +164,11 @@ AMS_AS5048B::AMS_AS5048B(uint8_t chipAddress) {
 
 /**************************************************************************/
 /*!
-    @brief  init values and overall behaviors for AS5948B use
+	@brief  init values and overall behaviors for AS5948B use
 
-    @params
+	@params
 				none
-    @returns
+	@returns
 				none
 */
 /**************************************************************************/
@@ -197,11 +197,11 @@ void AMS_AS5048B::begin(void) {
 
 /**************************************************************************/
 /*!
-    @brief  Toggle debug output to serial
+	@brief  Toggle debug output to serial
 
-    @params
+	@params
 				none
-    @returns
+	@returns
 				none
 */
 /**************************************************************************/
@@ -213,11 +213,11 @@ void AMS_AS5048B::toggleDebug(void) {
 
 /**************************************************************************/
 /*!
-    @brief  Set / unset clock wise counting - sensor counts CCW natively
+	@brief  Set / unset clock wise counting - sensor counts CCW natively
 
-    @params[in]
+	@params[in]
 				boolean cw - true: CW, false: CCW
-    @returns
+	@returns
 				none
 */
 /**************************************************************************/
@@ -231,11 +231,11 @@ void AMS_AS5048B::setClockWise(boolean cw) {
 
 /**************************************************************************/
 /*!
-    @brief  writes OTP control register
+	@brief  writes OTP control register
 
-    @params[in]
+	@params[in]
 				unit8_t register value
-    @returns
+	@returns
 				none
 */
 /**************************************************************************/
@@ -247,11 +247,11 @@ void AMS_AS5048B::progRegister(uint8_t regVal) {
 
 /**************************************************************************/
 /*!
-    @brief  Burn values to the slave address OTP register
+	@brief  Burn values to the slave address OTP register
 
-    @params[in]
+	@params[in]
 				none
-    @returns
+	@returns
 				none
 */
 /**************************************************************************/
@@ -274,11 +274,11 @@ void AMS_AS5048B::doProg(void) {
 
 /**************************************************************************/
 /*!
-    @brief  Burn values to the zero position OTP register
+	@brief  Burn values to the zero position OTP register
 
-    @params[in]
+	@params[in]
 				none
-    @returns
+	@returns
 				none
 */
 /**************************************************************************/
@@ -309,11 +309,11 @@ void AMS_AS5048B::doProgZero(void) {
 
 /**************************************************************************/
 /*!
-    @brief  write I2C address value (5 bits) into the address register
+	@brief  write I2C address value (5 bits) into the address register
 
-    @params[in]
+	@params[in]
 				unit8_t register value
-    @returns
+	@returns
 				none
 */
 /**************************************************************************/
@@ -330,11 +330,11 @@ void AMS_AS5048B::addressRegW(uint8_t regVal) {
 
 /**************************************************************************/
 /*!
-    @brief  reads I2C address register value
+	@brief  reads I2C address register value
 
-    @params[in]
+	@params[in]
 				none
-    @returns
+	@returns
 				uint8_t register value
 */
 /**************************************************************************/
@@ -345,29 +345,29 @@ uint8_t AMS_AS5048B::addressRegR(void) {
 
 /**************************************************************************/
 /*!
-    @brief  sets current angle as the zero position
+	@brief  sets current angle as the zero position
 
-    @params[in]
+	@params[in]
 				none
-    @returns
+	@returns
 				none
 */
 /**************************************************************************/
 void AMS_AS5048B::setZeroReg(void) {
 
-        AMS_AS5048B::zeroRegW((uint16_t) 0x00); //Issue closed by @MechatronicsWorkman and @oilXander. The last sequence avoids any offset for the new Zero position
+		AMS_AS5048B::zeroRegW((uint16_t) 0x00); //Issue closed by @MechatronicsWorkman and @oilXander. The last sequence avoids any offset for the new Zero position
 	uint16_t newZero = AMS_AS5048B::readReg16(AS5048B_ANGLMSB_REG);
-        AMS_AS5048B::zeroRegW(newZero);
+		AMS_AS5048B::zeroRegW(newZero);
 	return;
 }
 
 /**************************************************************************/
 /*!
-    @brief  writes the 2 bytes Zero position register value
+	@brief  writes the 2 bytes Zero position register value
 
-    @params[in]
+	@params[in]
 				unit16_t register value
-    @returns
+	@returns
 				none
 */
 /**************************************************************************/
@@ -380,11 +380,11 @@ void AMS_AS5048B::zeroRegW(uint16_t regVal) {
 
 /**************************************************************************/
 /*!
-    @brief  reads the 2 bytes Zero position register value
+	@brief  reads the 2 bytes Zero position register value
 
-    @params[in]
+	@params[in]
 				none
-    @returns
+	@returns
 				uint16_t register value trimmed on 14 bits
 */
 /**************************************************************************/
@@ -395,11 +395,11 @@ uint16_t AMS_AS5048B::zeroRegR(void) {
 
 /**************************************************************************/
 /*!
-    @brief  reads the 2 bytes magnitude register value
+	@brief  reads the 2 bytes magnitude register value
 
-    @params[in]
+	@params[in]
 				none
-    @returns
+	@returns
 				uint16_t register value trimmed on 14 bits
 */
 /**************************************************************************/
@@ -415,11 +415,11 @@ uint16_t AMS_AS5048B::angleRegR(void) {
 
 /**************************************************************************/
 /*!
-    @brief  reads the 1 bytes auto gain register value
+	@brief  reads the 1 bytes auto gain register value
 
-    @params[in]
+	@params[in]
 				none
-    @returns
+	@returns
 				uint8_t register value
 */
 /**************************************************************************/
@@ -430,11 +430,11 @@ uint8_t AMS_AS5048B::getAutoGain(void) {
 
 /**************************************************************************/
 /*!
-    @brief  reads the 1 bytes diagnostic register value
+	@brief  reads the 1 bytes diagnostic register value
 
-    @params[in]
+	@params[in]
 				none
-    @returns
+	@returns
 				uint8_t register value
 */
 /**************************************************************************/
@@ -445,13 +445,13 @@ uint8_t AMS_AS5048B::getDiagReg(void) {
 
 /**************************************************************************/
 /*!
-    @brief  reads current angle value and converts it into the desired unit
+	@brief  reads current angle value and converts it into the desired unit
 
-    @params[in]
+	@params[in]
 				String unit : string expressing the unit of the angle. Sensor raw value as default
-    @params[in]
+	@params[in]
 				Boolean newVal : have a new measurement or use the last read one. True as default
-    @returns
+	@returns
 				float angle value converted into the desired unit
 */
 /**************************************************************************/
@@ -477,12 +477,12 @@ float AMS_AS5048B::angleR(int unit, boolean newVal) {
 
 /**************************************************************************/
 /*!
-    @brief  Performs an exponential moving average on the angle.
+	@brief  Performs an exponential moving average on the angle.
 			Works on Sine and Cosine of the angle to avoid issues 0°/360° discontinuity
 
-    @params[in]
+	@params[in]
 				none
-    @returns
+	@returns
 				none
 */
 /**************************************************************************/
@@ -514,11 +514,11 @@ void AMS_AS5048B::updateMovingAvgExp(void) {
 
 /**************************************************************************/
 /*!
-    @brief  sent back the exponential moving averaged angle in the desired unit
+	@brief  sent back the exponential moving averaged angle in the desired unit
 
-    @params[in]
+	@params[in]
 				String unit : string expressing the unit of the angle. Sensor raw value as default
-    @returns
+	@returns
 				float exponential moving averaged angle value
 */
 /**************************************************************************/

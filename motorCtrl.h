@@ -13,6 +13,9 @@
 
 #define AS5048B_ADDR	0x41
 
+#define FORWARD	0
+#define REVERSE	1
+
 enum MotorStates {M_STOPPED, M_RUNNING, M_CALIBRATING};
 enum PodShutterState {PS_UNKNOWN, PS_CLOSED, PS_OPEN, PS_CLOSING, PS_OPENING};
 enum MotorCalibrationSteps {CAL_NONE, CAL_FIRST_CLOSE,CAL_OPENING, CAL_FINISH_CLOSE};
@@ -26,7 +29,7 @@ public:
 	void	Stop();
 	void	Run();
 	void 	getCalState(MotorCalibrationSteps &nCalState);
-	void	getShutterStae(PodShutterState &nPsState);
+	void	getShutterState(PodShutterState &nPsState);
 	void	OverCurrentStop();
 	bool	bIsEncoderCalibrated();
 	void	getEncoderPosition(float &fDegrees);
@@ -90,6 +93,7 @@ void motorCtrl::Calibrate()
 
 		case CAL_FIRST_CLOSE:
 			// store closed value of encoder
+			getEncoderPosition(m_EncoderConfig.closeAngle);
 			// open
 			m_CalsState = CAL_OPENING;
 			Open();
@@ -97,6 +101,7 @@ void motorCtrl::Calibrate()
 
 		case CAL_OPENING:
 			// store open value of encoder
+			getEncoderPosition(m_EncoderConfig.openAngle);
 			// set speed to normal speed
 			m_CalsState = CAL_FINISH_CLOSE;
 			// close
@@ -108,6 +113,9 @@ void motorCtrl::Calibrate()
 			m_nMotorState = M_STOPPED;
 			m_CalsState = CAL_NONE;
 			m_EncoderConfig.bIsCalibrated = true;
+			if(globalPodConfig) {
+				globalPodConfig->saveEncoderConfig(m_EncoderConfig);
+			}
 			break;
 	}
 }
@@ -169,10 +177,11 @@ void motorCtrl::Run()
 		newPWM = fabs(m_dPidOutput);
 		if(m_dPidOutput<0) {
 			// set directiobn to reverse
+			digitalWrite(MOT_PH, REVERSE);
 		}
 		else {
 			// set directiobn to forward
-
+			digitalWrite(MOT_PH, FORWARD);
 		}
 		ledcWriteChannel(MotorPwmChannel, newPWM); // make sure we're not moving.
 	}
@@ -182,6 +191,16 @@ void motorCtrl::getCalState(MotorCalibrationSteps &nCalState)
 {
 	// get current position in degree as well as podStates;
 	nCalState = m_CalsState;
+}
+
+void motorCtrl::getShutterState(PodShutterState &nPsState)
+{
+	nPsState = m_nPsState;
+}
+
+void motorCtrl::OverCurrentStop()
+{
+
 }
 
 

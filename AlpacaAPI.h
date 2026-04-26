@@ -1807,9 +1807,8 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->use("/setup/subnetMask", &subnetMaskValue);
 	m_AlpacaRestServer->use("/setup/ipGateway", &ipGatewayValue);
 
-	m_AlpacaRestServer->use("/setup/roofCalibrate", &roofCalibrateAction);
-	m_AlpacaRestServer->use("/setup/roofSpeed", &roofSpeedValue);
-	m_AlpacaRestServer->use("/setup/roofAcceleration", &roofAccelerationValue);
+	m_AlpacaRestServer->put("/setup/podShutterCalibrate", &startCalibration);
+	m_AlpacaRestServer->get("/setup/podShutterCalibrate", &calibrationState);
 	m_AlpacaRestServer->get("/setup/envCondition", &envConditionState);
 
 	*/

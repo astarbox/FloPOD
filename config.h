@@ -15,7 +15,7 @@
 
 #define PodWiFi WiFi
 
-// #define USE_ETHERNET 
+#define USE_ETHERNET
 
 #define DEBUG   // enable debug to serial port defined as DebugPort
 
@@ -58,6 +58,7 @@ byte MAC_Address[6];
 
 
 #define VERSION "0.1"
+String podHostname;
 
 // input
 #define MOTOR_CURRENT   1 // Analog input
@@ -94,33 +95,32 @@ const int PWM2PwmChannel = 2;
 
 // config for station mode
 typedef struct IPCONFIG {
-	String          sSSID;
-	String          sPassword;
-    bool            bUseDHCP;
-	IPAddress       ip;
-	IPAddress       dns;
-	IPAddress       gateway;
-	IPAddress       netmask;
+	bool		bUseDHCP;
+	IPAddress	ip;
+	IPAddress	dns;
+	IPAddress	gateway;
+	IPAddress	netmask;
 } IPConfig;
 
 typedef struct WIFICONFIG {
-	String sSSID;
-	String sPassword;
+	String	sSSID;
+	String	sPassword;
+	int		nChannel;
 } WIFIConfig;
 
 // other config
 typedef struct PodConfiguration {
-    float			openPos;
-    float			closedPos;
+	float			openPos;
+	float			closedPos;
 	byte			serialNum[6];
 } Configuration;
 
 //power port config
 typedef struct POWERCONFIG {
-    bool    bDc1On;
-    bool    bDc2On;
-    int     nPwm1Percent;
-    int     nPwm2Percent;
+	bool	bDc1On;
+	bool	bDc2On;
+	int		nPwm1Percent;
+	int		nPwm2Percent;
 	bool	bUsbcOn;
 	float	fMain_OC;
 	float	fDc1_OC;
@@ -128,13 +128,12 @@ typedef struct POWERCONFIG {
 	float	fPwm1_OC;
 	float	fPwm2_OC;
 	float	fUsbc_OC;
-
 } PowerConfig;
 
 // rotation encode config
 typedef struct ENCODER_CONFIG {
-    float   closeAngle;
-    float   openAngle;
+	float	closeAngle;
+	float	openAngle;
 	bool	bIsCalibrated;
 } EncoderConfig;
 
@@ -151,13 +150,16 @@ String IpAddress2String(const IPAddress& ipAddress)
 class PodConfig
 {
 public:
-    PodConfig();
+	PodConfig();
 
-    void LoadIpConfig(IPConfig &ipClientConfig);
-    void saveIpConfig(IPConfig ipClientConfig);
+	void LoadIpConfig(IPConfig &ipClientConfig);
+	void saveIpConfig(IPConfig ipClientConfig);
 
 	void LoadApConfig(WIFIConfig &wifiApConfig);
 	void saveApConfig(WIFIConfig wifiApConfig);
+
+	void LoadStaConfig(WIFIConfig &wifiApConfig);
+	void saveStaConfig(WIFIConfig wifiApConfig);
 
 	void LoadPodConfig(Configuration &podConfig);
 	void savePodConfig(Configuration podConfig);
@@ -172,14 +174,14 @@ public:
 	void getSerialNumber(String &serNum);
 
 private:
-    Preferences m_preferences;
+	Preferences m_preferences;
 };
 
 PodConfig::PodConfig()
 {
-    bool nvsInitDone = false;
+	bool nvsInitDone = false;
 
-    DBPrintln("PodConfig::PodConfig");
+	DBPrintln("PodConfig::PodConfig");
 	m_preferences.begin("FloPod", false);
 	nvsInitDone = m_preferences.isKey("nvsInit");
 	if(!nvsInitDone) {
@@ -191,12 +193,12 @@ PodConfig::PodConfig()
 		m_preferences.putBool("nvsInit", true);
 
 	}
-    m_preferences.end();
+	m_preferences.end();
 
 	// set pwm clock source
 	ledcSetClockSource(LEDC_AUTO_CLK);
 
-    // configure input pins
+	// configure input pins
 	pinMode(MOTOR_CURRENT,      INPUT_PULLUP);
 	pinMode(MAG_TRIG,           INPUT_PULLUP);
 	pinMode(OC_ALARM,           INPUT_PULLUP);
@@ -224,8 +226,6 @@ void PodConfig::LoadIpConfig(IPConfig &ipClientConfig)
 {
 	m_preferences.begin("FloPod", false);
 	ipClientConfig.bUseDHCP = m_preferences.getBool("clientUseDhcp",false);
-	ipClientConfig.sSSID = m_preferences.getString("clientSSID","");
-	ipClientConfig.sPassword = m_preferences.getString("clientPAssword","");
 	if(!ipClientConfig.bUseDHCP ) {
 		// load configured static IP
 		ipClientConfig.ip.fromString( m_preferences.getString("clientIP","169.254.254.123"));
@@ -240,9 +240,6 @@ void PodConfig::saveIpConfig(IPConfig ipClientConfig)
 {
 	m_preferences.begin("FloPod", false);
 	m_preferences.putBool("clientUseDhcp", ipClientConfig.bUseDHCP);
-	m_preferences.putString("clientSSID", ipClientConfig.sSSID);
-
-	m_preferences.getString("clientPassword", ipClientConfig.sPassword);
 	if(!ipClientConfig.bUseDHCP ) {
 		// load configured static IP
 		m_preferences.putString("clientIP",IpAddress2String(ipClientConfig.ip));
@@ -258,6 +255,7 @@ void PodConfig::LoadApConfig(WIFIConfig &wifiApConfig)
 	m_preferences.begin("FloPod", false);
 	wifiApConfig.sSSID =  m_preferences.getString("APSSID","FLO_Pod");
 	wifiApConfig.sPassword =  m_preferences.getString("APPassword","FLO_Pod");
+	wifiApConfig.nChannel = m_preferences.getInt("APChannel", 1);
 	m_preferences.end();
 }
 
@@ -266,6 +264,23 @@ void PodConfig::saveApConfig(WIFIConfig wifiApConfig)
 	m_preferences.begin("FloPod", false);
 	m_preferences.putString("APSSID", wifiApConfig.sSSID);
 	m_preferences.putString("APPassword",wifiApConfig.sPassword);
+	m_preferences.putInt("APChannel",wifiApConfig.nChannel);
+	m_preferences.end();
+}
+
+void PodConfig::LoadStaConfig(WIFIConfig &wifiApConfig)
+{
+	m_preferences.begin("FloPod", false);
+	wifiApConfig.sSSID =  m_preferences.getString("StaSSID","FLO_Pod");
+	wifiApConfig.sPassword =  m_preferences.getString("StaPassword","");
+	m_preferences.end();
+}
+
+void PodConfig::saveStaConfig(WIFIConfig wifiApConfig)
+{
+	m_preferences.begin("FloPod", false);
+	m_preferences.putString("StaSSID", wifiApConfig.sSSID);
+	m_preferences.putString("StaPassword",wifiApConfig.sPassword);
 	m_preferences.end();
 }
 

@@ -26,7 +26,7 @@ public:
 	void GoToAzimuth(float fAz);
 	void SyncPosition(float fAz);
 	bool isCalibrated();
-	void setIsCAlibrated(bool bCalibrated);
+	void setIsCalibrated(bool bCalibrated);
 
 private:
 	motorCtrl	*mPodMotor = nullptr;
@@ -52,11 +52,32 @@ PodController::PodController(motorCtrl *pMotionController, powerPorts *pPowerCon
 
 podStates PodController::getShutterState()
 {
+	PodShutterState mPsState;
 	// if the state is error, shut off power
 	if(m_nState == POD_ERROR) {
 		Abort();
-		// mPowerController->setPortState(); -> apparently no way to cut the motor power, need to check schematics
 	}
+	mPodMotor->getShutterState(mPsState);
+	switch(mPsState) {
+		case PS_UNKNOWN:
+			m_nState = POD_ERROR;
+			break;
+		case PS_CLOSED:
+			m_nState = CLOSED;
+			break;
+		case  PS_OPEN:
+			m_nState = OPEN;
+			break;
+		case PS_CLOSING:
+			m_nState = CLOSING;
+			break;
+		case PS_OPENING:
+			m_nState = OPENING;
+			break;
+		default:
+			break;
+		}
+
 	return m_nState;
 }
 
@@ -93,17 +114,18 @@ void PodController::Close()
 
 void PodController::SetParkAzimuth(float fAz)
 {
+	m_fAz = fAz;
 
 }
 
 void PodController::GoToAzimuth(float fAz)
 {
-
+	m_fAz = fAz;
 }
 
 void PodController::SyncPosition(float fAz)
 {
-
+	m_fAz = fAz;
 }
 
 bool PodController::isCalibrated()
@@ -111,7 +133,7 @@ bool PodController::isCalibrated()
 	return m_isCalibrated;
 }
 
-void PodController::setIsCAlibrated(bool bCalibrated)
+void PodController::setIsCalibrated(bool bCalibrated)
 {
 	m_isCalibrated = bCalibrated;
 }

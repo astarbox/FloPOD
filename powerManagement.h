@@ -70,7 +70,7 @@ public:
 	bool bBATInaPresent = false;
 	bool bVMOTInaPresent = false;
 	bool bVMOT2InaPresent = false;
-	
+
 private:
 	float rawToAmps(int16_t value);
 	int16_t ampsToRaw(float value);
@@ -199,7 +199,7 @@ bool powerPorts::setPwmPortState(int nChannel, int nPercent)
 
 	if(dutyCycle > MAX_DUTY_CYCLE)
 		dutyCycle = MAX_DUTY_CYCLE;
-    bOk = ledcWriteChannel(nChannel, dutyCycle);
+	bOk = ledcWriteChannel(nChannel, dutyCycle);
 	return bOk;
 }
 
