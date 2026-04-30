@@ -90,7 +90,7 @@ void loop()
             Serial.println("  !");
             nDevices++;
         }
-        vTaskDelay(10); // wait 10ms
+        vTaskDelay(10/portTICK_PERIOD_MS); // wait 10ms
         taskYIELD();
 
     }

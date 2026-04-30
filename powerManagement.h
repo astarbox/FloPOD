@@ -22,7 +22,7 @@ AS5048B -> 1000001 -> 0x41
 // U2  A1 = GND , A0 = SCL => 1000011 => 0x43 // DC1
 INA260 INA260_DC_1(0x43);
 
-// U3  A1 = 3v3 , A0 = GND => 1000100 => 0x44 // DC2
+// U3  A1 = 3v3 , A0 = GND => 1000100 => 0x44 // DC2 -> going to SHT30, will move to 0x48
 INA260 INA260_DC_2(0x44);
 
 // U4  A1 = 3v3 , A0 = 3v3 => 1000101 => 0x45// PWM1

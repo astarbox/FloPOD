@@ -7,33 +7,54 @@
 #ifndef __ENV_SENSOR__
 #define __ENV_SENSOR__
 #include <Wire.h>
-#include <HDC1080.h>
 #include <Protocentral_FDC1004.h>
 #include "config.h"
-
+#ifdef USE_HDC1080
+#include <HDC1080.h>
+using HDC1080 = GuL::HDC1080;
+#else
+#include <SHT31.h>
+#endif 
 #define IT_S_RAINING 65 // value in pF .. for now.
 
-using HDC1080 = GuL::HDC1080;
 
 class HumTempSensor
 {
 public:
 	HumTempSensor();
 	~HumTempSensor();
+	bool isPresent();
 	void getTempAndHum(float &temperature, float &humidity);	
+
 private:
-	HDC1080 *m_hdc;
+		bool m_bPresent = false;
+
+#ifdef USE_HDC1080
+	HDC1080 *m_Sensor;
+#else
+	SHT31 *m_Sensor;
+#endif
 };
 
 HumTempSensor::HumTempSensor()
 {
-	m_hdc = new HDC1080(Wire);
-	m_hdc->getManufacturerID(); // we can use this to check if device is present.
-	m_hdc->resetConfiguration();
-	m_hdc->enableHeater();
-	m_hdc->setHumidityResolution(GuL::HDC1080::HumidityMeasurementResolution::HUM_RES_14BIT);
-	m_hdc->setTemperaturResolution(GuL::HDC1080::TemperatureMeasurementResolution::TEMP_RES_14BIT);
-	m_hdc->setAcquisitionMode(GuL::HDC1080::AcquisitionModes::BOTH_CHANNEL);
+#ifdef USE_HDC1080
+	m_Sensor = new HDC1080(Wire);
+	m_Sensor->getManufacturerID(); // we can use this to check if device is present.
+	m_Sensor->resetConfiguration();
+	m_Sensor->enableHeater();
+	m_Sensor->setHumidityResolution(GuL::HDC1080::HumidityMeasurementResolution::HUM_RES_14BIT);
+	m_Sensor->setTemperaturResolution(GuL::HDC1080::TemperatureMeasurementResolution::TEMP_RES_14BIT);
+	m_Sensor->setAcquisitionMode(GuL::HDC1080::AcquisitionModes::BOTH_CHANNEL);
+#else
+	m_Sensor = new SHT31();
+	if(!m_Sensor->begin()) {
+		delete m_Sensor;
+		m_Sensor = nullptr;
+		m_bPresent = false;
+		return;
+	}
+#endif
 }
 
 HumTempSensor::~HumTempSensor()
@@ -42,10 +63,14 @@ HumTempSensor::~HumTempSensor()
 
 void HumTempSensor::getTempAndHum(float &temperature, float &humidity)
 {
-	m_hdc->startAcquisition(GuL::HDC1080::Channel::BOTH);
-	vTaskDelay((m_hdc->getConversionTime(GuL::HDC1080::Channel::BOTH)/1000)+1);
-	temperature = m_hdc->getTemperature();
-	humidity = m_hdc->getHumidity();
+#ifdef USE_HDC1080
+	m_Sensor->startAcquisition(GuL::HDC1080::Channel::BOTH);
+	vTaskDelay((m_Sensor->getConversionTime(GuL::HDC1080::Channel::BOTH)/1000)+1);
+#else
+	m_Sensor->read();
+#endif
+	temperature = m_Sensor->getTemperature();
+	humidity = m_Sensor->getHumidity();
 }
 
 

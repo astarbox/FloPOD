@@ -19,6 +19,11 @@
 
 #define DEBUG   // enable debug to serial port defined as DebugPort
 
+// temp & hum sensor
+// define one OR the other, not both..
+// #define USE_HDC1080
+#define USE_SHT30
+
 #ifdef DEBUG
 #pragma message "Debug messages enabled"
 #define DebugPort Serial
