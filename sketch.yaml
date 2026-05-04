@@ -1,0 +1,9 @@
+profiles:
+  default:
+    fqbn: esp32:esp32:esp32s3
+    platforms:
+      - platform: esp32:esp32
+
+board_options:
+  FlashSize: 16M        # or 4M, 8M, etc.
+  PartitionScheme: default_8MB

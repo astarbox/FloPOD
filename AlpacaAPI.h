@@ -72,14 +72,7 @@ AlpacaDiscoveryServer::AlpacaDiscoveryServer( int port)
 	discoveryServer = nullptr;
 	//	m_ipAddress = ipAddress;
 }
-/*
-AlpacaDiscoveryServer::AlpacaDiscoveryServer(IPAddress ipAddress, int port)
-{
-	m_UDPPort = port;
-	discoveryServer = nullptr;
-	m_ipAddress = ipAddress;
-}
-*/
+
 void AlpacaDiscoveryServer::startServer()
 {
 	discoveryServer = new NetworkUDP();
@@ -335,12 +328,12 @@ void getConfiguredDevice(Request &req, Response &res)
 	DBPrintln("[ ********** getConfiguredDevice ********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
-	AlpacaResp["Value"][0] ["DeviceName"]= "FLOPod";
+	AlpacaResp["Value"][0] ["DeviceName"]= "Pulsar-Imaging-Pod";
 	AlpacaResp["Value"][0] ["DeviceType"]= "dome";
 	AlpacaResp["Value"][0] ["DeviceNumber"]= 0;
 	AlpacaResp["Value"][0] ["UniqueID"]= PodUuid;
 
-	AlpacaResp["Value"][1] ["DeviceName"]= "FLOPodPower";
+	AlpacaResp["Value"][1] ["DeviceName"]= "Pulsar-Imaging-Pod-Power";
 	AlpacaResp["Value"][1] ["DeviceType"]= "switch";
 	AlpacaResp["Value"][1] ["DeviceNumber"]= 1;
 	AlpacaResp["Value"][1] ["UniqueID"]= PodPowerUuid;
@@ -1801,17 +1794,17 @@ void AlpacaServer::startServer()
 
 	// adding our own endpoints for the settings
 /*
-
 	m_AlpacaRestServer->use("/setup/useDHCP", &useDHCPState);
 	m_AlpacaRestServer->use("/setup/ipAddress", &ipAddressValue);
 	m_AlpacaRestServer->use("/setup/subnetMask", &subnetMaskValue);
 	m_AlpacaRestServer->use("/setup/ipGateway", &ipGatewayValue);
-
-	m_AlpacaRestServer->put("/setup/podShutterCalibrate", &startCalibration);
-	m_AlpacaRestServer->get("/setup/podShutterCalibrate", &calibrationState);
+	m_AlpacaRestServer->use("/setup/podShutterCalibrate", &podCalibrateAction);
 	m_AlpacaRestServer->get("/setup/envCondition", &envConditionState);
-
+	m_AlpacaRestServer->put("/setup/podOpen", &podOpen);
+	m_AlpacaRestServer->put("/setup/podClose", &podClose);
+	m_AlpacaRestServer->put("/setup/podState", &podState);
 	*/
+
 	m_AlpacaRestServer->get("/setup/serialNumber", &getSerialNumber);
 	DBPrintln("m_AlpacaRestServer started");
 }
