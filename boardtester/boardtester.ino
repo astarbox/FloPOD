@@ -1,7 +1,13 @@
-// ----------------------------------------
-// This will scan the I2C bus
-// then will test the eeprom on the shield
-// -----------------------------------------
+//
+// Board Settings (Tools menu):
+// --------------------------------
+// Board:            ESP32S3 Dev Module
+// Flash Size:       8MB
+// Partition Scheme: Default 8MB  (3MB APP/1.5MB SPIFFS)
+// --------------------------------
+//
+
+
 #include "../config.h"
 #include "../powerManagement.h"
 #include "../environment.h"

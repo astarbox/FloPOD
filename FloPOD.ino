@@ -4,6 +4,16 @@
 // Copyright © 2026 AStarBox. All rights reserved.
 //
 
+//
+// Board Settings (Tools menu):
+// --------------------------------
+// Board:            ESP32S3 Dev Module
+// Flash Size:       8MB
+// Partition Scheme: Default 8MB  (3MB APP/1.5MB SPIFFS)
+// --------------------------------
+//
+
+
 #include "Arduino.h"
 #include <rtc_wdt.h>
 #include <esp_task_wdt.h>
