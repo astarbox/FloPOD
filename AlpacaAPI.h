@@ -34,7 +34,6 @@ class AlpacaDiscoveryServer
 {
 public:
 	AlpacaDiscoveryServer(int port=ALPACA_DISCOVERY_PORT);
-	// AlpacaDiscoveryServer(IPAddress ipAddress, int port=ALPACA_DISCOVERY_PORT);
 	void startServer();
 	int checkForRequest();
 private:
@@ -46,23 +45,17 @@ private:
 class AlpacaServer
 {
 public :
-	// AlpacaServer(IPAddress ipAddress, int port=ALPACA_SERVER_PORT);
 	AlpacaServer(int port=ALPACA_SERVER_PORT);
 	void startServer();
 	void checkForRequest();
-	// void setPodCtrlPtr(RoofClass *pRoof);
 private :
 	NetworkServer *mRestServer;
 	Application  *m_AlpacaRestServer;
 	int m_nRestPort;
-	// IPAddress m_ipAddress;
 };
 
 AlpacaDiscoveryServer *pod_AlpacaDiscoveryServer;
 AlpacaServer *pod_AlpacaServer;
-// AlpacaDiscoveryServer *podAp_AlpacaDiscoveryServer;
-// AlpacaServer *podAp_AlpacaServer;
-
 
 // ALPACA discovery server
 
@@ -70,7 +63,6 @@ AlpacaDiscoveryServer::AlpacaDiscoveryServer( int port)
 {
 	m_UDPPort = port;
 	discoveryServer = nullptr;
-	//	m_ipAddress = ipAddress;
 }
 
 void AlpacaDiscoveryServer::startServer()
@@ -1547,7 +1539,7 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->put("/setup/podOpen", &podOpen);
 	m_AlpacaRestServer->put("/setup/podClose", &podClose);
 	m_AlpacaRestServer->put("/setup/podState", &podState);
-	*/
+*/
 
 	m_AlpacaRestServer->get("/setup/serialNumber", &getSerialNumber);
 	DBPrintln("m_AlpacaRestServer started");

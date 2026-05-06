@@ -100,7 +100,7 @@ void setup()
 	// create Pod controller PodMotorController config will be set in MotorTask
 	podController = new PodController(PodMotorController, podPowerController);
 
-	// start Alpaca on the AP.
+	// start Alpaca on all interfaces.
 	pod_AlpacaDiscoveryServer = new AlpacaDiscoveryServer();
 	pod_AlpacaDiscoveryServer->startServer();
 	pod_AlpacaServer = new AlpacaServer();
@@ -275,7 +275,6 @@ bool initEthernet()
 	int nTimeout = 0;
 
 	DBPrintln("========== Init Ethernet ==========");
-	// resetChip(ETHERNET_RESET);
 	SPI.begin(ETH_SPI_SCK, ETH_SPI_MISO, ETH_SPI_MOSI);
 	// network configuration
 	if(!ETH.begin(ETH_PHY_TYPE, ETH_PHY_ADDR, ETH_PHY_CS, ETH_PHY_IRQ, ETH_PHY_RST, SPI)) {
