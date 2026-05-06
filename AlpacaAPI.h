@@ -1430,245 +1430,7 @@ void doSetup(Request &req, Response &res)
 //
 // controller settings API
 //
-/*
-void subnetMaskValue(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
 
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-		}
-		else {
-			if(FormData["value"].is<String>()) {
-				podController->setIPSubnetMask(FormData["value"]);
-			}
-		}
-	}
-
-	controllerResp["value"] = String(RoofClass::IpAddress2String(domeEthernet.subnetMask()));
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void ipGetewayValue(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-		}
-		else {
-			if(FormData["value"].is<String>()) {
-				podController->setIPGateway(FormData["value"]);
-			}
-		}
-	}
-
-	controllerResp["value"] = String(RoofClass::IpAddress2String(domeEthernet.gatewayIP()));
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void roofCalibrateAction(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-		}
-		else {
-			if(FormData["value"].is<String>()) {
-				if(FormData["value"] == "start") {
-					podController->StartCalibrating();
-				}
-				if(FormData["value"] == "abort") {
-					podController->motorStop();
-				}
-			}
-		}
-	}
-
-	controllerResp["value"] = String(RoofClass::IpAddress2String(domeEthernet.gatewayIP()));
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void stepPerOpenValue(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-		}
-		else {
-			if(FormData["value"].is<long>()) {
-				podController->SetStepsPerStroke(FormData["value"]);
-			}
-		}
-	}
-
-	controllerResp["value"] = podController->GetStepsPerStroke();
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void roofSpeedValue(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-		}
-		else {
-			if(FormData["value"].is<long>()) {
-				podController->SetMaxSpeed(FormData["value"]);
-			}
-		}
-	}
-
-	controllerResp["value"] = podController->GetMaxSpeed();
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void roofAccelerationValue(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-		}
-		else {
-			if(FormData["value"].is<long>()) {
-				podController->SetAcceleration(FormData["value"]);
-			}
-		}
-	}
-
-	controllerResp["value"] = podController->GetAcceleration();
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-
-void restoreMotorValues(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-
-	podController->restoreDefaultMotorSettings();
-	controllerResp["value"] = "Restored";
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-
-void roofVoltageCutoffValue(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-		}
-		else {
-			if(FormData["value"].is<long>()) {
-				podController->SetLowVoltageCutoff(FormData["value"]);
-			}
-		}
-	}
-
-	controllerResp["value"] = podController->GetVoltString();
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-#pragma message FIXME
-void unsafeAction(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-		}
-		else {
-			if(FormData["value"].is<long>()) {
-				// podController->SetConditionsAction(FormData["value"]);
-			}
-		}
-	}
-
-	// controllerResp["value"] = podController->GetConditionsAction();
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-
-void envConditionState(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-
-	controllerResp["value"] = bool(bIsSafe);
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-
-*/
 
 void getSerialNumber(Request &req, Response &res)
 {
@@ -1708,29 +1470,7 @@ AlpacaServer::AlpacaServer(int port)
 
 
 }
-/*
-AlpacaServer::AlpacaServer(IPAddress ipAddress, int port)
-{
-	String sSerialNumber;    // Mac address, uses part of the unique ID
 
-	m_nRestPort = port;
-	m_ipAddress = ipAddress;
-	mRestServer = nullptr;
-	m_AlpacaRestServer = nullptr;
-	nTransactionID = 0;
-
-	globalPodConfig->getSerialNumber(sSerialNumber);
-
-	PodUuid.seed(sSerialNumber[4],sSerialNumber[5]);
-	PodUuid.generate();
-
-	PodPowerUuid.seed(sSerialNumber[4],sSerialNumber[5]+1);
-	PodPowerUuid.generate();
-
-
-
-}
-*/
 void AlpacaServer::startServer()
 {
 	mRestServer = new NetworkServer(m_nRestPort);
@@ -1798,8 +1538,12 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->use("/setup/ipAddress", &ipAddressValue);
 	m_AlpacaRestServer->use("/setup/subnetMask", &subnetMaskValue);
 	m_AlpacaRestServer->use("/setup/ipGateway", &ipGatewayValue);
-	m_AlpacaRestServer->use("/setup/podShutterCalibrate", &podCalibrateAction);
+	m_AlpacaRestServer->use("/setup/wifiSSID", &podHotSpotSSID);
 	m_AlpacaRestServer->get("/setup/envCondition", &envConditionState);
+	m_AlpacaRestServer->put("/setup/podCalibrate", &podCalibrate);
+
+	m_AlpacaRestServer->put("/setup/podVoltage", &podrVoltage;
+
 	m_AlpacaRestServer->put("/setup/podOpen", &podOpen);
 	m_AlpacaRestServer->put("/setup/podClose", &podClose);
 	m_AlpacaRestServer->put("/setup/podState", &podState);

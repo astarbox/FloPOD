@@ -1,0 +1,454 @@
+openapi: 3.2.0
+
+info:
+  title: Pulsar Imaging POD API
+  version: 1.0.0
+  description: This API describes communications with the Pulsar Observatories Imaging POD REST server.
+  contact:
+    name: Pulsar Observatories
+    url: https://www.pulsarastro.com/
+servers:
+- url: http://{host}/
+  description: hostname or ip address of POD Controller
+  variables:
+    host:
+      default: 192.168.0.100
+      description: The hostname or ip address.
+paths:
+  /setup/useDHCP:
+    get:
+      summary: Get the POD DHCP setting
+      description: 'Retrieve the POD DHCP setting.'
+      operationId: getDHCPEnabled
+      responses:
+        '200':
+          description: DHCP value successfully retrieved
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Networking
+    put:
+      summary: Set the POD DHCP setting
+      description: 'Set the POD DHCP setting.'
+      operationId: setDHCPEnabled
+      responses:
+        '200':
+          description: DHCP successfully set
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Networking
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                value:
+                  type: boolean
+              required:
+              - value
+
+  /setup/ipAddress:
+    get:
+      summary: Get the POD IP Address
+      description: 'Retrieve the POD IP Address.'
+      operationId: getIpAddress
+      responses:
+        '200':
+          description: IP Address value successfully retrieved
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Networking
+    put:
+      summary: Set the POD IP Address
+      description: 'Set the POD IP Address.'
+      operationId: setIpAddress
+      responses:
+        '200':
+          description: IP Address successfully set
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Networking
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                value:
+                  type: string
+              required:
+              - value
+
+  /setup/subnetMask:
+    get:
+      summary: Get the POD subnet mask
+      description: 'Retrieve the POD subnet mask.'
+      operationId: getSubnetMask
+      responses:
+        '200':
+          description: Subnet mask value successfully retrieved
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Networking
+    put:
+      summary: Set the POD subnet mask
+      description: 'Set the POD subnet mask.'
+      operationId: setSubnetMask
+      responses:
+        '200':
+          description: Subnet mask successfully set
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Networking
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                value:
+                  type: string
+              required:
+              - value
+
+  /setup/ipGateway:
+    get:
+      summary: Get the POD gateway IP
+      description: 'Retrieve the POD gateway IP.'
+      operationId: getGatewayIP
+      responses:
+        '200':
+          description: Gateway IP value successfully retrieved
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Networking
+    put:
+      summary: Set the POD gateway IP
+      description: 'Set the POD gateway IP.'
+      operationId: setGatewayIP
+      responses:
+        '200':
+          description: Gateway IP successfully set
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Networking
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                value:
+                  type: string
+              required:
+              - value
+
+  /setup/wifiSSID:
+    get:
+      summary: Get the POD WiFi HotSpot SSID
+      description: 'Retrieve the POD WiFi HotSpot SSID
+        shutter.'
+      operationId: getShutterWiFiSSID
+      responses:
+        '200':
+          description: POD Shutter SSID
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Networking
+    put:
+      summary: set the POD WiFi HotSpot SSID
+      description: 'Set the POD WiFi HotSpot SSID.'
+      operationId: setShutterWiFiSSID
+      responses:
+        '200':
+          description: Shutter Open order successfully set
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Networking
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                value:
+                  type: string
+              required:
+              - value
+
+  /setup/podCalibrate:
+    get:
+      summary: Get the POD calibration status
+      description: 'Retrieve the POD calibration status.'
+      operationId: getCalibrationStatus
+      responses:
+        '200':
+          description: Calibration status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Calibration'
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD motion control
+    put:
+      summary: Start or stop calibration
+      description: 'Start or stop the POD calibration.'
+      operationId: setCalibrationStatus
+      responses:
+        '200':
+          description: Calibration state successfully set
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD motion control
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                value:
+                  $ref: '#/components/schemas/CalibrationAction'
+              required:
+              - value
+
+  /setup/envCondition:
+    get:
+      summary: Get the POD weather condition
+      description: 'Retrieve the POD weather condition based on sensor pin
+        value.'
+      operationId: getEnvCondition
+      responses:
+        '200':
+          description: POD weather condition
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD General Informations
+
+  /setup/shutterSpeed:
+    get:
+      summary: Get the POD Shutter speed
+      description: 'Retrieve the POD Shutter speed in percent.'
+      operationId: getShutterSpeed
+      responses:
+        '200':
+          description: POD Shutter speed in step per second
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD Shutter
+    put:
+      summary: set the POD Shutter speed
+      description: 'Set the POD Shutter speed in percent.'
+      operationId: setShutterSpeed
+      responses:
+        '200':
+          description: POD Shutter speed successfully set
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD Shutter
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                value:
+                  type: integer
+              required:
+              - value
+
+  /setup/podVoltage:
+    get:
+      summary: Get the POD input voltage
+      description: 'Retrieve the POD input voltage.'
+      operationId: getPodVoltage
+      responses:
+        '200':
+          description: POD Shutter voltage
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD General Informations
+
+  /setup/openShutter:
+    put:
+      summary: Open the POD Shutter
+      description: 'This will open the POD Shutter'
+      operationId: openShutter
+      responses:
+        '200':
+          description: Homing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShutterStatus'
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD Control
+
+  /setup/closeShutter:
+    put:
+      summary: Close the POD Shutter
+      description: 'This will send the dome to the park azimuth'
+      operationId: closeShutter
+      responses:
+        '200':
+          description: Parking
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShutterStatus'
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD Control
+
+  /setup/getShutterState:
+    get:
+      summary: Get the POD Shutter state
+      description: 'Retrieve the POD Shutter state'
+      operationId: getShutterState
+      responses:
+        '200':
+          description: Shutter state successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShutterStatus'
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD Control
+
+components:
+  schemas:
+    ErrorCode:
+      type: integer
+      description: Error codes. Same as Alpaca
+      enum:
+      - 0
+      - 1024
+      - 1025
+      - 1026
+      - 1031
+      - 1032
+      - 1033
+      - 1035
+      - 1036
+
+    CalibrationAction:
+      type: string
+      enum:
+      - start
+      - stop
+      x-enum-varnames:
+      - start
+      - stop
+
+    CalibrationStates:
+      type: integer
+      description: Calibration states
+      enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      x-enum-varnames:
+      - CAL_NONE
+      - CAL_FIRST_CLOSE
+      - CAL_OPENING
+      - CAL_FINISH_CLOSE
+      x-enum-descriptions:
+      - POD is not calibration
+      - POD is doing first initial close.
+      - POD is opening.
+      - pod is doing 2nd close
+
+    ShutterStatus:
+      type: integer
+      enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+      x-enum-varnames:
+      - OPEN
+      - CLOSED
+      - OPENING
+      - CLOSING
+      - ERROR
+      x-enum-descriptions:
+      - Shutter is open
+      - Shutter is closed
+      - Shutter is opening
+      - Shutter is closing
+      - Shutter state is unknown
+
+    Response400ErrorInfo:
+      type: object
+      properties:
+        ErrorNumber:
+          $ref: '#/components/schemas/ErrorCode'
+        ErrorMessage:
+          type: string
+      required:
+      - ErrorNumber
+      - ErrorMessage
+
+    Calibration:
+      type: object
+      properties:
+        value:
+          $ref: '#/components/schemas/CalibrationStates'
+      required:
+      - value
+
+  examples:
+    ERROR_BUSY_MOVIG:
+      value:
+        ErrorNumber: 1035
+        ErrorMessage: POD is busy moving shutters.
+      description: No Error
+    ERROR_BUSY_CALIBRATING:
+      value:
+        ErrorNumber: 1035
+        ErrorMessage: POD is busy calibrating.
+      description: Controller is busy
+
+  responses:
+    Response400:
+      description: POD Controller error. Additional information encoded in the response
+        content.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Response400ErrorInfo'
+          examples:
+            ERROR_BUSY_MOVIG:
+              $ref: '#/components/examples/ERROR_BUSY_MOVIG'
+            ERROR_BUSY_CALIBRATING:
+              $ref: '#/components/examples/ERROR_BUSY_CALIBRATING'
