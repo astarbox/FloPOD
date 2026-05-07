@@ -206,7 +206,7 @@ paths:
         '400':
           $ref: '#/components/responses/Response400'
       tags:
-      - POD motion control
+      - Motion control
     put:
       summary: Start or stop calibration
       description: 'Start or stop the POD calibration.'
@@ -217,7 +217,7 @@ paths:
         '400':
           $ref: '#/components/responses/Response400'
       tags:
-      - POD motion control
+      - Motion control
       requestBody:
         required: true
         content:
@@ -242,7 +242,7 @@ paths:
         '400':
           $ref: '#/components/responses/Response400'
       tags:
-      - POD General Informations
+      - General Informations
 
   /setup/shutterSpeed:
     get:
@@ -255,7 +255,7 @@ paths:
         '400':
           $ref: '#/components/responses/Response400'
       tags:
-      - POD Shutter
+      - Shutter settings
     put:
       summary: set the POD Shutter speed
       description: 'Set the POD Shutter speed in percent.'
@@ -266,7 +266,7 @@ paths:
         '400':
           $ref: '#/components/responses/Response400'
       tags:
-      - POD Shutter
+      - Shutter settings
       requestBody:
         required: true
         content:
@@ -279,27 +279,15 @@ paths:
               required:
               - value
 
-  /setup/podVoltage:
-    get:
-      summary: Get the POD input voltage
-      description: 'Retrieve the POD input voltage.'
-      operationId: getPodVoltage
-      responses:
-        '200':
-          description: POD Shutter voltage
-        '400':
-          $ref: '#/components/responses/Response400'
-      tags:
-      - POD General Informations
 
-  /setup/openShutter:
+  /setup/podOpen:
     put:
       summary: Open the POD Shutter
       description: 'This will open the POD Shutter'
-      operationId: openShutter
+      operationId: podOpen
       responses:
         '200':
-          description: Homing
+          description: Opening the pod
           content:
             application/json:
               schema:
@@ -307,16 +295,16 @@ paths:
         '400':
           $ref: '#/components/responses/Response400'
       tags:
-      - POD Control
+      - Shutter Control
 
-  /setup/closeShutter:
+  /setup/podClose:
     put:
       summary: Close the POD Shutter
       description: 'This will send the dome to the park azimuth'
-      operationId: closeShutter
+      operationId: podClose
       responses:
         '200':
-          description: Parking
+          description: Closing
           content:
             application/json:
               schema:
@@ -324,16 +312,16 @@ paths:
         '400':
           $ref: '#/components/responses/Response400'
       tags:
-      - POD Control
+      - Shutter Control
 
-  /setup/getShutterState:
+  /setup/podState:
     get:
       summary: Get the POD Shutter state
       description: 'Retrieve the POD Shutter state'
-      operationId: getShutterState
+      operationId: getPodState
       responses:
         '200':
-          description: Shutter state successfully retrieved
+          description: Pod Shutter state successfully retrieved
           content:
             application/json:
               schema:
@@ -341,7 +329,304 @@ paths:
         '400':
           $ref: '#/components/responses/Response400'
       tags:
-      - POD Control
+      - Shutter Control
+
+  /setup/podDC1Power:
+    get:
+      summary: Get the POD DC1 power informations
+      description: 'Retrieve the POD DC1 output power Informations.'
+      operationId: getDC1Power
+      responses:
+        '200':
+          description: POD DC1 power informations
+          $ref: '#/components/schemas/PortPowerData'
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Power Informations
+
+  /setup/podDC2Power:
+    get:
+      summary: Get the POD DC2 power Informations
+      description: 'Retrieve the POD DC1 output power Informations.'
+      operationId: getDC2Power
+      responses:
+        '200':
+          description: POD DC2 power informations
+          $ref: '#/components/schemas/PortPowerData'
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Power Informations
+
+  /setup/podPWM1Power:
+    get:
+      summary: Get the POD PWM1 power Informations
+      description: 'Retrieve the POD PWM1 output power Informations.'
+      operationId: getPWM1Power
+      responses:
+        '200':
+          description: POD PWM1 power informations
+          $ref: '#/components/schemas/PortPowerData'
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Power Informations
+
+  /setup/podPWM2Power:
+    get:
+      summary: Get the POD PWM2 power Informations
+      description: 'Retrieve the POD PWM2 output power Informations.'
+      operationId: getPWM2Power
+      responses:
+        '200':
+          description: POD PWM2 power informations
+          $ref: '#/components/schemas/PortPowerData'
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Power Informations
+
+  /setup/podUsbCPower:
+    get:
+      summary: Get the POD USB-C power Informations
+      description: 'Retrieve the POD USB-C output power Informations.'
+      operationId: getUsbCPower
+      responses:
+        '200':
+          description: POD USB-C power informations
+          $ref: '#/components/schemas/PortPowerData'
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Power Informations
+
+  /setup/podMainPower:
+    get:
+      summary: Get the POD main power informations
+      description: 'Retrieve the POD main input power Informations.'
+      operationId: getMainPower
+      responses:
+        '200':
+          description: POD main power informations
+          $ref: '#/components/schemas/PortPowerData'
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Power Informations
+
+
+  /setup/podBatPower:
+    get:
+      summary: Get the POD Battery power Informations
+      description: 'Retrieve the POD Battery output power Informations.'
+      operationId: getBatteryPower
+      responses:
+        '200':
+          description: POD Battery power informations
+          $ref: '#/components/schemas/PortPowerData'
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Power Informations
+
+  /setup/podMot1Power:
+    get:
+      summary: Get the POD Motor power Informations
+      description: 'Retrieve the POD Motor output power Informations.'
+      operationId: getMotor1Power
+      responses:
+        '200':
+          description: POD Motor power informations
+          $ref: '#/components/schemas/PortPowerData'
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Power Informations
+
+  /setup/podMot2Power:
+    get:
+      summary: Get the POD 2nd Motor power Informations
+      description: 'Retrieve the POD 2nd Motor output power Informations.'
+      operationId: getMotor2Power
+      responses:
+        '200':
+          description: POD 2nd Motor power informations
+          $ref: '#/components/schemas/PortPowerData'
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Power Informations
+
+  /setup/powerDC1:
+    get:
+      summary: Get the POD DC1 output state
+      description: 'Retrieve the POD DC1 output state.'
+      operationId: getStateDC1
+      responses:
+        '200':
+          description: POD DC1 output state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PowerPortStatus'
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Power Ports Control
+    put:
+      summary: set the POD DC1 output state
+      description: 'Set the POD DC1 output state (On/Off).'
+      operationId: setStateDC1
+      responses:
+        '200':
+          description: POD DC1 output state successfully set
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Power Ports Control
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PowerPortStatus'
+
+  /setup/powerDC2:
+    get:
+      summary: Get the POD DC2 output state
+      description: 'Retrieve the POD DC2 output state.'
+      operationId: getStateDC2
+      responses:
+        '200':
+          description: POD DC2 output state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PowerPortStatus'
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Power Ports Control
+    put:
+      summary: set the POD DC2 output state
+      description: 'Set the POD DC2 output state (On/Off).'
+      operationId: setStateDC2
+      responses:
+        '200':
+          description: POD DC2 output state successfully set
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Power Ports Control
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PowerPortStatus'
+
+  /setup/powerPWM1:
+    get:
+      summary: Get the POD PWM1 output state
+      description: 'Retrieve the POD PWM1 output state.'
+      operationId: getStatePWM1
+      responses:
+        '200':
+          description: POD PWM1 output state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PowerPWMPortStatus'
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Power Ports Control
+    put:
+      summary: set the POD PWM1 output state
+      description: 'Set the POD PWM1 output state (On/Off).'
+      operationId: setStatePWM1
+      responses:
+        '200':
+          description: POD PWM1 output state successfully set
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Power Ports Control
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PowerPWMPortStatus'
+
+  /setup/powerPWM2:
+    get:
+      summary: Get the POD PWM2 output state
+      description: 'Retrieve the POD PWM2 output state.'
+      operationId: getStatePWM2
+      responses:
+        '200':
+          description: POD PWM2 output state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PowerPWMPortStatus'
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Power Ports Control
+    put:
+      summary: set the POD PWM2 output state
+      description: 'Set the POD PWM2 output state (On/Off).'
+      operationId: setStatePWM2
+      responses:
+        '200':
+          description: POD PWM2 output state successfully set
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Power Ports Control
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PowerPWMPortStatus'
+
+  /setup/powerUsbC:
+    get:
+      summary: Get the POD USB-C output state
+      description: 'Retrieve the POD USB-C output state.'
+      operationId: getStateUsbC
+      responses:
+        '200':
+          description: POD USB-C output state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PowerPortStatus'
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Power Ports Control
+    put:
+      summary: set the POD USB-C output state
+      description: 'Set the POD USB-C output state (On/Off).'
+      operationId: setStateUsbC
+      responses:
+        '200':
+          description: POD USB-C output state successfully set
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - Power Ports Control
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PowerPortStatus'
 
 components:
   schemas:
@@ -382,10 +667,10 @@ components:
       - CAL_OPENING
       - CAL_FINISH_CLOSE
       x-enum-descriptions:
-      - POD is not calibration
-      - POD is doing first initial close.
-      - POD is opening.
-      - pod is doing 2nd close
+      - is not calibration
+      - is doing first initial close.
+      - is opening.
+      - is doing 2nd close
 
     ShutterStatus:
       type: integer
@@ -426,6 +711,51 @@ components:
           $ref: '#/components/schemas/CalibrationStates'
       required:
       - value
+
+    PortPowerData:
+      type: object
+      properties:
+        volts:
+          type: number
+          format: float
+          description: port voltage
+        amps:
+          type: number
+          format: float
+          description: port amperage
+        watt:
+          type: number
+          format: float
+          description: port watt
+      required:
+      - volts
+      - amps
+      - watt
+
+    PowerPortStatus:
+      type: object
+      properties:
+        state:
+          type: integer
+          enum:
+          - 0
+          - 1
+          x-enum-varnames:
+          - OFF
+          - ON
+          x-enum-descriptions:
+          - Off
+          - On
+      required:
+      - state
+
+    PowerPWMPortStatus:
+      type: object
+      properties:
+        percent:
+          type: integer
+      required:
+      - percent
 
   examples:
     ERROR_BUSY_MOVIG:

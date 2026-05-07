@@ -1531,14 +1531,33 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->use("/setup/subnetMask", &subnetMaskValue);
 	m_AlpacaRestServer->use("/setup/ipGateway", &ipGatewayValue);
 	m_AlpacaRestServer->use("/setup/wifiSSID", &podHotSpotSSID);
-	m_AlpacaRestServer->get("/setup/rainStatus", &rainStatus);
 	m_AlpacaRestServer->put("/setup/podCalibrate", &podCalibrate);
+	m_AlpacaRestServer->get("/setup/rainStatus", &rainStatus);
 
-	m_AlpacaRestServer->put("/setup/podVoltage", &podrVoltage;
-
+	// shutter control
 	m_AlpacaRestServer->put("/setup/podOpen", &podOpen);
 	m_AlpacaRestServer->put("/setup/podClose", &podClose);
-	m_AlpacaRestServer->put("/setup/podState", &podState);
+	m_AlpacaRestServer->get("/setup/podState", &podState);
+
+	// Power ports control
+	m_AlpacaRestServer->use("/setup/powerDC1", &powerDC1);
+	m_AlpacaRestServer->use("/setup/powerDC2", &powerDC2);
+	m_AlpacaRestServer->use("/setup/powerPWM1", &powerPWM1);
+	m_AlpacaRestServer->use("/setup/powerPWM2", &powerPWM2);
+	m_AlpacaRestServer->use("/setup/powerUsbC", &powerUsbC);
+
+	// Power usage
+	m_AlpacaRestServer->get("/setup/podMainPower", &podMainPower);
+	m_AlpacaRestServer->get("/setup/podDC1Power", &podDC1Power);
+	m_AlpacaRestServer->get("/setup/podDC2Power", &podDC2Power);
+	m_AlpacaRestServer->get("/setup/podPWM1Power", &podPWM1Power);
+	m_AlpacaRestServer->get("/setup/podPWM2Power", &podPWM2Power);
+
+	m_AlpacaRestServer->get("/setup/podBatPower", &podBatPower);
+	m_AlpacaRestServer->get("/setup/podUsbCPower", &podUsbCPower);
+	m_AlpacaRestServer->get("/setup/podMot1Power", &podMot1Power);
+	m_AlpacaRestServer->get("/setup/podMot2Power", &podMot2Power);
+
 */
 
 	m_AlpacaRestServer->get("/setup/serialNumber", &getSerialNumber);
