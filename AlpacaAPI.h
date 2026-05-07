@@ -1531,7 +1531,7 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->use("/setup/subnetMask", &subnetMaskValue);
 	m_AlpacaRestServer->use("/setup/ipGateway", &ipGatewayValue);
 	m_AlpacaRestServer->use("/setup/wifiSSID", &podHotSpotSSID);
-	m_AlpacaRestServer->get("/setup/envCondition", &envConditionState);
+	m_AlpacaRestServer->get("/setup/rainStatus", &rainStatus);
 	m_AlpacaRestServer->put("/setup/podCalibrate", &podCalibrate);
 
 	m_AlpacaRestServer->put("/setup/podVoltage", &podrVoltage;

@@ -230,15 +230,15 @@ paths:
               required:
               - value
 
-  /setup/envCondition:
+  /setup/rainStatus:
     get:
-      summary: Get the POD weather condition
-      description: 'Retrieve the POD weather condition based on sensor pin
+      summary: Get the POD rain sensor status
+      description: 'Retrieve the POD rain sensor status (raining / not raining)
         value.'
-      operationId: getEnvCondition
+      operationId: getRainStatus
       responses:
         '200':
-          description: POD weather condition
+          description: POD rain sensor status
         '400':
           $ref: '#/components/responses/Response400'
       tags:
