@@ -19,9 +19,10 @@ public:
 	podStates getShutterState();
 	float GetAzimuth();
 	float getAltitude();
-	void Abort();
+	void Stop();
 	void Open();
 	void Close();
+	void Run();
 	void SetParkAzimuth(float fAz);
 	void GoToAzimuth(float fAz);
 	void SyncPosition(float fAz);
@@ -55,7 +56,7 @@ podStates PodController::getShutterState()
 	PodShutterState mPsState;
 	// if the state is error, shut off power
 	if(m_nState == POD_ERROR) {
-		Abort();
+		Stop();
 	}
 	mPodMotor->getShutterState(mPsState);
 	switch(mPsState) {
@@ -91,7 +92,7 @@ float PodController::getAltitude()
 	return 0.0f;
 }
 
-void PodController::Abort()
+void PodController::Stop()
 {
 	mPodMotor->Stop();
 }
@@ -109,6 +110,13 @@ void PodController::Close()
 	if(mPodMotor) {
 		m_nState = CLOSING;
 		mPodMotor->Close();
+	}
+}
+
+void PodController::Run()
+{
+	if(mPodMotor) {
+		mPodMotor->Run();
 	}
 }
 

@@ -688,16 +688,19 @@ components:
       - 1
       - 2
       - 3
+      - 4
       x-enum-varnames:
       - CAL_NONE
       - CAL_FIRST_CLOSE
       - CAL_OPENING
       - CAL_FINISH_CLOSE
+      - CAL_DONE
       x-enum-descriptions:
-      - is not calibration
-      - is doing first initial close.
-      - is opening.
-      - is doing 2nd close
+      - POD is not calibration.
+      - POD is doing first initial close.
+      - POD is opening.
+      - POD is doing 2nd close.
+      - POD is done calibrating.
 
     ShutterStatus:
       type: integer

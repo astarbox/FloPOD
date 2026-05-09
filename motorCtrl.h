@@ -18,7 +18,7 @@
 
 enum MotorStates {M_STOPPED, M_RUNNING, M_CALIBRATING};
 enum PodShutterState {PS_UNKNOWN, PS_CLOSED, PS_OPEN, PS_CLOSING, PS_OPENING};
-enum MotorCalibrationSteps {CAL_NONE, CAL_FIRST_CLOSE,CAL_OPENING, CAL_FINISH_CLOSE};
+enum MotorCalibrationSteps {CAL_NONE, CAL_FIRST_CLOSE,CAL_OPENING, CAL_FINISH_CLOSE, CAL_DONE};
 class motorCtrl
 {
 public:
@@ -81,42 +81,43 @@ motorCtrl::motorCtrl()
 
 void motorCtrl::Calibrate()
 {
-	switch(m_CalsState) {
-		case CAL_NONE:
-			// set speed to 10%
-			myPID->SetOutputLimits(-25, 25);
-			m_nMotorState = M_CALIBRATING;
-			// close
-			m_CalsState = CAL_FIRST_CLOSE;
-			Close();
-			break;
 
-		case CAL_FIRST_CLOSE:
-			// store closed value of encoder
-			getEncoderPosition(m_EncoderConfig.closeAngle);
-			// open
-			m_CalsState = CAL_OPENING;
-			Open();
-			break;
-
-		case CAL_OPENING:
-			// store open value of encoder
-			getEncoderPosition(m_EncoderConfig.openAngle);
-			// set speed to normal speed
-			m_CalsState = CAL_FINISH_CLOSE;
-			// close
-			Close();
-			break;
-
-		case CAL_FINISH_CLOSE:
-			Stop();
-			m_nMotorState = M_STOPPED;
-			m_CalsState = CAL_NONE;
-			m_EncoderConfig.bIsCalibrated = true;
-			if(globalPodConfig) {
-				globalPodConfig->saveEncoderConfig(m_EncoderConfig);
-			}
-			break;
+	if(m_CalsState == CAL_NONE && m_nMotorState == M_STOPPED) {
+		// set speed to 10%
+		myPID->SetOutputLimits(-25, 25);
+		m_nMotorState = M_CALIBRATING;
+		// close
+		m_CalsState = CAL_FIRST_CLOSE;
+		Close();
+	}
+	else if (m_CalsState == CAL_FIRST_CLOSE && m_nMotorState == M_STOPPED) {
+		// we just hit the close position.
+		// store closed value of encoder
+		getEncoderPosition(m_EncoderConfig.closeAngle);
+		// open
+		m_CalsState = CAL_OPENING;
+		Open();
+		// else we're still closing.
+	}
+	else if (m_CalsState == CAL_OPENING && m_nMotorState == M_STOPPED) {
+		// we just hit the open position.
+		// store closed value of encoder
+		getEncoderPosition(m_EncoderConfig.openAngle);
+		// open
+		m_CalsState = CAL_FINISH_CLOSE;
+		Open();
+		// else we're still opening.
+	}
+	else if (m_CalsState == CAL_FINISH_CLOSE && m_nMotorState == M_STOPPED) {
+		// we just hit the close position.
+		Stop();
+		m_CalsState = CAL_DONE;
+		m_EncoderConfig.bIsCalibrated = true;
+		if(globalPodConfig) {
+			globalPodConfig->saveEncoderConfig(m_EncoderConfig);
+		}
+		myPID->SetOutputLimits(-255, 255);
+		// else we're still closinf.
 	}
 }
 
@@ -143,6 +144,7 @@ void motorCtrl::Close()
 void motorCtrl::Stop()
 {
 	ledcWriteChannel(MotorPwmChannel, 0); // make sure we're not moving.
+	m_nMotorState = M_STOPPED;
 }
 
 void motorCtrl::Run()
@@ -160,7 +162,6 @@ void motorCtrl::Run()
 	// Yes -> stop motor PWM
 	if (checkBoundaries(m_dTargetPosition, m_dEncoderValue, 0.1)) {
 		Stop();
-		m_nMotorState = M_STOPPED;
 		switch(m_nPsState) {
 			case PS_OPENING:
 				m_nPsState = PS_OPEN;
@@ -202,7 +203,8 @@ void motorCtrl::getShutterState(PodShutterState &nPsState)
 
 void motorCtrl::OverCurrentStop()
 {
-
+		ledcWriteChannel(MotorPwmChannel, 0); // Motor is stalling, stop everyting
+		m_nMotorState = M_STOPPED;
 }
 
 

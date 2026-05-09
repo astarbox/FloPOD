@@ -187,14 +187,14 @@ PodConfig::PodConfig()
 	bool nvsInitDone = false;
 
 	DBPrintln("PodConfig::PodConfig");
-	m_preferences.begin("FloPod", false);
+	m_preferences.begin("PodConfig", false);
 	nvsInitDone = m_preferences.isKey("nvsInit");
 	if(!nvsInitDone) {
 		DBPrintln("Initializing NVS");
 		m_preferences.end();
 		nvs_flash_erase();
 		nvs_flash_init();
-		m_preferences.begin("FloPod", false);
+		m_preferences.begin("PodConfig", false);
 		m_preferences.putBool("nvsInit", true);
 
 	}
@@ -229,7 +229,7 @@ PodConfig::PodConfig()
 
 void PodConfig::LoadIpConfig(IPConfig &ipClientConfig)
 {
-	m_preferences.begin("FloPod", false);
+	m_preferences.begin("PodConfig", false);
 	ipClientConfig.bUseDHCP = m_preferences.getBool("clientUseDhcp",false);
 	if(!ipClientConfig.bUseDHCP ) {
 		// load configured static IP
@@ -243,7 +243,7 @@ void PodConfig::LoadIpConfig(IPConfig &ipClientConfig)
 
 void PodConfig::saveIpConfig(IPConfig ipClientConfig)
 {
-	m_preferences.begin("FloPod", false);
+	m_preferences.begin("PodConfig", false);
 	m_preferences.putBool("clientUseDhcp", ipClientConfig.bUseDHCP);
 	if(!ipClientConfig.bUseDHCP ) {
 		// load configured static IP
@@ -257,16 +257,16 @@ void PodConfig::saveIpConfig(IPConfig ipClientConfig)
 
 void PodConfig::LoadApConfig(WIFIConfig &wifiApConfig)
 {
-	m_preferences.begin("FloPod", false);
-	wifiApConfig.sSSID =  m_preferences.getString("APSSID","FLO_Pod");
-	wifiApConfig.sPassword =  m_preferences.getString("APPassword","FLO_Pod");
+	m_preferences.begin("PodConfig", false);
+	wifiApConfig.sSSID =  m_preferences.getString("APSSID","PulsarPod");
+	wifiApConfig.sPassword =  m_preferences.getString("APPassword","PulsarPod");
 	wifiApConfig.nChannel = m_preferences.getInt("APChannel", 1);
 	m_preferences.end();
 }
 
 void PodConfig::saveApConfig(WIFIConfig wifiApConfig)
 {
-	m_preferences.begin("FloPod", false);
+	m_preferences.begin("PodConfig", false);
 	m_preferences.putString("APSSID", wifiApConfig.sSSID);
 	m_preferences.putString("APPassword",wifiApConfig.sPassword);
 	m_preferences.putInt("APChannel",wifiApConfig.nChannel);
@@ -275,7 +275,7 @@ void PodConfig::saveApConfig(WIFIConfig wifiApConfig)
 
 void PodConfig::LoadStaConfig(WIFIConfig &wifiApConfig)
 {
-	m_preferences.begin("FloPod", false);
+	m_preferences.begin("PodConfig", false);
 	wifiApConfig.sSSID =  m_preferences.getString("StaSSID","FLO_Pod");
 	wifiApConfig.sPassword =  m_preferences.getString("StaPassword","");
 	m_preferences.end();
@@ -283,7 +283,7 @@ void PodConfig::LoadStaConfig(WIFIConfig &wifiApConfig)
 
 void PodConfig::saveStaConfig(WIFIConfig wifiApConfig)
 {
-	m_preferences.begin("FloPod", false);
+	m_preferences.begin("PodConfig", false);
 	m_preferences.putString("StaSSID", wifiApConfig.sSSID);
 	m_preferences.putString("StaPassword",wifiApConfig.sPassword);
 	m_preferences.end();
@@ -291,31 +291,31 @@ void PodConfig::saveStaConfig(WIFIConfig wifiApConfig)
 
 void PodConfig::LoadPodConfig(Configuration &podConfig)
 {
-	m_preferences.begin("FloPod", false);
+	m_preferences.begin("PodConfig", false);
 	m_preferences.end();
 }
 
 void PodConfig::savePodConfig(Configuration podConfig)
 {
-	m_preferences.begin("FloPod", false);
+	m_preferences.begin("PodConfig", false);
 	m_preferences.end();
 }
 
 void PodConfig::LoadPowerConfig(PowerConfig &powerConfig)
 {
-	m_preferences.begin("FloPod", false);
+	m_preferences.begin("PodConfig", false);
 	m_preferences.end();
 }
 
 void PodConfig::savePowerConfig(PowerConfig powerConfig)
 {
-	m_preferences.begin("FloPod", false);
+	m_preferences.begin("PodConfig", false);
 	m_preferences.end();
 }
 
 void PodConfig::LoadEncoderConfig(EncoderConfig &encoderConfig)
 {
-	m_preferences.begin("FloPod", false);
+	m_preferences.begin("PodConfig", false);
 	encoderConfig.bIsCalibrated = m_preferences.getBool("isCalibrated", false);
 	encoderConfig.closeAngle = m_preferences.getFloat("closeAngle",0);
 	encoderConfig.openAngle = m_preferences.getFloat("openAngle",0);
@@ -325,7 +325,7 @@ void PodConfig::LoadEncoderConfig(EncoderConfig &encoderConfig)
 
 void PodConfig::saveEncoderConfig(EncoderConfig encoderConfig)
 {
-	m_preferences.begin("FloPod", false);
+	m_preferences.begin("PodConfig", false);
 	m_preferences.putBool("isCalibrated", encoderConfig.bIsCalibrated);
 	m_preferences.putFloat("closeAngle",encoderConfig.closeAngle);
 	m_preferences.putFloat("openAngle",encoderConfig.openAngle);
@@ -335,7 +335,7 @@ void PodConfig::saveEncoderConfig(EncoderConfig encoderConfig)
 
 void PodConfig::setWifiDefault()
 {
-	m_preferences.begin("FloPod", false);
+	m_preferences.begin("PodConfig", false);
 	m_preferences.end();
 }
 

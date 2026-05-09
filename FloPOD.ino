@@ -97,7 +97,7 @@ void setup()
 	// MAG_TRIG interrupt
 	attachInterrupt(MAG_TRIG, magnetHandler, FALLING);
 
-	// create Pod controller PodMotorController config will be set in MotorTask
+	// create Pod controller
 	podController = new PodController(PodMotorController, podPowerController);
 
 	// start Alpaca on all interfaces.
@@ -124,16 +124,30 @@ void loop()
 void MotorTask(void *)
 {
 	const TickType_t xDelay = 50/ portTICK_PERIOD_MS; // 50ms task block to give time back
+	podStates nPodState;
 	// make sure nothing is moving when we power up
-	PodMotorController->Stop();
+	podController->Stop();
 
 	for(;;) {
 		// check magnet
 		if(bMagnetTriggered) {
-
+			bMagnetTriggered = false;
+			nPodState = podController->getShutterState();
+			switch(nPodState) {
+				case OPEN:
+				case POD_ERROR:
+					podController->Close();
+					break;
+				case CLOSED:
+					podController->Open();
+					break;
+				default:
+					// it's already moving ?
+					break;
+			}
 		}
 		// run motor if needed
-		PodMotorController->Run();
+		podController->Run();
 		// FreeRTOS task management
 		vTaskDelay(xDelay);
 		taskYIELD();

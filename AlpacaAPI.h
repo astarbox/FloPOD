@@ -1122,7 +1122,7 @@ void doAbort(Request &req, Response &res)
 
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	podController->Abort(); // this is in the RoREth-esp32.ino
+	podController->Stop();
 
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
@@ -1405,15 +1405,10 @@ void doSetup(Request &req, Response &res)
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	sHTML = "<!DOCTYPE html>\n<html>\n";
 	sHTML += "<head>";
-	sHTML += "<title>RTI Dome Setup</title>\n";
+	sHTML += "<title>Pulsar Imaging POD Setup</title>\n";
 	sHTML += "</head>\n";
 	sHTML += "<body>\n";
-	sHTML += "<H1>RTI Dome Setup</H1>\n";
-	// display passed data
-	if(FormData.size()!=0){
-		sHTML += "<p>data passed : </p>\n";
-		sHTML += "<p>"+sResp+"</p>\n";
-	}
+	sHTML += "<H1>Pulsar Imaging POD Setup</H1>\n";
 
 	sHTML += "</body>\n</html>\n";
 	res.print(sHTML);
@@ -1769,6 +1764,7 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->use("/setup/subnetMask", &subnetMaskValue);
 	m_AlpacaRestServer->use("/setup/ipGateway", &ipGatewayValue);
 
+	m_AlpacaRestServer->put("/setup/podCalibrate", &podCalibrate);
 	m_AlpacaRestServer->get("/setup/rainStatus", &rainStatus);
 
 	// shutter control
@@ -1777,7 +1773,6 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->get("/setup/podState", &podState);
 /*
 	m_AlpacaRestServer->use("/setup/wifiSSID", &podHotSpotSSID);
-	m_AlpacaRestServer->put("/setup/podCalibrate", &podCalibrate);
 
 
 	// Power ports control
