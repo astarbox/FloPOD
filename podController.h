@@ -1,5 +1,5 @@
 //
-// FLO POD controller
+// Pulsar Imaging Pod
 // Copyright © 2026 AStarBox. All rights reserved.
 //
 
@@ -8,10 +8,7 @@
 #include "config.h"
 #include "motorCtrl.h"
 
-volatile bool bParked = false;
-//
-// Some method are only used to satisfy Alpaca requirements.
-//
+
 class PodController
 {
 public:

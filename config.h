@@ -1,5 +1,5 @@
 //
-// FLO POD controller
+// Pulsar Imaging Pod
 // Firmware configuration definition and management
 // Copyright © 2026 AStarBox. All rights reserved.
 //

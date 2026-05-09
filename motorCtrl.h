@@ -1,5 +1,5 @@
 //
-// FLO POD controller
+// Pulsar Imaging Pod
 // Motor and encoder control
 // Copyright © 2026 AStarBox. All rights reserved.
 //
@@ -19,6 +19,7 @@
 enum MotorStates {M_STOPPED, M_RUNNING, M_CALIBRATING};
 enum PodShutterState {PS_UNKNOWN, PS_CLOSED, PS_OPEN, PS_CLOSING, PS_OPENING};
 enum MotorCalibrationSteps {CAL_NONE, CAL_FIRST_CLOSE,CAL_OPENING, CAL_FINISH_CLOSE, CAL_DONE};
+
 class motorCtrl
 {
 public:
@@ -60,14 +61,11 @@ motorCtrl *PodMotorController = nullptr;
 
 motorCtrl::motorCtrl()
 {
+	float fInitialPos;
+
 	// init dir pin and led pwm pin
 	ledcAttachChannel(MOT_EN, PWM_FREQ, LEDC_TIMER_12_BIT, MotorPwmChannel);
 	ledcWriteChannel(MotorPwmChannel, 0); // make sure we're not moving.
-	// attach interrupt for motor over current
-	// get power up state;
-	// read encoder
-	// compare with open/close position
-	// if in middle, set error, this will trigger a close
 	m_nMotorState = M_STOPPED;
 	if(globalPodConfig) {
 		globalPodConfig->LoadEncoderConfig(m_EncoderConfig);
@@ -77,6 +75,20 @@ motorCtrl::motorCtrl()
 	myPID = new PID(&m_dEncoderValue, &m_dPidOutput, &m_dTargetPosition, m_dKp, m_dKi, m_dKd, DIRECT);
 	myPID->SetMode(AUTOMATIC);    // Enable PID
 	myPID->SetOutputLimits(-255, 255); // Limit output to -255 to 255 as it's the PWM ratio
+
+	// read encoder
+	getEncoderPosition(fInitialPos);
+	// compare with open/close position
+	if(checkBoundaries(m_EncoderConfig.closeAngle, fInitialPos, 0.1)) {
+		// we're closed, do nothing
+	}
+	else if(checkBoundaries(m_EncoderConfig.openAngle, fInitialPos, 0.1)) {
+		// we're open .. should we close ?
+	}
+	else {
+		// we're in lala-land.. close
+		Close();
+	}
 }
 
 void motorCtrl::Calibrate()

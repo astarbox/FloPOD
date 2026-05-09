@@ -23,6 +23,7 @@
 
 #define UDP_PACKET_MAX_SIZE 16
 
+volatile bool bParked = false;
 
 enum AlpacaShutterStates { A_OPEN=0, A_CLOSED, A_OPENING, A_CLOSING,  A_ERROR};
 uint32_t nTransactionID;

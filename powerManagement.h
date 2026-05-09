@@ -1,14 +1,15 @@
-#include <sys/types.h>
-#include <sys/_stdint.h>
 //
-// FLO POD controller power management
+// Pulsar Imaging Pod
 //
 // Copyright © 2026 AStarBox. All rights reserved.
 //
 #ifndef __POWER_PORT_
 #define __POWER_PORT_
-#include "INA260.h"
 
+#include <sys/types.h>
+#include <sys/_stdint.h>
+
+#include "INA260.h"
 #include "config.h"
 
 // define all INA260 addresses

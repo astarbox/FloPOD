@@ -1,5 +1,5 @@
 //
-// FLO POD controller
+// Pulsar Imaging Pod
 //
 // Copyright © 2026 AStarBox. All rights reserved.
 //
