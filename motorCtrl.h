@@ -85,6 +85,7 @@ void motorCtrl::Calibrate()
 	switch(m_CalsState) {
 		case CAL_NONE:
 			// set speed to 10%
+			myPID->SetOutputLimits(-25, 25);
 			m_nMotorState = M_CALIBRATING;
 			// close
 			m_CalsState = CAL_FIRST_CLOSE;
@@ -175,6 +176,8 @@ void motorCtrl::Run()
 	// No -> set motor ouput PWM
 	else {
 		newPWM = fabs(m_dPidOutput);
+		DBPrintln("newPWM = " + String(newPWM));
+
 		if(m_dPidOutput<0) {
 			// set directiobn to reverse
 			digitalWrite(MOT_PH, REVERSE);

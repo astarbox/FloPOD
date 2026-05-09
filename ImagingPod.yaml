@@ -339,7 +339,10 @@ paths:
       responses:
         '200':
           description: POD DC1 power informations
-          $ref: '#/components/schemas/PortPowerData'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortPowerData'
         '400':
           $ref: '#/components/responses/Response400'
       tags:
@@ -353,7 +356,10 @@ paths:
       responses:
         '200':
           description: POD DC2 power informations
-          $ref: '#/components/schemas/PortPowerData'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortPowerData'
         '400':
           $ref: '#/components/responses/Response400'
       tags:
@@ -367,7 +373,10 @@ paths:
       responses:
         '200':
           description: POD PWM1 power informations
-          $ref: '#/components/schemas/PortPowerData'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortPowerData'
         '400':
           $ref: '#/components/responses/Response400'
       tags:
@@ -381,7 +390,10 @@ paths:
       responses:
         '200':
           description: POD PWM2 power informations
-          $ref: '#/components/schemas/PortPowerData'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortPowerData'
         '400':
           $ref: '#/components/responses/Response400'
       tags:
@@ -395,7 +407,10 @@ paths:
       responses:
         '200':
           description: POD USB-C power informations
-          $ref: '#/components/schemas/PortPowerData'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortPowerData'
         '400':
           $ref: '#/components/responses/Response400'
       tags:
@@ -409,7 +424,10 @@ paths:
       responses:
         '200':
           description: POD main power informations
-          $ref: '#/components/schemas/PortPowerData'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortPowerData'
         '400':
           $ref: '#/components/responses/Response400'
       tags:
@@ -424,7 +442,10 @@ paths:
       responses:
         '200':
           description: POD Battery power informations
-          $ref: '#/components/schemas/PortPowerData'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortPowerData'
         '400':
           $ref: '#/components/responses/Response400'
       tags:
@@ -438,7 +459,10 @@ paths:
       responses:
         '200':
           description: POD Motor power informations
-          $ref: '#/components/schemas/PortPowerData'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortPowerData'
         '400':
           $ref: '#/components/responses/Response400'
       tags:
@@ -452,7 +476,10 @@ paths:
       responses:
         '200':
           description: POD 2nd Motor power informations
-          $ref: '#/components/schemas/PortPowerData'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortPowerData'
         '400':
           $ref: '#/components/responses/Response400'
       tags:

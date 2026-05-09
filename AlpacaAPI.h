@@ -301,8 +301,8 @@ void getDescription(Request &req, Response &res)
 	DBPrintln("[ ********** getDescription ********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
-	AlpacaResp["Value"]["ServerName"]= "FloPod Alpaca";
-	AlpacaResp["Value"]["Manufacturer"]= "First Light Optics";
+	AlpacaResp["Value"]["ServerName"]= "Pulsar Imaging Pod";
+	AlpacaResp["Value"]["Manufacturer"]= "Pulsar Observatories";
 	AlpacaResp["Value"]["ManufacturerVersion"]= VERSION;
 	AlpacaResp["Value"]["Location"]= "Earth";
 	serializeJson(AlpacaResp, sResp);
