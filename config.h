@@ -21,8 +21,8 @@
 
 // temp & hum sensor
 // define one OR the other, not both..
-// #define USE_HDC1080
-#define USE_SHT30
+#define USE_HDC1080
+// #define USE_SHT30
 
 #ifdef DEBUG
 #pragma message "Debug messages enabled"

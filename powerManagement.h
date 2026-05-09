@@ -89,55 +89,55 @@ powerPorts::powerPorts()
 {
 
 	if (!INA260_MAIN.begin()) {
-		// set error.. this one is not responding
+		bMainInaPresent = false;
 	}
 	else
 		bMainInaPresent = true;
 
 	if (!INA260_DC_1.begin()) {
-		// set error.. this one is not responding
+		bDC1InaPresent = false;
 	}
 	else
 		bDC1InaPresent = true;
 
 	if (!INA260_DC_2.begin()) {
-		// set error.. this one is not responding
+		bDC2InaPresent = false;
 	}
 	else
 		bDC2InaPresent = true;
 
 	if (!INA260_USB_C.begin()) {
-		// set error.. this one is not responding
+		bUSBCInaPresent = false;
 	}
 	else
 		bUSBCInaPresent = true;
 
 	if (!INA260_PWM1.begin()) {
-		// set error.. this one is not responding
+		bPWM1InaPresent = false;
 	}
 	else
 		bPWM1InaPresent = true;
 
 	if (!INA260_PWM2.begin()) {
-		// set error.. this one is not responding
+		bPWM2InaPresent = false;
 	}
 	else
 		bPWM2InaPresent = true;
 
 	if (!INA260_BAT.begin()) {
-		// set error.. this one is not responding
+		bBATInaPresent = false;
 	}
 	else
 		bBATInaPresent = true;
 
 	if (!INA260_VMOT.begin()) {
-		// set error.. this one is not responding
+		bVMOTInaPresent = false;
 	}
 	else
 		bVMOTInaPresent = true;
 
 	if (!INA260_VMOT2.begin()) {
-		// set error.. this one is not responding
+		bVMOT2InaPresent = false;
 	}
 	else
 		bVMOT2InaPresent = true;

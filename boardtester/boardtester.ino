@@ -77,6 +77,9 @@ void loop()
 
         }
     }
+    else {
+        Serial.println("No W5500 detected");
+    }
 #endif
 
     Serial.println("Scanning I2C bus ...");
@@ -114,7 +117,7 @@ void loop()
     }
     if (podRainSensor == nullptr) {
         podRainSensor = new RainSensor();
-        podRainSensor->enableHeater(true);
+        podRainSensor->enableHeater(false); // make sure this is off or we cook the temp sensor.
     }
 
     if(PodMotorController == nullptr) {
@@ -238,11 +241,14 @@ void loop()
     }
     Serial.println("");
 
-
     // Environment sensors
-    humTempSensor->getTempAndHum(fTemperature, fHumidity);
-    Serial.printf("HDC1080 : %f degC \n %f %% \n",fTemperature,fHumidity);
-    Serial.println("");
+    if(humTempSensor->isPresent()) {
+        humTempSensor->getTempAndHum(fTemperature, fHumidity);
+        Serial.printf("HDC1080 : %f degC \n %f %% \n",fTemperature,fHumidity);
+        Serial.println("");
+    } else {
+        Serial.println("Temperature and humidity sensor not found");
+    }
 
     if(podRainSensor->isPresent()) {
         rainSensorValuePf = podRainSensor->getValue();
@@ -252,9 +258,11 @@ void loop()
         Serial.println("No FDC1004 sensor detected");
     }
 
+
     PodMotorController->getEncoderPosition(fDeg);
     Serial.println("AMS encoder angle : " + String(fDeg));
     Serial.println("");
+
 /*
     if(nbLoop == 10) {
         if(bPortOn) {

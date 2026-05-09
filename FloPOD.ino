@@ -228,11 +228,15 @@ void EnvTask(void *)
 	podRainSensor = new RainSensor();
 
 	for(;;) {
-		humTempSensor->getTempAndHum(fTemperature, fHumidity);
-		rainSensorValuePf = podRainSensor->getValue();
-		if(rainSensorValuePf > IT_S_RAINING) {
-			if(podController->getShutterState() == OPEN) {
-				podController->Close();
+		if(humTempSensor->isPresent()) {
+			humTempSensor->getTempAndHum(fTemperature, fHumidity);
+		}
+		if(podRainSensor->isPresent()) {
+			rainSensorValuePf = podRainSensor->getValue();
+			if(rainSensorValuePf > IT_S_RAINING) {
+				if(podController->getShutterState() == OPEN) {
+					podController->Close();
+				}
 			}
 		}
 		// FreeRTOS task management
