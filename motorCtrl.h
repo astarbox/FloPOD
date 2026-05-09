@@ -33,7 +33,6 @@ public:
 	void	OverCurrentStop();
 	bool	bIsEncoderCalibrated();
 	void	getEncoderPosition(float &fDegrees);
-
 private:
 	void	motorMoveTo(double fPosition);
 	bool	checkBoundaries(float dTarget, float dCurentPos, float dMargin);

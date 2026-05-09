@@ -1463,6 +1463,246 @@ AlpacaServer::AlpacaServer(int port)
 
 }
 
+void useDHCPState(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	bool bUseDhcp = false;
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			controllerResp["ErrorNumber"] = 0x401;
+			controllerResp["ErrorMessage"] = "Invalid parameters";
+			serializeJson(controllerResp, sResp);
+			res.set("Content-Type", "application/json");
+			res.write((uint8_t*)(sResp.c_str()),sResp.length());
+			return;
+		}
+		else {
+			if(FormData["value"].is<bool>()) {
+				bUseDhcp = FormData["value"];
+				// globalPodConfig->setDHCPFlag(bUseDhcp);
+			}
+		}
+	}
+
+	// controllerResp["value"] = globalPodConfig->getDHCPFlag();
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void ipAddressValue(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			controllerResp["ErrorNumber"] = 0x401;
+			controllerResp["ErrorMessage"] = "Invalid parameters";
+			serializeJson(controllerResp, sResp);
+			res.set("Content-Type", "application/json");
+			res.write((uint8_t*)(sResp.c_str()),sResp.length());
+			return;
+		}
+		else {
+			if(FormData["value"].is<String>()) {
+				// globalPodConfig->setIPAddress(FormData["value"]);
+			}
+		}
+	}
+
+	// controllerResp["value"] = String(RotatorClass::IpAddress2String(domeEthernet.localIP()));
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void subnetMaskValue(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			controllerResp["ErrorNumber"] = 0x401;
+			controllerResp["ErrorMessage"] = "Invalid parameters";
+			serializeJson(controllerResp, sResp);
+			res.set("Content-Type", "application/json");
+			res.write((uint8_t*)(sResp.c_str()),sResp.length());
+			return;
+		}
+		else {
+			if(FormData["value"].is<String>()) {
+				// globalPodConfig->setIPSubnetMask(FormData["value"]);
+			}
+		}
+	}
+
+	// controllerResp["value"] = String(RotatorClass::IpAddress2String(domeEthernet.subnetMask()));
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void ipGatewayValue(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			controllerResp["ErrorNumber"] = 0x401;
+			controllerResp["ErrorMessage"] = "Invalid parameters";
+			serializeJson(controllerResp, sResp);
+			res.set("Content-Type", "application/json");
+			res.write((uint8_t*)(sResp.c_str()),sResp.length());
+			return;
+		}
+		else {
+			if(FormData["value"].is<String>()) {
+				// globalPodConfig->setIPGateway(FormData["value"]);
+			}
+		}
+	}
+
+	// controllerResp["value"] = String(RotatorClass::IpAddress2String(domeEthernet.gatewayIP()));
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podCalibrate(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	MotorCalibrationSteps nCalState;
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			controllerResp["ErrorNumber"] = 0x401;
+			controllerResp["ErrorMessage"] = "Invalid parameters";
+			serializeJson(controllerResp, sResp);
+			res.set("Content-Type", "application/json");
+			res.write((uint8_t*)(sResp.c_str()),sResp.length());
+			return;
+		}
+		else {
+			if(FormData["value"].is<String>()) {
+				if(FormData["value"] == "start") {
+					PodMotorController->Calibrate();
+				}
+				if(FormData["value"] == "stop") {
+					PodMotorController->Stop();
+				}
+			}
+		}
+	}
+	PodMotorController->getCalState(nCalState);
+	controllerResp["value"] = nCalState;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void rainStatus(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+
+	// controllerResp["value"] = bool(bIsSafe);
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podOpen(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+
+	PodMotorController->Open();
+	controllerResp["value"] = A_OPENING;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podClose(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	float fParkAz;
+
+	PodMotorController->Close();
+	controllerResp["value"] = A_CLOSING;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podState(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	PodShutterState nState;
+
+	PodMotorController->getShutterState(nState);
+	switch(nState){
+		case PS_OPEN :
+			controllerResp["value"] = A_OPEN;
+			break;
+		case PS_CLOSED : 
+			controllerResp["value"] = A_CLOSED;
+			break;
+		case PS_OPENING :
+			controllerResp["value"] = A_OPENING;
+			break;
+		case PS_CLOSING :
+			controllerResp["value"] = A_CLOSING;
+			break;
+		case PS_UNKNOWN : 
+			controllerResp["value"] = A_ERROR;
+			break;
+		default:
+			controllerResp["value"] = A_ERROR;
+			break;
+	}
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+
+
 void AlpacaServer::startServer()
 {
 	mRestServer = new NetworkServer(m_nRestPort);
@@ -1523,21 +1763,22 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->put("/api/v1/dome/0/synctoazimuth", &doSyncAzimuth);
 
 
-
 	// adding our own endpoints for the settings
-/*
 	m_AlpacaRestServer->use("/setup/useDHCP", &useDHCPState);
 	m_AlpacaRestServer->use("/setup/ipAddress", &ipAddressValue);
 	m_AlpacaRestServer->use("/setup/subnetMask", &subnetMaskValue);
 	m_AlpacaRestServer->use("/setup/ipGateway", &ipGatewayValue);
-	m_AlpacaRestServer->use("/setup/wifiSSID", &podHotSpotSSID);
-	m_AlpacaRestServer->put("/setup/podCalibrate", &podCalibrate);
+
 	m_AlpacaRestServer->get("/setup/rainStatus", &rainStatus);
 
 	// shutter control
 	m_AlpacaRestServer->put("/setup/podOpen", &podOpen);
 	m_AlpacaRestServer->put("/setup/podClose", &podClose);
 	m_AlpacaRestServer->get("/setup/podState", &podState);
+/*
+	m_AlpacaRestServer->use("/setup/wifiSSID", &podHotSpotSSID);
+	m_AlpacaRestServer->put("/setup/podCalibrate", &podCalibrate);
+
 
 	// Power ports control
 	m_AlpacaRestServer->use("/setup/powerDC1", &powerDC1);
