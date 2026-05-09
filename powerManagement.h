@@ -207,9 +207,11 @@ bool powerPorts::setPwmPortState(int nChannel, int nPercent)
 bool powerPorts::checkAlert(INA260 &INA)
 {
 	bool bAlertTRiggered = false;
-	uint16_t flags = INA.getAlertRegister();
-	if(flags) {
-		bAlertTRiggered = true;
+	if(INA.isConnected()) {
+		uint16_t flags = INA.getAlertRegister();
+		if(flags) {
+			bAlertTRiggered = true;
+		}
 	}
 	return bAlertTRiggered;
 }

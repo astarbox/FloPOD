@@ -180,11 +180,39 @@ void PowerTask(void *)
 		if(bOcTriggered) {
 			bOcTriggered = false;
 			// check which INA260 triggered the OC interrupt
+			// and turn it off
+			if(podPowerController->checkAlert(INA260_DC_1)) {
+				podPowerController->setPortState(DC1, false);
+			}
+			if(podPowerController->checkAlert(INA260_DC_2)) {
+				podPowerController->setPortState(DC2, false);
+			}
+			if(podPowerController->checkAlert(INA260_PWM1)) {
+				podPowerController->setPortState(PWM1, false);
+			}
+			if(podPowerController->checkAlert(INA260_PWM2)) {
+				podPowerController->setPortState(PWM2, false);
+			}
+			if(podPowerController->checkAlert(INA260_USB_C)) {
+				podPowerController->setPortState(USB_C, false);
+			}
+			if(podPowerController->checkAlert(INA260_BAT)) {
+				podPowerController->setPortState(BAT_EN, false);
+			}
 
 		}
 		if(bMainOcTriggered){
 			bMainOcTriggered = false;
 			// check which INA260 triggered the OC interrupt
+			if(podPowerController->checkAlert(INA260_VMOT)) {
+				podController->Stop();
+			}
+			if(podPowerController->checkAlert(INA260_VMOT2)) {
+				podController->Stop();
+			}
+			if(podPowerController->checkAlert(INA260_MAIN)) {
+				// If we get there and we already turned off all the port.. not sure what else to do.
+			}
 		}
 		// FreeRTOS task management
 		vTaskDelay(xDelay);
