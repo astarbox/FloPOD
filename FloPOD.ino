@@ -20,7 +20,7 @@
 
 #include "config.h"
 #include "powerManagement.h"
-#include "motorCtrl.h"
+// #include "motorCtrl.h"
 #include "podController.h"
 #include "environment.h"
 
@@ -84,8 +84,6 @@ void setup()
 	// start I2C
 	Wire.begin();
 
-	// create new motor controller, it will be used by MotorTask and by the PodController
-	PodMotorController = new motorCtrl();
 	// create new power controller, it will be used by the PodController
 	podPowerController = new powerPorts();
 
@@ -98,7 +96,7 @@ void setup()
 	attachInterrupt(MAG_TRIG, magnetHandler, FALLING);
 
 	// create Pod controller
-	podController = new PodController(PodMotorController, podPowerController);
+	podController = new PodController();
 
 	// start Alpaca on all interfaces.
 	pod_AlpacaDiscoveryServer = new AlpacaDiscoveryServer();

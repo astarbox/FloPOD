@@ -74,7 +74,7 @@ motorCtrl::motorCtrl()
 	m_AMS_AS5048B->begin();
 	myPID = new PID(&m_dEncoderValue, &m_dPidOutput, &m_dTargetPosition, m_dKp, m_dKi, m_dKd, DIRECT);
 	myPID->SetMode(AUTOMATIC);    // Enable PID
-	myPID->SetOutputLimits(-255, 255); // Limit output to -255 to 255 as it's the PWM ratio
+	myPID->SetOutputLimits(-4095, 4095); // Limit output to -4095 to 4095 as it's the PWM ratio for 12 bits
 
 	// read encoder
 	getEncoderPosition(fInitialPos);

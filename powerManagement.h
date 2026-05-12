@@ -54,6 +54,7 @@ public:
 	bool setAlarmAmps(INA260 &INA, float nAmps);
 	bool setAlarmVoltage(INA260 &INA, float nVolts);
 	void setPortState(int nPort, bool bOn);
+	void getPortState(int nPort, bool &bOn);
 	bool setPortToPWM(int nPort, int nChanne);
 	bool setPwmPortState(int nPort, int nPercent);
 	bool checkAlert(INA260 &INA);
@@ -184,6 +185,11 @@ bool powerPorts::setAlarmVoltage(INA260 &INA, float nVolts)
 void powerPorts::setPortState(int nPort, bool bOn)
 {
 	digitalWrite(nPort, bOn?1:0);
+}
+
+void powerPorts::getPortState(int nPort, bool &bOn)
+{
+	bOn = digitalRead(nPort)?true:false;
 }
 
 bool powerPorts::setPortToPWM(int nPort, int nChannel)

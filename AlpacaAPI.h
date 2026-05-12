@@ -1698,6 +1698,74 @@ void podState(Request &req, Response &res)
 }
 
 
+void powerDC1(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	bool bPortOn = false;
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			controllerResp["ErrorNumber"] = 0x401;
+			controllerResp["ErrorMessage"] = "Invalid parameters";
+			serializeJson(controllerResp, sResp);
+			res.set("Content-Type", "application/json");
+			res.write((uint8_t*)(sResp.c_str()),sResp.length());
+			return;
+		}
+		else {
+			if(FormData["value"].is<bool>()) {
+				bPortOn = FormData["value"];
+				if(podPowerController)
+					podPowerController->setPortState(DC1, bPortOn);
+			}
+		}
+	}
+	podPowerController->getPortState(DC1, bPortOn);
+	controllerResp["value"] = bPortOn;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void powerDC2(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	bool bPortOn = false;
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			controllerResp["ErrorNumber"] = 0x401;
+			controllerResp["ErrorMessage"] = "Invalid parameters";
+			serializeJson(controllerResp, sResp);
+			res.set("Content-Type", "application/json");
+			res.write((uint8_t*)(sResp.c_str()),sResp.length());
+			return;
+		}
+		else {
+			if(FormData["value"].is<bool>()) {
+				bPortOn = FormData["value"];
+				if(podPowerController)
+					podPowerController->setPortState(DC2, bPortOn);
+			}
+		}
+	}
+	podPowerController->getPortState(DC2, bPortOn);
+	controllerResp["value"] = bPortOn;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
 
 void AlpacaServer::startServer()
 {
@@ -1772,13 +1840,14 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->put("/setup/podOpen", &podOpen);
 	m_AlpacaRestServer->put("/setup/podClose", &podClose);
 	m_AlpacaRestServer->get("/setup/podState", &podState);
-/*
-	m_AlpacaRestServer->use("/setup/wifiSSID", &podHotSpotSSID);
+
+	// m_AlpacaRestServer->use("/setup/wifiSSID", &podHotSpotSSID);
 
 
 	// Power ports control
 	m_AlpacaRestServer->use("/setup/powerDC1", &powerDC1);
 	m_AlpacaRestServer->use("/setup/powerDC2", &powerDC2);
+/*
 	m_AlpacaRestServer->use("/setup/powerPWM1", &powerPWM1);
 	m_AlpacaRestServer->use("/setup/powerPWM2", &powerPWM2);
 	m_AlpacaRestServer->use("/setup/powerUsbC", &powerUsbC);

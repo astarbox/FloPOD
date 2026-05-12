@@ -12,7 +12,7 @@
 class PodController
 {
 public:
-	PodController(motorCtrl *pMotionController, powerPorts *pPowerController);
+	PodController();
 	podStates getShutterState();
 	float GetAzimuth();
 	float getAltitude();
@@ -28,7 +28,6 @@ public:
 
 private:
 	motorCtrl	*mPodMotor = nullptr;
-	powerPorts	*mPowerController = nullptr;
 	float		m_fPartAzimuth = 0.0f;
 	float		m_fAz = 0.0f;
 	podStates 	m_nState = IDLE;
@@ -37,15 +36,9 @@ private:
 
 PodController *podController = nullptr;
 
-PodController::PodController(motorCtrl *pMotionController, powerPorts *pPowerController)
+PodController::PodController()
 {
-	// make sure we're not getting a nullptr
-	if(pMotionController) {
-		mPodMotor = pMotionController;
-	}
-	if(pPowerController) {
-		mPowerController = pPowerController;
-	}
+	mPodMotor = new motorCtrl();
 }
 
 podStates PodController::getShutterState()
