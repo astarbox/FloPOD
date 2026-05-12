@@ -57,6 +57,7 @@ public:
 	void getPortState(int nPort, bool &bOn);
 	bool setPortToPWM(int nPort, int nChanne);
 	bool setPwmPortState(int nPort, int nPercent);
+	void getPwmPortState(int nPin, int &nPercent);
 	bool checkAlert(INA260 &INA);
 
 	float readVolts(INA260 &INA);
@@ -208,6 +209,15 @@ bool powerPorts::setPwmPortState(int nChannel, int nPercent)
 		dutyCycle = MAX_DUTY_CYCLE;
 	bOk = ledcWriteChannel(nChannel, dutyCycle);
 	return bOk;
+}
+
+void powerPorts::getPwmPortState(int nPin, int &nPercent)
+{
+	bool bOk = true;
+	int dutyCycle;
+
+	dutyCycle = ledcRead(nPin);
+	nPercent = int((float(dutyCycle) / MAX_DUTY_CYCLE) * 100.0f);
 }
 
 bool powerPorts::checkAlert(INA260 &INA)

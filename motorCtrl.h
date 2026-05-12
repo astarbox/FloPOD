@@ -12,7 +12,7 @@
 #include "ams_as5048b.h"
 
 #define AS5048B_ADDR	0x41
-
+#define MIN_PWM_DUTY 300
 #define FORWARD	0
 #define REVERSE	1
 
@@ -161,14 +161,17 @@ void motorCtrl::Stop()
 
 void motorCtrl::Run()
 {
-	double newPWM = 0;
+	uint32_t newPWMDuty = 0;
 
 	if(m_nMotorState == M_STOPPED)
 		return;
 
 	m_dEncoderValue = m_AMS_AS5048B->angleR(U_DEG);
 	myPID->Compute();
-	DBPrintln("m_dPidOutput = " + String(m_dPidOutput));
+
+	DBPrintln("m_dTargetPosition=" + String(m_dTargetPosition) + 
+						" m_dEncoderValue="   + String(m_dEncoderValue)   +
+						" m_dPidOutput="  + String(m_dPidOutput));
 
 	// are we at the target position ?
 	// Yes -> stop motor PWM
@@ -187,9 +190,14 @@ void motorCtrl::Run()
 	}
 	// No -> set motor ouput PWM
 	else {
-		newPWM = fabs(m_dPidOutput);
-		DBPrintln("newPWM = " + String(newPWM));
+		newPWMDuty = uint32_t(fabs(m_dPidOutput));
+		DBPrintln("newPWMDuty = " + String(newPWMDuty));
 
+
+		// ignore tiny outputs that just cause jitter
+		if (newPWMDuty < MIN_PWM_DUTY) {
+				newPWMDuty = 0;
+		}
 		if(m_dPidOutput<0) {
 			// set directiobn to reverse
 			digitalWrite(MOT_PH, REVERSE);
@@ -198,7 +206,7 @@ void motorCtrl::Run()
 			// set directiobn to forward
 			digitalWrite(MOT_PH, FORWARD);
 		}
-		ledcWriteChannel(MotorPwmChannel, newPWM); // make sure we're not moving.
+		ledcWriteChannel(MotorPwmChannel, newPWMDuty);
 	}
 }
 
