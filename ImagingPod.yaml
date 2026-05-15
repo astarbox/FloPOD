@@ -489,7 +489,7 @@ paths:
       tags:
       - Power Informations
 
-  /setup/powerDC1:
+  /setup/podDC1:
     get:
       summary: Get the POD DC1 output state
       description: 'Retrieve the POD DC1 output state.'
@@ -523,7 +523,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PowerPortStatus'
 
-  /setup/powerDC2:
+  /setup/podDC2:
     get:
       summary: Get the POD DC2 output state
       description: 'Retrieve the POD DC2 output state.'
@@ -557,7 +557,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PowerPortStatus'
 
-  /setup/powerPWM1:
+  /setup/podPWM1:
     get:
       summary: Get the POD PWM1 output state
       description: 'Retrieve the POD PWM1 output state.'
@@ -591,7 +591,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PowerPWMPortStatus'
 
-  /setup/powerPWM2:
+  /setup/podPWM2:
     get:
       summary: Get the POD PWM2 output state
       description: 'Retrieve the POD PWM2 output state.'
@@ -625,7 +625,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PowerPWMPortStatus'
 
-  /setup/powerUsbC:
+  /setup/podUsbC:
     get:
       summary: Get the POD USB-C output state
       description: 'Retrieve the POD USB-C output state.'

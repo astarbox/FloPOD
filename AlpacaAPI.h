@@ -1711,7 +1711,7 @@ void podState(Request &req, Response &res)
 }
 
 
-void powerDC1(Request &req, Response &res)
+void podDC1(Request &req, Response &res)
 {
 	JsonDocument controllerResp;
 	String sResp;
@@ -1745,7 +1745,7 @@ void powerDC1(Request &req, Response &res)
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
 }
 
-void powerDC2(Request &req, Response &res)
+void podDC2(Request &req, Response &res)
 {
 	JsonDocument controllerResp;
 	String sResp;
@@ -1779,7 +1779,7 @@ void powerDC2(Request &req, Response &res)
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
 }
 
-void powerPWM1(Request &req, Response &res)
+void podPWM1(Request &req, Response &res)
 {
 	JsonDocument controllerResp;
 	String sResp;
@@ -1814,7 +1814,7 @@ void powerPWM1(Request &req, Response &res)
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
 }
 
-void powerPWM2(Request &req, Response &res)
+void podPWM2(Request &req, Response &res)
 {
 	JsonDocument controllerResp;
 	String sResp;
@@ -1927,12 +1927,12 @@ void AlpacaServer::startServer()
 
 
 	// Power ports control
-	m_AlpacaRestServer->use("/setup/powerDC1", &powerDC1);
-	m_AlpacaRestServer->use("/setup/powerDC2", &powerDC2);
+	m_AlpacaRestServer->use("/setup/podDC1", &podDC1);
+	m_AlpacaRestServer->use("/setup/podDC2", &podDC2);
+	m_AlpacaRestServer->use("/setup/podPWM1", &podPWM1);
+	m_AlpacaRestServer->use("/setup/podPWM2", &podPWM2);
 /*
-	m_AlpacaRestServer->use("/setup/powerPWM1", &powerPWM1);
-	m_AlpacaRestServer->use("/setup/powerPWM2", &powerPWM2);
-	m_AlpacaRestServer->use("/setup/powerUsbC", &powerUsbC);
+	m_AlpacaRestServer->use("/setup/podUsbC", &podUsbC);
 
 	// Power usage
 	m_AlpacaRestServer->get("/setup/podMainPower", &podMainPower);
