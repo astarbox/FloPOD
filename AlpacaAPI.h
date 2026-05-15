@@ -1779,6 +1779,75 @@ void powerDC2(Request &req, Response &res)
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
 }
 
+void powerPWM1(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			controllerResp["ErrorNumber"] = 0x401;
+			controllerResp["ErrorMessage"] = "Invalid parameters";
+			serializeJson(controllerResp, sResp);
+			res.set("Content-Type", "application/json");
+			res.write((uint8_t*)(sResp.c_str()),sResp.length());
+			return;
+		}
+		else {
+			if(FormData["value"].is<int>()) {
+				nPercent = FormData["value"];
+				if(podPowerController)
+					podPowerController->setPwmPortState(PWM1, nPercent);
+				
+			}
+		}
+	}
+	podPowerController->getPwmPortState(PWM1, nPercent);
+	controllerResp["value"] = nPercent;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void powerPWM2(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			controllerResp["ErrorNumber"] = 0x401;
+			controllerResp["ErrorMessage"] = "Invalid parameters";
+			serializeJson(controllerResp, sResp);
+			res.set("Content-Type", "application/json");
+			res.write((uint8_t*)(sResp.c_str()),sResp.length());
+			return;
+		}
+		else {
+			if(FormData["value"].is<int>()) {
+				nPercent = FormData["value"];
+				if(podPowerController)
+					podPowerController->setPwmPortState(PWM2, nPercent);
+				
+			}
+		}
+	}
+	podPowerController->getPwmPortState(PWM2, nPercent);
+	controllerResp["value"] = nPercent;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
 
 void AlpacaServer::startServer()
 {
