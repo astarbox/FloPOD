@@ -230,15 +230,20 @@ paths:
               required:
               - value
 
-  /setup/rainStatus:
+  /setup/environmentData:
     get:
-      summary: Get the POD rain sensor status
-      description: 'Retrieve the POD rain sensor status (raining / not raining)
+      summary: Get the POD environment sensor data
+      description: 'Retrieve the POD environment sensor data.
         value.'
-      operationId: getRainStatus
+      operationId: getEnvironmentStatus
       responses:
         '200':
-          description: POD rain sensor status
+          description: POD environment sensor data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/environmentData'
+
         '400':
           $ref: '#/components/responses/Response400'
       tags:
@@ -278,7 +283,6 @@ paths:
                   type: integer
               required:
               - value
-
 
   /setup/podOpen:
     put:
@@ -762,6 +766,25 @@ components:
       - amps
       - watt
 
+    environmentData:
+      type: object
+      properties:
+        humidity:
+          type: number
+          format: float
+          description: humidity
+        temp:
+          type: number
+          format: float
+          description: temperature
+        raining:
+          type: boolean
+          description: raining yes/no
+      required:
+      - humidity
+      - temp
+      - raining
+
     PowerPortStatus:
       type: object
       properties:
@@ -788,7 +811,7 @@ components:
       - percent
 
   examples:
-    ERROR_BUSY_MOVIG:
+    ERROR_BUSY_MOVING:
       value:
         ErrorNumber: 1035
         ErrorMessage: POD is busy moving shutters.
@@ -798,6 +821,11 @@ components:
         ErrorNumber: 1035
         ErrorMessage: POD is busy calibrating.
       description: Controller is busy
+    ERROR_READING_ENV:
+      value:
+        ErrorNumber: 1035
+        ErrorMessage: POD can't read environment sensor.
+      description: No Error
 
   responses:
     Response400:
@@ -808,7 +836,9 @@ components:
           schema:
             $ref: '#/components/schemas/Response400ErrorInfo'
           examples:
-            ERROR_BUSY_MOVIG:
-              $ref: '#/components/examples/ERROR_BUSY_MOVIG'
+            ERROR_BUSY_MOVING:
+              $ref: '#/components/examples/ERROR_BUSY_MOVING'
             ERROR_BUSY_CALIBRATING:
               $ref: '#/components/examples/ERROR_BUSY_CALIBRATING'
+            ERROR_READING_ENV:
+              $ref: '#/components/examples/ERROR_READING_ENV'

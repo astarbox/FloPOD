@@ -99,6 +99,7 @@ public:
 	bool isPresent();
 	void enableHeater(bool bOn=true);
 	float getValue();
+	bool isRaining();
 private:
 	FDC1004 *capacitanceSensor;
 	float m_fLastValue = 0.0f;
@@ -145,6 +146,18 @@ float RainSensor::getValue()
 		}
 	}
 	return m_fLastValue;
+}
+
+bool RainSensor::isRaining()
+{
+	bool bIsRaining = false;
+	float fRainValue;
+	fRainValue = getValue();
+
+	if( fRainValue > IT_S_RAINING)
+		bIsRaining = true;
+
+	return bIsRaining;
 }
 
 RainSensor *podRainSensor;

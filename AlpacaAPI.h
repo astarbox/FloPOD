@@ -1335,7 +1335,6 @@ void doGoTo(Request &req, Response &res)
 		AlpacaResp["ErrorMessage"] = "Invalid azimuth";
 		serializeJson(AlpacaResp, sResp);
 		res.write((uint8_t*)(sResp.c_str()),sResp.length());
-
 		return;
 	}
 
@@ -1621,12 +1620,26 @@ void podCalibrate(Request &req, Response &res)
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
 }
 
-void rainStatus(Request &req, Response &res)
+void environmentData(Request &req, Response &res)
 {
 	JsonDocument controllerResp;
 	String sResp;
+	float temp, hum;
 
-	// controllerResp["value"] = bool(bIsSafe);
+	if(humTempSensor && podRainSensor) {
+		humTempSensor->getTempAndHum(temp, hum);
+		controllerResp["humidity"] = hum;
+		controllerResp["temp"] = temp;
+		controllerResp["rain"] = podRainSensor->isRaining();
+	}
+	else {
+		controllerResp["ErrorNumber"] = 1025;
+		controllerResp["ErrorMessage"] = "POD can't read environment sensor.";
+		serializeJson(controllerResp, sResp);
+		res.write((uint8_t*)(sResp.c_str()),sResp.length());
+		return;
+	}
+
 	serializeJson(controllerResp, sResp);
 	DBPrintln("sResp : " + sResp);
 
@@ -1834,7 +1847,7 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->use("/setup/ipGateway", &ipGatewayValue);
 
 	m_AlpacaRestServer->put("/setup/podCalibrate", &podCalibrate);
-	m_AlpacaRestServer->get("/setup/rainStatus", &rainStatus);
+	m_AlpacaRestServer->get("/setup/environmentData", &environmentData);
 
 	// shutter control
 	m_AlpacaRestServer->put("/setup/podOpen", &podOpen);
