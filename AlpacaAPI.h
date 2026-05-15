@@ -1849,6 +1849,40 @@ void podPWM2(Request &req, Response &res)
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
 }
 
+void podUsbC(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	bool bPortOn = false;
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			controllerResp["ErrorNumber"] = 0x401;
+			controllerResp["ErrorMessage"] = "Invalid parameters";
+			serializeJson(controllerResp, sResp);
+			res.set("Content-Type", "application/json");
+			res.write((uint8_t*)(sResp.c_str()),sResp.length());
+			return;
+		}
+		else {
+			if(FormData["value"].is<bool>()) {
+				bPortOn = FormData["value"];
+				if(podPowerController)
+					podPowerController->setPortState(USB_C, bPortOn);
+			}
+		}
+	}
+	podPowerController->getPortState(USB_C, bPortOn);
+	controllerResp["value"] = bPortOn;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
 void AlpacaServer::startServer()
 {
 	mRestServer = new NetworkServer(m_nRestPort);
