@@ -147,7 +147,6 @@ void formDataToJson(Request &req, JsonDocument &FormData)
 	char value[ALPACA_VAR_BUF_LEN];
 	String sName;
 	String sValue;
-
 	memset(name,0,ALPACA_VAR_BUF_LEN);
 	memset(value,0,ALPACA_VAR_BUF_LEN);
 	while(req.form(name, ALPACA_VAR_BUF_LEN-1, value, ALPACA_VAR_BUF_LEN-1)){
@@ -155,15 +154,24 @@ void formDataToJson(Request &req, JsonDocument &FormData)
 		sName.toLowerCase();
 		sValue = String(value);
 		sValue.toLowerCase();
-		DBPrintln("name : " + sName);
-		DBPrintln("value : " + sValue);
-		if(isDigit(value[0]) ) {
+
+		DBPrintln(String(__func__) + " : name :'" + String(sName) + "' with value : '" + String(sValue) + "'");
+
+		if(isDigit(value[0])) {
 			if(sValue.indexOf('.') == -1) {
 				// int
-				FormData[sName]=sValue.toInt();
+				FormData[sName] = sValue.toInt();
 			} else {
-				// double
-				FormData[sName]=sValue.toDouble();
+				// check if it could be an IP (more than one dot)
+				int dotCount = 0;
+				for(char c : sValue) if(c == '.') dotCount++;
+				if(dotCount > 1) {
+					// IP address or similar — treat as string
+					FormData[sName] = sValue;
+				} else {
+					// float
+					FormData[sName] = sValue.toFloat();
+				}
 			}
 		}
 		else {
