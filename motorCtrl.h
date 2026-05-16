@@ -188,11 +188,10 @@ void motorCtrl::Run()
 				m_nPsState = PS_UNKNOWN;
 		}
 	}
-	// No -> set motor ouput PWM
+	// No -> set motor ouput to new duty cycke
 	else {
 		newPWMDuty = uint32_t(fabs(m_dPidOutput));
 		DBPrintln("newPWMDuty = " + String(newPWMDuty));
-
 
 		// ignore tiny outputs that just cause jitter
 		if (newPWMDuty < MIN_PWM_DUTY) {
