@@ -41,14 +41,18 @@ void setup()
 void loop()
 {
     float v,a,p;
-	static TickType_t xDelay = 200/portTICK_PERIOD_MS; // 200ms
+	static TickType_t xDelay = 10/portTICK_PERIOD_MS; // 50ms
+    // wait for keypress
 	if(nbLoops == 0) {
-		vTaskDelay(xDelay*10); // 2 second pause before we start
-		taskYIELD();
+        while(Serial.available()<1) {
+            vTaskDelay(xDelay);
+            taskYIELD();
+        }
 	    if(podPowerController -> bDC1InaPresent) {
 			// start linear actuator
 			podPowerController->setPortState(DC1, true);
 		}
+        Serial.println("Port,Volts,Amps,Power");
 		nbLoops++;
 	}
 /*
@@ -72,7 +76,6 @@ void loop()
         p = podPowerController->readPower(INA260_DC_1);
         Serial.println("DC1," +String(v) + "," + String(a) + "," + String(p));
     }
-    Serial.println("");
     vTaskDelay(xDelay);
     taskYIELD();
 }
