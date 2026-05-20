@@ -233,9 +233,9 @@ void PodConfig::LoadIpConfig(IPConfig &ipClientConfig)
 	ipClientConfig.bUseDHCP = m_preferences.getBool("clientUseDhcp",false);
 	if(!ipClientConfig.bUseDHCP ) {
 		// load configured static IP
-		ipClientConfig.ip.fromString( m_preferences.getString("clientIP","169.254.254.123"));
-		ipClientConfig.netmask.fromString( m_preferences.getString("netmask","255.255.255.0å"));
-		ipClientConfig.gateway.fromString( m_preferences.getString("clientGateway","169.254.254.1"));
+		ipClientConfig.ip.fromString( m_preferences.getString("clientIP","172.16.42.100"));
+		ipClientConfig.netmask.fromString( m_preferences.getString("netmask","255.255.255.0"));
+		ipClientConfig.gateway.fromString( m_preferences.getString("clientGateway","172.16.42.1"));
 		ipClientConfig.dns.fromString( m_preferences.getString("clientDNS","1.1.1.1"));
 	}
 	m_preferences.end();

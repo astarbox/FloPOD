@@ -12,7 +12,7 @@ servers:
   description: hostname or ip address of POD Controller
   variables:
     host:
-      default: 192.168.0.100
+      default: 172.16.42.100
       description: The hostname or ip address.
 paths:
   /setup/useDHCP:
@@ -155,30 +155,29 @@ paths:
               required:
               - value
 
-  /setup/wifiSSID:
+  /setup/wifiClientSSID:
     get:
-      summary: Get the POD WiFi HotSpot SSID
-      description: 'Retrieve the POD WiFi HotSpot SSID
-        shutter.'
-      operationId: getShutterWiFiSSID
+      summary: Get the WiFi client SSID
+      description: 'Retrieve the WiFi SSID of the network the POD is connected to.'
+      operationId: getWifiClientSSID
       responses:
         '200':
-          description: POD Shutter SSID
+          description: POD client SSID
         '400':
           $ref: '#/components/responses/Response400'
       tags:
-      - Networking
+      - POD WiFi
     put:
       summary: set the POD WiFi HotSpot SSID
       description: 'Set the POD WiFi HotSpot SSID.'
-      operationId: setShutterWiFiSSID
+      operationId: setWifiClientSSID
       responses:
         '200':
-          description: Shutter Open order successfully set
+          description: Client SSID successfully set.
         '400':
           $ref: '#/components/responses/Response400'
       tags:
-      - Networking
+      - POD WiFi
       requestBody:
         required: true
         content:
@@ -190,6 +189,147 @@ paths:
                   type: string
               required:
               - value
+
+  /setup/wifiClientPassword:
+    get:
+      summary: Get the WiFi client password
+      description: 'Retrieve the WiFi password of the network the POD will connected to.'
+      operationId: getWifiClientPassword
+      responses:
+        '200':
+          description: POD client SSID
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD WiFi
+    put:
+      summary: set the WiFi password of the network the POD will connected to
+      description: 'Set the POD WiFi client password.'
+      operationId: setWifiClientPassword
+      responses:
+        '200':
+          description: Client SSID successfully set.
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD WiFi
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                value:
+                  type: string
+              required:
+              - value
+
+  /setup/wifiApSSID:
+    get:
+      summary: Get the POD WiFi HotSpot SSID
+      description: 'Retrieve the POD WiFi HotSpot SSID.'
+      operationId: getApWiFiSSID
+      responses:
+        '200':
+          description: POD WiFi Hotspot SSID
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD WiFi Hotspot
+    put:
+      summary: set the POD WiFi HotSpot SSID
+      description: 'Set the POD WiFi HotSpot SSID.'
+      operationId: setApWiFiSSID
+      responses:
+        '200':
+          description: Hotspot SSID successfully set.
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD WiFi Hotspot
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                value:
+                  type: string
+              required:
+              - value
+
+  /setup/wifiApPassword:
+    get:
+      summary: Get the POD WiFi HotSpot Password
+      description: 'Retrieve the POD WiFi HotSpot Password.'
+      operationId: getApWiFiPassword
+      responses:
+        '200':
+          description: POD WiFi Hotspot Password
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD WiFi Hotspot
+    put:
+      summary: set the POD WiFi HotSpot Password
+      description: 'Set the POD WiFi HotSpot Password.'
+      operationId: setApWiFiPassword
+      responses:
+        '200':
+          description: Hotspot Password successfully set.
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD WiFi Hotspot
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                value:
+                  type: string
+              required:
+              - value
+
+  /setup/wifiApChannel:
+    get:
+      summary: Get the POD WiFi HotSpot Channel
+      description: 'Retrieve the POD WiFi HotSpot Channel.'
+      operationId: getApWiFiChannel
+      responses:
+        '200':
+          description: POD WiFi Hotspot Channel
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD WiFi Hotspot
+    put:
+      summary: set the POD WiFi HotSpot Channel
+      description: 'Set the POD WiFi HotSpot Channel.'
+      operationId: setApWiFiChannel
+      responses:
+        '200':
+          description: Hotspot Channel successfully set.
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD WiFi Hotspot
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                value:
+                  type: integer
+              required:
+              - value
+
 
   /setup/podCalibrate:
     get:

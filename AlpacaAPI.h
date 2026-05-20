@@ -1695,7 +1695,7 @@ void podState(Request &req, Response &res)
 		case PS_OPEN :
 			controllerResp["value"] = A_OPEN;
 			break;
-		case PS_CLOSED : 
+		case PS_CLOSED :
 			controllerResp["value"] = A_CLOSED;
 			break;
 		case PS_OPENING :
@@ -1704,7 +1704,7 @@ void podState(Request &req, Response &res)
 		case PS_CLOSING :
 			controllerResp["value"] = A_CLOSING;
 			break;
-		case PS_UNKNOWN : 
+		case PS_UNKNOWN :
 			controllerResp["value"] = A_ERROR;
 			break;
 		default:
@@ -1809,7 +1809,7 @@ void podPWM1(Request &req, Response &res)
 				nPercent = FormData["value"];
 				if(podPowerController)
 					podPowerController->setPwmPortState(PWM1, nPercent);
-				
+
 			}
 		}
 	}
@@ -1844,7 +1844,7 @@ void podPWM2(Request &req, Response &res)
 				nPercent = FormData["value"];
 				if(podPowerController)
 					podPowerController->setPwmPortState(PWM2, nPercent);
-				
+
 			}
 		}
 	}
@@ -1884,6 +1884,195 @@ void podUsbC(Request &req, Response &res)
 	}
 	podPowerController->getPortState(USB_C, bPortOn);
 	controllerResp["value"] = bPortOn;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podMainPower(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+	float fValue;
+
+	fValue = podPowerController->readVolts(INA260_MAIN);
+	controllerResp["volts"] = fValue;
+	fValue = podPowerController->readAmps(INA260_MAIN);
+	controllerResp["amps"] = fValue;
+	fValue = podPowerController->readPower(INA260_MAIN);
+	controllerResp["watt"] = fValue;
+
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podDC1Power(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+	float fValue;
+
+	fValue = podPowerController->readVolts(INA260_DC_1);
+	controllerResp["volts"] = fValue;
+	fValue = podPowerController->readAmps(INA260_DC_1);
+	controllerResp["amps"] = fValue;
+	fValue = podPowerController->readPower(INA260_DC_1);
+	controllerResp["watt"] = fValue;
+
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podDC2Power(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+	float fValue;
+
+	fValue = podPowerController->readVolts(INA260_DC_2);
+	controllerResp["volts"] = fValue;
+	fValue = podPowerController->readAmps(INA260_DC_2);
+	controllerResp["amps"] = fValue;
+	fValue = podPowerController->readPower(INA260_DC_2);
+	controllerResp["watt"] = fValue;
+
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podPWM1Power(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+	float fValue;
+
+	fValue = podPowerController->readVolts(INA260_PWM1);
+	controllerResp["volts"] = fValue;
+	fValue = podPowerController->readAmps(INA260_PWM1);
+	controllerResp["amps"] = fValue;
+	fValue = podPowerController->readPower(INA260_PWM1);
+	controllerResp["watt"] = fValue;
+
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podPWM2Power(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+	float fValue;
+
+	fValue = podPowerController->readVolts(INA260_PWM2);
+	controllerResp["volts"] = fValue;
+	fValue = podPowerController->readAmps(INA260_PWM2);
+	controllerResp["amps"] = fValue;
+	fValue = podPowerController->readPower(INA260_PWM2);
+	controllerResp["watt"] = fValue;
+
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podBatPower(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+	float fValue;
+
+	fValue = podPowerController->readVolts(INA260_BAT);
+	controllerResp["volts"] = fValue;
+	fValue = podPowerController->readAmps(INA260_BAT);
+	controllerResp["amps"] = fValue;
+	fValue = podPowerController->readPower(INA260_BAT);
+	controllerResp["watt"] = fValue;
+
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podUsbCPower(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+	float fValue;
+
+	fValue = podPowerController->readVolts(INA260_USB_C);
+	controllerResp["volts"] = fValue;
+	fValue = podPowerController->readAmps(INA260_USB_C);
+	controllerResp["amps"] = fValue;
+	fValue = podPowerController->readPower(INA260_USB_C);
+	controllerResp["watt"] = fValue;
+
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podMot1Power(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+	float fValue;
+
+	fValue = podPowerController->readVolts(INA260_VMOT);
+	controllerResp["volts"] = fValue;
+	fValue = podPowerController->readAmps(INA260_VMOT);
+	controllerResp["amps"] = fValue;
+	fValue = podPowerController->readPower(INA260_VMOT);
+	controllerResp["watt"] = fValue;
+
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podMot2Power(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+	float fValue;
+
+	fValue = podPowerController->readVolts(INA260_VMOT2);
+	controllerResp["volts"] = fValue;
+	fValue = podPowerController->readAmps(INA260_VMOT2);
+	controllerResp["amps"] = fValue;
+	fValue = podPowerController->readPower(INA260_VMOT2);
+	controllerResp["watt"] = fValue;
+
 	serializeJson(controllerResp, sResp);
 	DBPrintln("sResp : " + sResp);
 
@@ -1957,6 +2146,10 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->use("/setup/subnetMask", &subnetMaskValue);
 	m_AlpacaRestServer->use("/setup/ipGateway", &ipGatewayValue);
 
+	// m_AlpacaRestServer->use("/setup/wifiApSSID", &podHotSpotSSID);
+	// m_AlpacaRestServer->use("/setup/wifiApPassword", &podHotSpotPAssword);
+	// m_AlpacaRestServer->use("/setup/wifiApChannel", &podHotSpotChannel);
+
 	m_AlpacaRestServer->put("/setup/podCalibrate", &podCalibrate);
 	m_AlpacaRestServer->get("/setup/environmentData", &environmentData);
 
@@ -1965,7 +2158,6 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->put("/setup/podClose", &podClose);
 	m_AlpacaRestServer->get("/setup/podState", &podState);
 
-	// m_AlpacaRestServer->use("/setup/wifiSSID", &podHotSpotSSID);
 
 
 	// Power ports control
@@ -1973,9 +2165,7 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->use("/setup/podDC2", &podDC2);
 	m_AlpacaRestServer->use("/setup/podPWM1", &podPWM1);
 	m_AlpacaRestServer->use("/setup/podPWM2", &podPWM2);
-/*
 	m_AlpacaRestServer->use("/setup/podUsbC", &podUsbC);
-
 	// Power usage
 	m_AlpacaRestServer->get("/setup/podMainPower", &podMainPower);
 	m_AlpacaRestServer->get("/setup/podDC1Power", &podDC1Power);
@@ -1987,8 +2177,6 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->get("/setup/podUsbCPower", &podUsbCPower);
 	m_AlpacaRestServer->get("/setup/podMot1Power", &podMot1Power);
 	m_AlpacaRestServer->get("/setup/podMot2Power", &podMot2Power);
-
-*/
 
 	m_AlpacaRestServer->get("/setup/serialNumber", &getSerialNumber);
 	DBPrintln("m_AlpacaRestServer started");
