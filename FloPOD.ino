@@ -47,6 +47,10 @@ void MotorTask(void *);
 void PowerTask(void *);
 void EnvTask(void *);
 
+// network config functions
+bool initEthernet();
+void configureWiFi(bool bDualMode);
+
 // Environment global variables
 float fTemperature;
 float fHumidity;
@@ -61,7 +65,9 @@ esp_task_wdt_config_t twdt_config = {
 
 void setup()
 {
+	bool bEthernetOk = false;
 	String sNumber;
+
 	// configure all pins
 	globalPodConfig = new PodConfig();
 	esp_task_wdt_deinit();
@@ -70,16 +76,18 @@ void setup()
 	disableCore0WDT();
 	disableCore1WDT();
 	globalPodConfig->getSerialNumber(sNumber);
-	podHostname = "FLO-ImaginPod-"+sNumber;
+	podHostname = "PulsarPod-"+sNumber;
 
 	// start the network stack so all server sees all interfaces.
 	Network.begin();
-	// Start local hostspot and connect to local wifi if configured and available
-	configureWiFi();
 #ifdef USE_ETHERNET
 	// configure the Ethernet cxonnection if the W5500 is present
-	initEthernet();
+	bEthernetOk = initEthernet();
 #endif
+	// Start local hostspot and connect to local wifi if configured and available
+	// Also prefer Ethernet as the default interface if present.
+	// If Ethernet is not present, configure wifi as client and hotspot, hots;pot only otherwise.
+	configureWiFi(bEthernetOk==false);
 
 	// start I2C
 	Wire.begin();
@@ -197,7 +205,9 @@ void PowerTask(void *)
 			if(podPowerController->checkAlert(INA260_BAT)) {
 				podPowerController->setPortState(BAT_EN, false);
 			}
-
+			if(podPowerController->checkAlert(INA260_VMOT)) {
+				podPowerController->setPortState(MOTOR_V_EN, false);
+			}
 		}
 		if(bMainOcTriggered){
 			bMainOcTriggered = false;
@@ -271,7 +281,7 @@ void IRAM_ATTR mainOverCurrentAlarm()
 }
 
 
-void configureWiFi()
+void configureWiFi(bool bDualMode)
 {
 	bool bWiFiAPOk = false;
 	int nTimeout = 0;
@@ -283,28 +293,41 @@ void configureWiFi()
 	if(wifiApConfig.sSSID.length() < 8) {
 		globalPodConfig->setWifiDefault();
 	}
-	// we run in dual mode AP + Client
-	PodWiFi.mode(WIFI_AP_STA);
+	if(bDualMode) {
+		// we run in dual mode AP + Client
+		PodWiFi.mode(WIFI_AP_STA);
+	}
+	else {
+		PodWiFi.mode(WIFI_AP);
+	}
 	// Start AP (aka Hotspot)
 	if(wifiApConfig.sSSID.length()) {
+		if(wifiApConfig.sSSID == "PulsarPod") {
+			// add the serial number to it.
+			String sNumber;
+			globalPodConfig->getSerialNumber(sNumber);
+			wifiApConfig.sSSID = "PulsarPod-"+sNumber;
+			globalPodConfig->saveApConfig(wifiApConfig);
+		}
 		bWiFiAPOk = PodWiFi.softAP(wifiApConfig.sSSID.c_str(),
 									wifiApConfig.sPassword.c_str(),
 									wifiApConfig.nChannel);
 	}
 
-	// connect to local WiFi
-	if(wifiClientConfig.sSSID.length()) {
-		PodWiFi.begin(wifiClientConfig.sSSID.c_str(), wifiClientConfig.sPassword.c_str());
-		while (PodWiFi.status() != WL_CONNECTED) {
-			DBPrintln("Waiting for WiFi");
-			vTaskDelay(1000 / portTICK_PERIOD_MS);
-			nTimeout++;
-			if(nTimeout>20) { // 20 seconds should be plenty
-				DBPrintln("========== Failed to connect to local wifi ==========");
-				break;
+	if(bDualMode) {
+		// connect to local WiFi if configured
+		if(wifiClientConfig.sSSID.length() && wifiApConfig.sSSID != "NOT_CONFIGURED" ) {
+			PodWiFi.begin(wifiClientConfig.sSSID.c_str(), wifiClientConfig.sPassword.c_str());
+			while (PodWiFi.status() != WL_CONNECTED) {
+				DBPrintln("Waiting for WiFi");
+				vTaskDelay(1000 / portTICK_PERIOD_MS);
+				nTimeout++;
+				if(nTimeout>20) { // 20 seconds should be plenty
+					DBPrintln("========== Failed to connect to local wifi ==========");
+					break;
+				}
 			}
 		}
-
 	}
 
 	PodWiFi.setHostname(podHostname.c_str());
@@ -327,7 +350,7 @@ bool initEthernet()
 	}
 
 	// set an ip so we can get the link status
-	PodEthernet.config("192.168.0.100", "192.168.0.1", "255.255.255.0");
+	PodEthernet.config("192.168.0.10", "192.168.0.1", "255.255.255.0");
 	while(!PodEthernet.linkUp() ) {
 		vTaskDelay(250 / portTICK_PERIOD_MS);
 		nTimeout++;
@@ -353,7 +376,7 @@ bool initEthernet()
 	}
 
 	if(PodEthernet.localIP() == IPAddress(0,0,0,0)) {
-			PodEthernet.config("192.168.0.100", "192.168.0.1", "255.255.255.0");
+			PodEthernet.config("192.168.0.10", "192.168.0.1", "255.255.255.0");
 			PodEthernet.dnsIP(0,"1.1.1.1");
 			vTaskDelay(250 / portTICK_PERIOD_MS);
 	}

@@ -163,8 +163,8 @@ public:
 	void LoadApConfig(WIFIConfig &wifiApConfig);
 	void saveApConfig(WIFIConfig wifiApConfig);
 
-	void LoadStaConfig(WIFIConfig &wifiApConfig);
-	void saveStaConfig(WIFIConfig wifiApConfig);
+	void LoadStaConfig(WIFIConfig &wifiStaConfig);
+	void saveStaConfig(WIFIConfig wifiStaConfig);
 
 	void LoadPodConfig(Configuration &podConfig);
 	void savePodConfig(Configuration podConfig);
@@ -177,6 +177,8 @@ public:
 
 	void setWifiDefault();
 	void getSerialNumber(String &serNum);
+
+	void resetAllSettings();
 
 private:
 	Preferences m_preferences;
@@ -273,11 +275,11 @@ void PodConfig::saveApConfig(WIFIConfig wifiApConfig)
 	m_preferences.end();
 }
 
-void PodConfig::LoadStaConfig(WIFIConfig &wifiApConfig)
+void PodConfig::LoadStaConfig(WIFIConfig &wifiStaConfig)
 {
 	m_preferences.begin("PodConfig", false);
-	wifiApConfig.sSSID =  m_preferences.getString("StaSSID","FLO_Pod");
-	wifiApConfig.sPassword =  m_preferences.getString("StaPassword","");
+	wifiStaConfig.sSSID =  m_preferences.getString("StaSSID","NOT_CONFIGURED");
+	wifiStaConfig.sPassword =  m_preferences.getString("StaPassword","");
 	m_preferences.end();
 }
 
@@ -352,6 +354,16 @@ void PodConfig::getSerialNumber(String &serNum)
 	nSerNum[7] = 0x00;
 	serNum = String(nSerNum, HEX);
 	DBPrintln("Serial : " + String(nSerNum, HEX));
+}
+
+void PodConfig::resetAllSettings()
+{
+	nvs_flash_erase();
+	nvs_flash_init();
+	m_preferences.begin("PodConfig", false);
+	m_preferences.putBool("nvsInit", true);
+	m_preferences.end();
+	ESP.restart();
 }
 
 
