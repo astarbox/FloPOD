@@ -19,7 +19,8 @@
 #define ALPACA_VAR_BUF_LEN 256
 #define ALPACA_OK 0
 #define DISCOVERY_ERROR -1
-#define DOME_INTERFACE_VERSION 3
+#define POD_INTERFACE_VERSION 3
+#define SWITCH_INTERFACE_VERSION 3
 
 #define UDP_PACKET_MAX_SIZE 16
 
@@ -29,7 +30,8 @@ enum AlpacaShutterStates { A_OPEN=0, A_CLOSED, A_OPENING, A_CLOSING,  A_ERROR};
 uint32_t nTransactionID;
 UUID PodUuid, PodPowerUuid;
 String sAlpacaDiscovery = "alpacadiscovery1";
-volatile bool bAlpacaConnected = false;
+volatile bool bAlpacaPodConnected = false;
+volatile bool bAlpacaSwitchConnected = false;
 
 class AlpacaDiscoveryServer
 {
@@ -336,7 +338,7 @@ void getConfiguredDevice(Request &req, Response &res)
 
 	AlpacaResp["Value"][1] ["DeviceName"]= "Pulsar-Imaging-Pod-Power";
 	AlpacaResp["Value"][1] ["DeviceType"]= "switch";
-	AlpacaResp["Value"][1] ["DeviceNumber"]= 1;
+	AlpacaResp["Value"][1] ["DeviceNumber"]= 0;
 	AlpacaResp["Value"][1] ["UniqueID"]= PodPowerUuid;
 
 	serializeJson(AlpacaResp, sResp);
@@ -478,7 +480,7 @@ void getConnected(Request &req, Response &res)
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	AlpacaResp["Value"] = bAlpacaConnected;
+	AlpacaResp["Value"] = bAlpacaPodConnected;
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
@@ -516,8 +518,8 @@ void setConnected(Request &req, Response &res)
 		return;
 	}
 
-	bAlpacaConnected = FormData["connected"];
-	DBPrintln("bAlpacaConnected : " + (bAlpacaConnected?String("true"):String("false")));
+	bAlpacaPodConnected = FormData["connected"];
+	DBPrintln("bAlpacaPodConnected : " + (bAlpacaPodConnected?String("true"):String("false")));
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
 	serializeJson(AlpacaResp, sResp);
@@ -548,8 +550,8 @@ void domeConnect(Request &req, Response &res)
 			return;
 	}
 
-	bAlpacaConnected = true;
-	DBPrintln("bAlpacaConnected : " + (bAlpacaConnected?String("true"):String("false")));
+	bAlpacaPodConnected = true;
+	DBPrintln("bAlpacaPodConnected : " + (bAlpacaPodConnected?String("true"):String("false")));
 
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
@@ -675,8 +677,8 @@ void domeDisconnect(Request &req, Response &res)
 			return;
 	}
 
-	bAlpacaConnected = false;
-	DBPrintln("bAlpacaConnected : " + (bAlpacaConnected?String("true"):String("false")));
+	bAlpacaPodConnected = false;
+	DBPrintln("bAlpacaPodConnected : " + (bAlpacaPodConnected?String("true"):String("false")));
 
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
@@ -697,7 +699,7 @@ void getDeviceDescription(Request &req, Response &res)
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	AlpacaResp["Value"]= "RTI-Zone dome controller";
+	AlpacaResp["Value"]= "Pulsar Imaging Pod controller";
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
@@ -714,7 +716,7 @@ void getDriverInfo(Request &req, Response &res)
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	AlpacaResp["Value"]= "RTI-Zone Dome controller";
+	AlpacaResp["Value"]= "Pulsar Imaging Pod controller";
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
@@ -748,7 +750,7 @@ void getInterfaceVersion(Request &req, Response &res)
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	AlpacaResp["Value"]= DOME_INTERFACE_VERSION;
+	AlpacaResp["Value"]= POD_INTERFACE_VERSION;
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
@@ -765,7 +767,7 @@ void getName(Request &req, Response &res)
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	AlpacaResp["Value"]= "RTI-Zone Dome controller";
+	AlpacaResp["Value"]= "Pulsar Imaging Pod controller";
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
@@ -2080,6 +2082,272 @@ void podMot2Power(Request &req, Response &res)
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
 }
 
+
+// Switch Alpaca interface
+void getSwitchConnected(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	AlpacaResp["Value"] = bAlpacaSwitchConnected;
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void setSwitchConnected(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	String sClientId;
+	String sClientTransactionId;
+	String sParameter;
+	String sTmp;
+
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	if(!bParamsOk){
+		AlpacaResp["ErrorNumber"] = 0x401;
+		AlpacaResp["ErrorMessage"] = "Invalid parameters";
+		serializeJson(AlpacaResp, sResp);
+		res.write((uint8_t*)(sResp.c_str()),sResp.length());
+
+		return;
+	}
+
+	if(!FormData["connected"].is<bool>()) {
+		AlpacaResp["ErrorNumber"] = 0x401;
+		AlpacaResp["ErrorMessage"] = "Invalid parameters, missing 'Connected'";
+		serializeJson(AlpacaResp, sResp);
+		res.write((uint8_t*)(sResp.c_str()),sResp.length());
+
+		return;
+	}
+
+	bAlpacaSwitchConnected = FormData["connected"];
+	DBPrintln("bAlpacaSwitchConnected : " + (bAlpacaSwitchConnected?String("true"):String("false")));
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void switchConnect(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	String sClientId;
+	String sClientTransactionId;
+	String sParameter;
+	String sTmp;
+
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+
+	if(!bParamsOk){
+		AlpacaResp["ErrorNumber"] = 0x401;
+		AlpacaResp["ErrorMessage"] = "Invalid parameters";
+		serializeJson(AlpacaResp, sResp);
+		res.write((uint8_t*)(sResp.c_str()),sResp.length());
+			return;
+	}
+
+	bAlpacaSwitchConnected = true;
+	DBPrintln("bAlpacaSwitchConnected : " + (bAlpacaSwitchConnected?String("true"):String("false")));
+
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void switchConnecting(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	String sClientId;
+	String sClientTransactionId;
+	String sParameter;
+	String sTmp;
+
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+
+	if(!bParamsOk){
+		AlpacaResp["ErrorNumber"] = 0x401;
+		AlpacaResp["ErrorMessage"] = "Invalid parameters";
+		serializeJson(AlpacaResp, sResp);
+		res.write((uint8_t*)(sResp.c_str()),sResp.length());
+			return;
+	}
+
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	AlpacaResp["Value"] = false; // it's already connected
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void getSwitchDeviceState(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument jsTmp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	float Alt, Az;
+	float dParkPos, dCurrentAz;
+	bool bParked = false;
+	int nState;
+	bool bPortOn;
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+
+	// add states to response
+	podPowerController->getPortState(DC1, bPortOn);
+	jsTmp["Name"] = "DC1";
+	jsTmp["Value"] = (bPortOn?"On":"Off");
+	AlpacaResp["Value"].add(jsTmp);
+	jsTmp.clear();
+
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+
+
+
+void switchDisconnect(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	String sClientId;
+	String sClientTransactionId;
+	String sParameter;
+	String sTmp;
+
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+
+	if(!bParamsOk){
+		AlpacaResp["ErrorNumber"] = 0x401;
+		AlpacaResp["ErrorMessage"] = "Invalid parameters";
+		serializeJson(AlpacaResp, sResp);
+		res.write((uint8_t*)(sResp.c_str()),sResp.length());
+			return;
+	}
+
+	bAlpacaSwitchConnected = false;
+	DBPrintln("bAlpacaSwitchConnected : " + (bAlpacaSwitchConnected?String("true"):String("false")));
+
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void getSwitchDeviceDescription(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	AlpacaResp["Value"]= "Pulsar Imaging POD power controller";
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void getSwitchDriverInfo(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	AlpacaResp["Value"]= "Pulsar Pod power ports";
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void getSwitchInterfaceVersion(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	AlpacaResp["Value"]= SWITCH_INTERFACE_VERSION;
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void getSwitchhName(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	AlpacaResp["Value"]= "Pulsar Imaging POD power controller";
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+
+
 void AlpacaServer::startServer()
 {
 	mRestServer = new NetworkServer(m_nRestPort);
@@ -2091,10 +2359,15 @@ void AlpacaServer::startServer()
 	DBPrintln("m_AlpacaRestServer mapping endpoints");
 	m_AlpacaRestServer->use("/", &doSetup);
 	m_AlpacaRestServer->use("/setup", &doSetup);
+
+	// management
 	m_AlpacaRestServer->get("/management/apiversions", &getApiVersion);
 	m_AlpacaRestServer->get("/management/v1/configureddevices", &getConfiguredDevice);
 	m_AlpacaRestServer->get("/management/v1/description", &getDescription);
 	m_AlpacaRestServer->use("/setup/v1/dome/0/setup", &doSetup);
+
+	// dome device 0
+	// Common method
 	m_AlpacaRestServer->put("/api/v1/dome/0/action", &doAction);
 	m_AlpacaRestServer->put("/api/v1/dome/0/commandblind", &doCommandBlind);
 	m_AlpacaRestServer->put("/api/v1/dome/0/commandbool", &doCommandBool);
@@ -2113,6 +2386,7 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->get("/api/v1/dome/0/interfaceversion", &getInterfaceVersion);
 	m_AlpacaRestServer->get("/api/v1/dome/0/name", &getName);
 	m_AlpacaRestServer->get("/api/v1/dome/0/supportedactions", &getSupportedActions);
+	// dome specific
 	m_AlpacaRestServer->get("/api/v1/dome/0/altitude", &getAltitude);
 	m_AlpacaRestServer->get("/api/v1/dome/0/athome", &geAtHome);
 	m_AlpacaRestServer->get("/api/v1/dome/0/atpark", &geAtPark);
@@ -2139,6 +2413,26 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->put("/api/v1/dome/0/slewtoazimuth", &doGoTo);
 	m_AlpacaRestServer->put("/api/v1/dome/0/synctoazimuth", &doSyncAzimuth);
 
+	// switch device 0
+	// Common method
+	m_AlpacaRestServer->put("/api/v1/switch/0/action", &doAction);
+	m_AlpacaRestServer->put("/api/v1/switch/0/commandblind", &doCommandBlind);
+	m_AlpacaRestServer->put("/api/v1/switch/0/commandbool", &doCommandBool);
+	m_AlpacaRestServer->put("/api/v1/switch/0/commandstring", &doCommandString);
+	m_AlpacaRestServer->get("/api/v1/switch/0/connected", &getSwitchConnected);
+	m_AlpacaRestServer->put("/api/v1/switch/0/connected", &setSwitchConnected);
+	// platform 7
+	m_AlpacaRestServer->put("/api/v1/switch/0/connect", &switchConnect);
+	m_AlpacaRestServer->get("/api/v1/switch/0/connecting", &switchConnecting);
+	m_AlpacaRestServer->put("/api/v1/switch/0/disconnect", &switchDisconnect);
+	m_AlpacaRestServer->get("/api/v1/switch/0/devicestate", &getSwitchDeviceState);
+	//
+	m_AlpacaRestServer->get("/api/v1/switch/0/description", &getSwitchDeviceDescription);
+	m_AlpacaRestServer->get("/api/v1/switch/0/driverinfo", &getSwitchDriverInfo);
+	m_AlpacaRestServer->get("/api/v1/switch/0/driverversion", &getDriverVersion);
+	m_AlpacaRestServer->get("/api/v1/switch/0/interfaceversion", &getSwitchInterfaceVersion);
+	m_AlpacaRestServer->get("/api/v1/switch/0/name", &getSwitchhName);
+	m_AlpacaRestServer->get("/api/v1/switch/0/supportedactions", &getSupportedActions);
 
 	// adding our own endpoints for the settings
 	m_AlpacaRestServer->use("/setup/useDHCP", &useDHCPState);
