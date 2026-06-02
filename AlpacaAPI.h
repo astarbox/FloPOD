@@ -202,7 +202,7 @@ void  getQueryGetVariables(String sQueryString, std::vector<std::vector<String>>
 	std::vector<String> svKV;
 	std::vector<String> svFields;
 
-	DBPrintln("getQueryGetVariables");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	// url parameters are separate by '&'
 	while(true) {
 		nIndex = sQueryString.indexOf('&',nCurIndex);
@@ -236,7 +236,7 @@ bool getIDs(Request &req, JsonDocument &AlpacaResp, JsonDocument &FormData)
 	std::vector<std::vector<String>> svParameters;
 	bool bParamOk = true;
 
-	DBPrintln("getIDs");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	AlpacaResp["ServerTransactionID"] = nTransactionID;
 	if(req.method() == Request::GET) {
 		// the req.query being case sensitive will not work here.
@@ -313,7 +313,7 @@ void getApiVersion(Request &req, Response &res)
 	bool bParamsOk = false;
 	String sResp;
 
-	DBPrintln("[ ********** getApiVersion ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["Value"][0] = 1;
@@ -329,7 +329,7 @@ void getDescription(Request &req, Response &res)
 	bool bParamsOk = false;
 	String sResp;
 
-	DBPrintln("[ ********** getDescription ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["Value"]["ServerName"]= "Pulsar Imaging Pod";
@@ -348,7 +348,7 @@ void getConfiguredDevice(Request &req, Response &res)
 	bool bParamsOk = false;
 	String sResp;
 
-	DBPrintln("[ ********** getConfiguredDevice ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["Value"][0] ["DeviceName"]= "Pulsar-Imaging-Pod";
@@ -375,7 +375,7 @@ void doAction(Request &req, Response &res)
 	String sAction;
 	String sParameters;
 
-	DBPrintln("[ ********** doAction ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
@@ -407,7 +407,7 @@ void doCommandBlind(Request &req, Response &res)
 	String sClientId;
 	String sClientTransactionId;
 
-	DBPrintln("[ ********** doCommandBlind ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
@@ -431,7 +431,7 @@ void doCommandBool(Request &req, Response &res)
 	String sClientId;
 	String sClientTransactionId;
 
-	DBPrintln("[ ********** doCommandBool ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
@@ -456,7 +456,7 @@ void doCommandString(Request &req, Response &res)
 	String sClientId;
 	String sClientTransactionId;
 
-	DBPrintln("[ ********** doCommandString ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
@@ -479,7 +479,7 @@ void getConnected(Request &req, Response &res)
 	bool bParamsOk = false;
 	String sResp;
 
-	DBPrintln("[ ********** getConected ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
@@ -501,7 +501,7 @@ void setConnected(Request &req, Response &res)
 	String sParameter;
 	String sTmp;
 
-	DBPrintln("[ ********** setConected ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
@@ -534,7 +534,7 @@ void domeConnect(Request &req, Response &res)
 	String sParameter;
 	String sTmp;
 
-	DBPrintln("[ ********** setConected ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 
@@ -565,7 +565,7 @@ void domeConnecting(Request &req, Response &res)
 	String sParameter;
 	String sTmp;
 
-	DBPrintln("[ ********** setConected ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 
@@ -596,7 +596,7 @@ void getDomeState(Request &req, Response &res)
 	bool bParked = false;
 	int nState;
 
-	DBPrintln("[ ********** getDomeState ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 
 	res.set("Content-Type", "application/json");
@@ -655,7 +655,7 @@ void domeDisconnect(Request &req, Response &res)
 	String sParameter;
 	String sTmp;
 
-	DBPrintln("[ ********** setConected ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 
@@ -681,7 +681,7 @@ void getDeviceDescription(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** getDeviceDescription ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
@@ -698,7 +698,7 @@ void getDriverInfo(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** getDriverInfo ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
@@ -715,7 +715,7 @@ void getDriverVersion(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** getDriverVersion ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
@@ -732,7 +732,7 @@ void getInterfaceVersion(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** getInterfaceVersion ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
@@ -749,7 +749,7 @@ void getName(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** getName ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
@@ -767,7 +767,7 @@ void getSupportedActions(Request &req, Response &res)
 	bool bParamsOk = false;
 	String sResp;
 
-	DBPrintln("[ ********** getSupportedActions ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 
 	res.set("Content-Type", "application/json");
@@ -788,7 +788,7 @@ void getAltitude(Request &req, Response &res)
 	bool bParamsOk = false;
 	podStates nState;
 	String sResp;
-	DBPrintln("[ ********** getAltitude ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
@@ -812,7 +812,7 @@ void geAtHome(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** geAtHome ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
@@ -835,7 +835,7 @@ void geAtPark(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** geAtPark ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(bParked) {
@@ -855,7 +855,7 @@ void getAzimuth(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** getAzimuth ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
@@ -872,7 +872,7 @@ void canfindhome(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** canfindhome ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
@@ -889,7 +889,7 @@ void canPark(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** canPark ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
@@ -906,7 +906,7 @@ void canSetAltitude(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** canSetAltitude ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
@@ -923,7 +923,7 @@ void canSetAzimuth(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** canSetAzimuth ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
@@ -940,7 +940,7 @@ void canSetPark(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** canSetPark ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
@@ -957,7 +957,7 @@ void canSetShutter(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** canSetShutter ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
@@ -974,7 +974,7 @@ void canSlave(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** canSlave ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
@@ -991,7 +991,7 @@ void canSyncAzimuth(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** canSyncAzimuth ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
@@ -1010,7 +1010,7 @@ void getShutterStatus(Request &req, Response &res)
 	String sResp;
 	podStates nState;
 
-	DBPrintln("[ ********** getShutterStatus ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
@@ -1048,7 +1048,7 @@ void getSlaved(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** canSlave ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
@@ -1065,7 +1065,7 @@ void setSlaved(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** Slaved ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaError_x400(AlpacaResp, res);
@@ -1078,7 +1078,7 @@ void getSlewing(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** getSlewing ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
@@ -1103,7 +1103,7 @@ void doAbort(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** doAbort ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
@@ -1127,7 +1127,7 @@ void doCloseShutter(Request &req, Response &res)
 	bool bParamsOk = false;
 	String sResp;
 
-	DBPrintln("[ ********** doCloseShutter ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
@@ -1149,7 +1149,7 @@ void doFindHome(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** doFindHome ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
@@ -1172,7 +1172,7 @@ void doOpenShutter(Request &req, Response &res)
 	bool bParamsOk = false;
 	String sResp;
 
-	DBPrintln("[ ********** doOpenShutter ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
@@ -1196,7 +1196,7 @@ void doPark(Request &req, Response &res)
 	bool bParamsOk = false;
 	String sResp;
 	double fParkPos;
-	DBPrintln("[ ********** doPark ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
@@ -1219,7 +1219,7 @@ void setPark(Request &req, Response &res)
 	bool bParamsOk = false;
 	String sResp;
 	double fParkPos;
-	DBPrintln("[ ********** setPark ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
@@ -1243,7 +1243,7 @@ void doAltitudeSlew(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	DBPrintln("[ ********** doAltitudeSlew ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
@@ -1266,7 +1266,7 @@ void doGoTo(Request &req, Response &res)
 	bool bParamsOk = false;
 	String sResp;
 	double dNewPos;
-	DBPrintln("[ ********** doGoTo ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
@@ -1301,7 +1301,7 @@ void doSyncAzimuth(Request &req, Response &res)
 	bool bParamsOk = false;
 	String sResp;
 	double dNewPos;
-	DBPrintln("[ ********** doSyncAzimuth ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
@@ -1337,7 +1337,7 @@ void doSetup(Request &req, Response &res)
 	String sResp;
 	String sHTML;
 	res.set("Content-Type", "text/html");
-	DBPrintln("[ ********** doSetup ********** ]");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	sHTML = "<!DOCTYPE html>\n<html>\n";
 	sHTML += "<head>";
