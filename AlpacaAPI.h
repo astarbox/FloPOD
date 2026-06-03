@@ -292,6 +292,7 @@ void AlpacaError_x400(JsonDocument AlpacaResp, Response &res)
 	AlpacaResp["ErrorMessage"] = "Not Implemented";
 	AlpacaResp["Value"] = false;
 	serializeJson(AlpacaResp, sResp);
+	res.set("Content-Type", "application/json");
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
 }
 
@@ -1067,7 +1068,6 @@ void setSlaved(Request &req, Response &res)
 	String sResp;
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
-	res.set("Content-Type", "application/json");
 	AlpacaError_x400(AlpacaResp, res);
 
 }
@@ -1245,7 +1245,6 @@ void doAltitudeSlew(Request &req, Response &res)
 	String sResp;
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
-	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
 		AlpacaError_x401(AlpacaResp, res);
 		return;
@@ -1256,6 +1255,7 @@ void doAltitudeSlew(Request &req, Response &res)
 		return;
 	}
 
+	res.set("Content-Type", "application/json");
 	AlpacaError_x400(AlpacaResp, res);
 }
 
