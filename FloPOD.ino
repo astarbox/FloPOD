@@ -56,6 +56,10 @@ float fTemperature;
 float fHumidity;
 float rainSensorValuePf;
 
+// power tasks
+void chackAllDc();
+void turnAllDcOff();
+
 // other object
 esp_task_wdt_config_t twdt_config = {
 	.timeout_ms = 1000000,
@@ -99,6 +103,7 @@ void setup()
 	xTaskCreatePinnedToCore(MotorTask, "MotorTask", 10000, NULL, 8, NULL,  0); // priority 8 (medium) on Core 0
 	xTaskCreatePinnedToCore(PowerTask, "PowerTask", 10000, NULL, 16, NULL,  0); // priority 16 (High) on Core 0
 	xTaskCreatePinnedToCore(EnvTask, "EnvTask", 10000, NULL, 12, NULL,  0); // priority 12 (between medium and high) on Core 0
+	xTaskCreatePinnedToCore(RemoteBoardsTask, "RemoteBoardsTask", 10000, NULL, 12, NULL,  1); // priority 12 (between medium and high) on Core 1 as this is mostlky I2C communucations
 
 	// MAG_TRIG interrupt
 	attachInterrupt(MAG_TRIG, magnetHandler, FALLING);
@@ -185,41 +190,15 @@ void PowerTask(void *)
 		// do a whole lot of nothing
 		if(bOcTriggered) {
 			bOcTriggered = false;
-			// check which INA260 triggered the OC interrupt
-			// and turn it off
-			if(podPowerController->checkAlert(INA260_DC_1)) {
-				podPowerController->setPortState(DC1, false);
-			}
-			if(podPowerController->checkAlert(INA260_DC_2)) {
-				podPowerController->setPortState(DC2, false);
-			}
-			if(podPowerController->checkAlert(INA260_PWM1)) {
-				podPowerController->setPortState(PWM1, false);
-			}
-			if(podPowerController->checkAlert(INA260_PWM2)) {
-				podPowerController->setPortState(PWM2, false);
-			}
-			if(podPowerController->checkAlert(INA260_USB_C)) {
-				podPowerController->setPortState(USB_C, false);
-			}
-			if(podPowerController->checkAlert(INA260_BAT)) {
-				podPowerController->setPortState(BAT_EN, false);
-			}
-			if(podPowerController->checkAlert(INA260_VMOT)) {
-				podPowerController->setPortState(MOTOR_V_EN, false);
-			}
+			chackAllDc();
 		}
 		if(bMainOcTriggered){
 			bMainOcTriggered = false;
-			// check which INA260 triggered the OC interrupt
-			if(podPowerController->checkAlert(INA260_VMOT)) {
-				podController->Stop();
-			}
-			if(podPowerController->checkAlert(INA260_VMOT2)) {
-				podController->Stop();
-			}
 			if(podPowerController->checkAlert(INA260_MAIN)) {
-				// If we get there and we already turned off all the port.. not sure what else to do.
+				// if the main OC is triggered we turn all DC port off.
+				turnAllDcOff();
+				// Also turn off motors
+				podController->Stop();
 			}
 		}
 		// FreeRTOS task management
@@ -251,6 +230,59 @@ void EnvTask(void *)
 		vTaskDelay(xDelay);
 		taskYIELD();
 	}
+}
+
+void RemoteBoardsTask(void *)
+{
+		const TickType_t xDelay = 10/ portTICK_PERIOD_MS; // 10ms task block to give time back
+
+		for(;;) {
+			// check if any of the motor INA260 triggered an alert
+			if(podPowerController->checkAlert(INA260_VMOT)) {
+				podController->Stop();
+			}
+			if(podPowerController->checkAlert(INA260_VMOT2)) {
+				podController->Stop();
+			}
+		// FreeRTOS task management
+		vTaskDelay(xDelay);
+		taskYIELD();
+		}
+}
+
+void chackAllDc()
+{
+	// check which INA260 triggered the OC interrupt
+	// and turn power off on corrresponding port
+
+	if(podPowerController->checkAlert(INA260_DC_1)) {
+		podPowerController->setPortState(DC1, false);
+	}
+	if(podPowerController->checkAlert(INA260_DC_2)) {
+		podPowerController->setPortState(DC2, false);
+	}
+	if(podPowerController->checkAlert(INA260_PWM1)) {
+		podPowerController->setPortState(PWM1, false);
+	}
+	if(podPowerController->checkAlert(INA260_PWM2)) {
+		podPowerController->setPortState(PWM2, false);
+	}
+	if(podPowerController->checkAlert(INA260_USB_C)) {
+		podPowerController->setPortState(USB_C, false);
+	}
+	if(podPowerController->checkAlert(INA260_BAT)) {
+		podPowerController->setPortState(BAT_EN, false);
+	}
+}
+
+void turnAllDcOff()
+{
+	podPowerController->setPortState(DC1, false);
+	podPowerController->setPortState(DC2, false);
+	podPowerController->setPortState(PWM1, false);
+	podPowerController->setPortState(PWM2, false);
+	podPowerController->setPortState(USB_C, false);
+	podPowerController->setPortState(BAT_EN, false);
 }
 
 // Interrup handlers

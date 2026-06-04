@@ -2300,7 +2300,10 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->get("/api/v1/switch/0/name", &getSwitchhName);
 	m_AlpacaRestServer->get("/api/v1/switch/0/supportedactions", &getSupportedActions);
 
-	// adding our own endpoints for the settings
+	//
+	// adding our own endpoints for the settings and controls
+	// 
+
 	m_AlpacaRestServer->use("/setup/useDHCP", &useDHCPState);
 	m_AlpacaRestServer->use("/setup/ipAddress", &ipAddressValue);
 	m_AlpacaRestServer->use("/setup/subnetMask", &subnetMaskValue);
@@ -2317,8 +2320,6 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->put("/setup/podOpen", &podOpen);
 	m_AlpacaRestServer->put("/setup/podClose", &podClose);
 	m_AlpacaRestServer->get("/setup/podState", &podState);
-
-
 
 	// Power ports control
 	m_AlpacaRestServer->use("/setup/podDC1", &podDC1);
