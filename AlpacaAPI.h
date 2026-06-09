@@ -2089,6 +2089,7 @@ void getSwitchDeviceState(Request &req, Response &res)
 	float dParkPos, dCurrentAz;
 	bool bParked = false;
 	int nState;
+	int nPercent;
 	bool bPortOn;
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
@@ -2099,8 +2100,58 @@ void getSwitchDeviceState(Request &req, Response &res)
 
 	// add states to response
 	podPowerController->getPortState(DC1, bPortOn);
-	jsTmp["Name"] = "DC1";
+	jsTmp["Name"] = "GetSwitch0";
 	jsTmp["Value"] = (bPortOn?"On":"Off");
+	AlpacaResp["Value"].add(jsTmp);
+	jsTmp.clear();
+
+	jsTmp["Name"] = "GetSwitchValue0";
+	jsTmp["Value"] = (bPortOn?12:0);
+	AlpacaResp["Value"].add(jsTmp);
+	jsTmp.clear();
+
+
+	podPowerController->getPortState(DC2, bPortOn);
+	jsTmp["Name"] = "GetSwitch1";
+	jsTmp["Value"] = (bPortOn?"On":"Off");
+	AlpacaResp["Value"].add(jsTmp);
+	jsTmp.clear();
+
+	jsTmp["Name"] = "GetSwitchValue1";
+	jsTmp["Value"] = (bPortOn?12:0);
+	AlpacaResp["Value"].add(jsTmp);
+	jsTmp.clear();
+
+	podPowerController->getPwmPortState(PWM1, nPercent);
+	jsTmp["Name"] = "GetSwitch2";
+	jsTmp["Value"] = (nPercent>0?"On":"Off");
+	AlpacaResp["Value"].add(jsTmp);
+	jsTmp.clear();
+
+	jsTmp["Name"] = "GetSwitchValue2";
+	jsTmp["Value"] = nPercent;
+	AlpacaResp["Value"].add(jsTmp);
+	jsTmp.clear();
+
+	podPowerController->getPwmPortState(PWM2, nPercent);
+	jsTmp["Name"] = "GetSwitch3";
+	jsTmp["Value"] = (nPercent>0?"On":"Off");
+	AlpacaResp["Value"].add(jsTmp);
+	jsTmp.clear();
+
+	jsTmp["Name"] = "GetSwitchValue3";
+	jsTmp["Value"] = nPercent;
+	AlpacaResp["Value"].add(jsTmp);
+	jsTmp.clear();
+
+	podPowerController->getPortState(USB_C, bPortOn);
+	jsTmp["Name"] = "GetSwitch4";
+	jsTmp["Value"] = (bPortOn?"On":"Off");
+	AlpacaResp["Value"].add(jsTmp);
+	jsTmp.clear();
+
+	jsTmp["Name"] = "GetSwitchValue1";
+	jsTmp["Value"] = (bPortOn?5:0);
 	AlpacaResp["Value"].add(jsTmp);
 	jsTmp.clear();
 
@@ -2109,9 +2160,6 @@ void getSwitchDeviceState(Request &req, Response &res)
 
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
 }
-
-
-
 
 void switchDisconnect(Request &req, Response &res)
 {
@@ -2195,7 +2243,7 @@ void getSwitchInterfaceVersion(Request &req, Response &res)
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
 }
 
-void getSwitchhName(Request &req, Response &res)
+void getSwitchDevicehName(Request &req, Response &res)
 {
 	JsonDocument AlpacaResp;
 	JsonDocument FormData;
@@ -2212,6 +2260,380 @@ void getSwitchhName(Request &req, Response &res)
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
 }
 
+void maxSwitch(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	podStates nState;
+	String sResp;
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	// do the thing
+
+
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void switchCanaSync(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	podStates nState;
+	String sResp;
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	// do the thing
+
+
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void switchCanWrite(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	podStates nState;
+	String sResp;
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	// do the thing
+
+
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void getSwitch(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	podStates nState;
+	String sResp;
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	// do the thing
+
+
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void getSwitchDescription(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	podStates nState;
+	String sResp;
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	// do the thing
+
+
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void getSwitchName(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	podStates nState;
+	String sResp;
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	// do the thing
+
+
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void getSwitchValue(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	podStates nState;
+	String sResp;
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	// do the thing
+
+
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void minSwitchValue(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	podStates nState;
+	String sResp;
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	// do the thing
+
+
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void maxSwitchValue(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	podStates nState;
+	String sResp;
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	// do the thing
+
+
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void switchSetasync(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	int switchID;
+
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	if(!bParamsOk){
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	if(!FormData["azimuth"].is<double>()) {
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	switchID = FormData["id"];
+	// do other things
+
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void switchSetAsyncValue(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	int switchID;
+
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	if(!bParamsOk){
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	if(!FormData["azimuth"].is<double>()) {
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	switchID = FormData["id"];
+	// do other things
+
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void setSwitch(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	int switchID;
+
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	if(!bParamsOk){
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	if(!FormData["azimuth"].is<double>()) {
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	switchID = FormData["id"];
+	// do other things
+
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void setSwitchName(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	int switchID;
+
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	if(!bParamsOk){
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	if(!FormData["azimuth"].is<double>()) {
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	switchID = FormData["id"];
+	// do other things
+
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void setSwitchValue(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	int switchID;
+
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	if(!bParamsOk){
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	if(!FormData["azimuth"].is<double>()) {
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	switchID = FormData["id"];
+	// do other things
+
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void switchStateChangeComplete(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	podStates nState;
+	String sResp;
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	// do the thing
+
+
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void switchStep(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	podStates nState;
+	String sResp;
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	// do the thing
+
+
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
 
 
 void AlpacaServer::startServer()
@@ -2297,8 +2719,29 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->get("/api/v1/switch/0/driverinfo", &getSwitchDriverInfo);
 	m_AlpacaRestServer->get("/api/v1/switch/0/driverversion", &getDriverVersion);
 	m_AlpacaRestServer->get("/api/v1/switch/0/interfaceversion", &getSwitchInterfaceVersion);
-	m_AlpacaRestServer->get("/api/v1/switch/0/name", &getSwitchhName);
+	m_AlpacaRestServer->get("/api/v1/switch/0/name", &getSwitchDevicehName);
 	m_AlpacaRestServer->get("/api/v1/switch/0/supportedactions", &getSupportedActions);
+	//
+	m_AlpacaRestServer->get("/api/v1/switch/0/maxswitch", &maxSwitch);
+	m_AlpacaRestServer->get("/api/v1/switch/0/canasync", &switchCanaSync);
+	m_AlpacaRestServer->get("/api/v1/switch/0/canwrite", &switchCanWrite);
+	m_AlpacaRestServer->get("/api/v1/switch/0/getswitch", &getSwitch);
+	m_AlpacaRestServer->get("/api/v1/switch/0/getswitchdescription", &getSwitchDescription);
+	m_AlpacaRestServer->get("/api/v1/switch/0/getswitchname", &getSwitchName);
+	m_AlpacaRestServer->get("/api/v1/switch/0/getswitchvalue", &getSwitchValue);
+	m_AlpacaRestServer->get("/api/v1/switch/0/minswitchvalue", &minSwitchValue);
+	m_AlpacaRestServer->get("/api/v1/switch/0/maxswitchvalue", &maxSwitchValue);
+
+	m_AlpacaRestServer->put("/api/v1/switch/0/setasync", &switchSetasync);
+	m_AlpacaRestServer->put("/api/v1/switch/0/setasyncvalue", &switchSetAsyncValue);
+	m_AlpacaRestServer->put("/api/v1/switch/0/setswitch", &setSwitch);
+	m_AlpacaRestServer->put("/api/v1/switch/0/setswitchname", &setSwitchName);
+	m_AlpacaRestServer->put("/api/v1/switch/0/setswitchvalue", &setSwitchValue);
+
+	m_AlpacaRestServer->get("/api/v1/switch/0/statechangecomplete", &switchStateChangeComplete);
+	m_AlpacaRestServer->get("/api/v1/switch/0/switchstep", &switchStep);
+
+
 
 	//
 	// adding our own endpoints for the settings and controls
