@@ -178,6 +178,8 @@ public:
 	void setWifiDefault();
 	void getSerialNumber(String &serNum);
 
+	void setAlpacaPortName(int nPort, String sName);
+	void getAlpacaPortName(int nPort, String &sName);
 	void resetAllSettings();
 
 private:
@@ -355,6 +357,65 @@ void PodConfig::getSerialNumber(String &serNum)
 	serNum = String(nSerNum, HEX);
 	DBPrintln("Serial : " + String(nSerNum, HEX));
 }
+
+void PodConfig::setAlpacaPortName(int nPort, String sName)
+{
+	String sPort;
+
+	switch(nPort) {
+		case DC1:
+			sPort="DC1_name";
+			break;
+		case DC2:
+			sPort="DC2_name";
+			break;
+		case PWM1:
+			sPort="PWM11_name";
+			break;
+		case PWM2:
+			sPort="PWM2_name";
+			break;
+		case USB_C:
+			sPort="USB_C_name";
+			break;
+	}
+	m_preferences.begin("PodConfig", false);
+	m_preferences.putString(sPort.c_str(), sName);
+	m_preferences.end();
+}
+
+void PodConfig::getAlpacaPortName(int nPort, String &sName)
+{
+	String sPort;
+	String sDefaultName;
+	switch(nPort) {
+		case DC1:
+			sPort="DC1_name";
+			sDefaultName="DC1";
+			break;
+		case DC2:
+			sPort="DC2_name";
+			sDefaultName="DC2";
+			break;
+		case PWM1:
+			sPort="PWM11_name";
+			sDefaultName="PWM1";
+			break;
+		case PWM2:
+			sPort="PWM2_name";
+			sDefaultName="PWM1";
+			break;
+		case USB_C:
+			sPort="USB_C_name";
+			sDefaultName="USB-C";
+			break;
+	}
+	m_preferences.begin("PodConfig", false);
+	sName = m_preferences.getString(sPort.c_str(), sDefaultName);
+	m_preferences.end();
+
+}
+
 
 void PodConfig::resetAllSettings()
 {

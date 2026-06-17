@@ -26,7 +26,11 @@
 
 volatile bool bParked = false;
 
-enum AlpacaShutterStates { A_OPEN=0, A_CLOSED, A_OPENING, A_CLOSING,  A_ERROR};
+enum AlpacaShutterStates {A_OPEN=0, A_CLOSED, A_OPENING, A_CLOSING, A_ERROR};
+
+#define NB_MAX_SWITCH 5
+enum AlpacaSwicthId {A_DC1=0, A_DC2, A_PWM1, A_PWM2, A_USB_C};
+
 uint32_t nTransactionID;
 UUID PodUuid, PodPowerUuid;
 String sAlpacaDiscovery = "alpacadiscovery1";
@@ -2215,6 +2219,7 @@ void getSwitchDriverInfo(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
+
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
@@ -2232,6 +2237,7 @@ void getSwitchInterfaceVersion(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
+
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
@@ -2243,12 +2249,13 @@ void getSwitchInterfaceVersion(Request &req, Response &res)
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
 }
 
-void getSwitchDevicehName(Request &req, Response &res)
+void getSwitchDeviceName(Request &req, Response &res)
 {
 	JsonDocument AlpacaResp;
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
+
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
@@ -2267,14 +2274,14 @@ void maxSwitch(Request &req, Response &res)
 	bool bParamsOk = false;
 	podStates nState;
 	String sResp;
+
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	// do the thing
 
-
+	AlpacaResp["Value"] = NB_MAX_SWITCH;
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
@@ -2287,13 +2294,14 @@ void switchCanaSync(Request &req, Response &res)
 	bool bParamsOk = false;
 	podStates nState;
 	String sResp;
+
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	// do the thing
 
+	AlpacaResp["Value"] = true; // not really but it's so fast it's going to be the same.
 
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
@@ -2307,13 +2315,14 @@ void switchCanWrite(Request &req, Response &res)
 	bool bParamsOk = false;
 	podStates nState;
 	String sResp;
+
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	// do the thing
 
+	AlpacaResp["Value"] = true;
 
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
@@ -2327,13 +2336,59 @@ void getSwitch(Request &req, Response &res)
 	bool bParamsOk = false;
 	podStates nState;
 	String sResp;
+	int switchId = -1;
+	bool bOn = false;
+	int nPercent = 0;
+	std::vector<std::vector<String>> svParameters;
+
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	// do the thing
 
+	getQueryGetVariables(String(req.query()), svParameters);
+	for( std::vector<String> &svParamEntry : svParameters ) {
+		if(svParamEntry.at(0).equals("id")) {
+			switchId = svParamEntry.at(1).toInt();
+		}
+	}
+
+	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	switch(switchId) {
+		case 0:
+			if(podPowerController)
+				podPowerController->getPortState(DC1,bOn);
+			AlpacaResp["Value"] = bOn;
+			break;
+		case 1:
+			if(podPowerController)
+				podPowerController->getPortState(DC2,bOn);
+			AlpacaResp["Value"] = bOn;
+			break;
+		case 2:
+			if(podPowerController)
+				podPowerController->getPwmPortState(PWM1,nPercent);
+			AlpacaResp["Value"] = (nPercent?true:false);
+			break;
+		case 3:
+			if(podPowerController)
+				podPowerController->getPwmPortState(PWM2,nPercent);
+			AlpacaResp["Value"] = (nPercent?true:false);
+			break;
+		case 4:
+			if(podPowerController)
+				podPowerController->getPortState(USB_C,bOn);
+			AlpacaResp["Value"] = bOn;
+			break;
+		default:
+			AlpacaError_x401(AlpacaResp, res);
+			return;
+	}
 
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
@@ -2347,13 +2402,47 @@ void getSwitchDescription(Request &req, Response &res)
 	bool bParamsOk = false;
 	podStates nState;
 	String sResp;
+	int switchId = -1;
+	std::vector<std::vector<String>> svParameters;
+
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	// do the thing
 
+	getQueryGetVariables(String(req.query()), svParameters);
+	for( std::vector<String> &svParamEntry : svParameters ) {
+		if(svParamEntry.at(0).equals("id")) {
+			switchId = svParamEntry.at(1).toInt();
+		}
+	}
+
+	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	switch(switchId) {
+		case 0:
+			AlpacaResp["Value"] = "DC1 power port";
+			break;
+		case 1:
+			AlpacaResp["Value"] = "DC2 power port";
+			break;
+		case 2:
+			AlpacaResp["Value"] = "PWM1 power port";
+			break;
+		case 3:
+			AlpacaResp["Value"] = "PWM2 power port";
+			break;
+		case 4:
+			AlpacaResp["Value"] = "USB-C power port";
+			break;
+		default:
+			AlpacaError_x401(AlpacaResp, res);
+			return;
+	}
 
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
@@ -2367,13 +2456,58 @@ void getSwitchName(Request &req, Response &res)
 	bool bParamsOk = false;
 	podStates nState;
 	String sResp;
+	int switchId = -1;
+	String sName;
+	std::vector<std::vector<String>> svParameters;
+
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	// do the thing
 
+	getQueryGetVariables(String(req.query()), svParameters);
+	for( std::vector<String> &svParamEntry : svParameters ) {
+		if(svParamEntry.at(0).equals("id")) {
+			switchId = svParamEntry.at(1).toInt();
+		}
+	}
+
+	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	switch(switchId) {
+		case 0:
+			if(globalPodConfig)
+				globalPodConfig->getAlpacaPortName(DC1,sName);
+			AlpacaResp["Value"] = sName;
+			break;
+		case 1:
+			if(globalPodConfig)
+				globalPodConfig->getAlpacaPortName(DC2,sName);
+			AlpacaResp["Value"] = sName;
+			break;
+		case 2:
+			if(globalPodConfig)
+				globalPodConfig->getAlpacaPortName(PWM1,sName);
+			AlpacaResp["Value"] = sName;
+			break;
+		case 3:
+			if(globalPodConfig)
+				globalPodConfig->getAlpacaPortName(PWM2,sName);
+			AlpacaResp["Value"] = sName;
+			break;
+		case 4:
+			if(globalPodConfig)
+				globalPodConfig->getAlpacaPortName(USB_C,sName);
+			AlpacaResp["Value"] = sName;
+			break;
+		default:
+			AlpacaError_x401(AlpacaResp, res);
+			return;
+	}
 
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
@@ -2387,13 +2521,64 @@ void getSwitchValue(Request &req, Response &res)
 	bool bParamsOk = false;
 	podStates nState;
 	String sResp;
+	int switchId = -1;
+	std::vector<std::vector<String>> svParameters;
+	int nPercent;
+	bool bOn;
+
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	// do the thing
 
+	getQueryGetVariables(String(req.query()), svParameters);
+	for( std::vector<String> &svParamEntry : svParameters ) {
+		if(svParamEntry.at(0).equals("id")) {
+			switchId = svParamEntry.at(1).toInt();
+		}
+	}
+
+	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	switch(switchId) {
+		case 0:
+			if(podPowerController) {
+				podPowerController->getPortState(DC1 , bOn);
+				AlpacaResp["Value"] = bOn;
+			}
+			break;
+		case 1:
+			if(podPowerController) {
+				podPowerController->getPortState(DC2 , bOn);
+				AlpacaResp["Value"] = bOn;
+			}
+			break;
+		case 2:
+			if(podPowerController) {
+				podPowerController->getPwmPortState(PWM1 , nPercent);
+				AlpacaResp["Value"] = nPercent;
+			}
+			break;
+		case 3:
+			if(podPowerController) {
+				podPowerController->getPwmPortState(PWM2 , nPercent);
+				AlpacaResp["Value"] = nPercent;
+			}
+			break;
+		case 4:
+			if(podPowerController) {
+				podPowerController->getPortState(USB_C , bOn);
+				AlpacaResp["Value"] = bOn;
+			}
+			break;
+		default:
+			AlpacaError_x401(AlpacaResp, res);
+			return;
+	}
 
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
@@ -2407,13 +2592,47 @@ void minSwitchValue(Request &req, Response &res)
 	bool bParamsOk = false;
 	podStates nState;
 	String sResp;
+	int switchId = -1;
+	std::vector<std::vector<String>> svParameters;
+
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	// do the thing
 
+	getQueryGetVariables(String(req.query()), svParameters);
+	for( std::vector<String> &svParamEntry : svParameters ) {
+		if(svParamEntry.at(0).equals("id")) {
+			switchId = svParamEntry.at(1).toInt();
+		}
+	}
+
+	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	switch(switchId) {
+		case 0:
+			AlpacaResp["Value"] = 0.0f;
+			break;
+		case 1:
+			AlpacaResp["Value"] = 0.0f;
+			break;
+		case 2:
+			AlpacaResp["Value"] = 0.0f;
+			break;
+		case 3:
+			AlpacaResp["Value"] = 0.0f;
+			break;
+		case 4:
+			AlpacaResp["Value"] = 0.0f;
+			break;
+		default:
+			AlpacaError_x401(AlpacaResp, res);
+			return;
+	}
 
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
@@ -2427,80 +2646,53 @@ void maxSwitchValue(Request &req, Response &res)
 	bool bParamsOk = false;
 	podStates nState;
 	String sResp;
+	int switchId = -1;
+	std::vector<std::vector<String>> svParameters;
+
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	// do the thing
 
+	getQueryGetVariables(String(req.query()), svParameters);
+	for( std::vector<String> &svParamEntry : svParameters ) {
+		if(svParamEntry.at(0).equals("id")) {
+			switchId = svParamEntry.at(1).toInt();
+		}
+	}
+
+	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	switch(switchId) {
+		case 0:
+			AlpacaResp["Value"] = 1.0f;
+			break;
+		case 1:
+			AlpacaResp["Value"] = 1.0f;
+			break;
+		case 2:
+			AlpacaResp["Value"] = 100.0f;
+			break;
+		case 3:
+			AlpacaResp["Value"] = 100.0f;
+			break;
+		case 4:
+			AlpacaResp["Value"] = 1.0f;
+			break;
+		default:
+			AlpacaError_x401(AlpacaResp, res);
+			return;
+	}
 
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
 }
 
-void switchSetasync(Request &req, Response &res)
-{
-	JsonDocument AlpacaResp;
-	JsonDocument FormData;
-	bool bParamsOk = false;
-	String sResp;
-	int switchID;
-
-	DBPrintln("[ **********" + String(__func__) + "********** ]");
-	bParamsOk = getIDs(req, AlpacaResp, FormData);
-	res.set("Content-Type", "application/json");
-	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
-		return;
-	}
-
-	if(!FormData["azimuth"].is<double>()) {
-		AlpacaError_x401(AlpacaResp, res);
-		return;
-	}
-
-	switchID = FormData["id"];
-	// do other things
-
-	AlpacaResp["ErrorNumber"] = 0;
-	AlpacaResp["ErrorMessage"] = "";
-	serializeJson(AlpacaResp, sResp);
-	DBPrintln("sResp : " + sResp);
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void switchSetAsyncValue(Request &req, Response &res)
-{
-	JsonDocument AlpacaResp;
-	JsonDocument FormData;
-	bool bParamsOk = false;
-	String sResp;
-	int switchID;
-
-	DBPrintln("[ **********" + String(__func__) + "********** ]");
-	bParamsOk = getIDs(req, AlpacaResp, FormData);
-	res.set("Content-Type", "application/json");
-	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
-		return;
-	}
-
-	if(!FormData["azimuth"].is<double>()) {
-		AlpacaError_x401(AlpacaResp, res);
-		return;
-	}
-
-	switchID = FormData["id"];
-	// do other things
-
-	AlpacaResp["ErrorNumber"] = 0;
-	AlpacaResp["ErrorMessage"] = "";
-	serializeJson(AlpacaResp, sResp);
-	DBPrintln("sResp : " + sResp);
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
 
 void setSwitch(Request &req, Response &res)
 {
@@ -2508,7 +2700,8 @@ void setSwitch(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	int switchID;
+	int switchId = -1;
+	bool bState = false;
 
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
@@ -2518,13 +2711,47 @@ void setSwitch(Request &req, Response &res)
 		return;
 	}
 
-	if(!FormData["azimuth"].is<double>()) {
+	if(!FormData["id"].is<int>()) {
 		AlpacaError_x401(AlpacaResp, res);
 		return;
 	}
 
-	switchID = FormData["id"];
-	// do other things
+	switchId = FormData["id"];
+	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+	if(!FormData["State"].is<bool>()) {
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	bState = FormData["State"];
+	switch(switchId) {
+		case 0:
+			if(podPowerController)
+				podPowerController->setPortState(DC1, bState);
+			break;
+		case 1:
+			if(podPowerController)
+				podPowerController->setPortState(DC2, bState);
+			break;
+		case 2:
+			if(podPowerController)
+				podPowerController->setPwmPortState(PWM1,bState?100:0);
+			break;
+		case 3:
+			if(podPowerController)
+				podPowerController->setPwmPortState(PWM2,bState?100:0);
+			break;
+		case 4:
+			if(podPowerController)
+				podPowerController->setPortState(USB_C, bState);
+			break;
+		default:
+			AlpacaError_x401(AlpacaResp, res);
+			return;
+	}
 
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
@@ -2539,7 +2766,8 @@ void setSwitchName(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	int switchID;
+	int switchId = -1;
+	String sName;
 
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
@@ -2549,13 +2777,46 @@ void setSwitchName(Request &req, Response &res)
 		return;
 	}
 
-	if(!FormData["azimuth"].is<double>()) {
+	if(!FormData["id"].is<int>()) {
 		AlpacaError_x401(AlpacaResp, res);
 		return;
 	}
 
-	switchID = FormData["id"];
-	// do other things
+	switchId = FormData["id"];
+	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+	if(!FormData["Name"].is<String>()) {
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+	sName = String(FormData["Name"]);
+	switch(switchId) {
+		case 0:
+			if(globalPodConfig)
+				globalPodConfig->setAlpacaPortName(DC1, sName);
+			break;
+		case 1:
+			if(globalPodConfig)
+				globalPodConfig->setAlpacaPortName(DC2, sName);
+			break;
+		case 2:
+			if(globalPodConfig)
+				globalPodConfig->setAlpacaPortName(PWM1, sName);
+			break;
+		case 3:
+			if(globalPodConfig)
+				globalPodConfig->setAlpacaPortName(PWM2, sName);
+			break;
+		case 4:
+			if(globalPodConfig)
+				globalPodConfig->setAlpacaPortName(USB_C, sName);
+			break;
+		default:
+			AlpacaError_x401(AlpacaResp, res);
+			return;
+	}
 
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
@@ -2570,7 +2831,8 @@ void setSwitchValue(Request &req, Response &res)
 	JsonDocument FormData;
 	bool bParamsOk = false;
 	String sResp;
-	int switchID;
+	int switchId = -1;
+	int nValue = -1;
 
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
@@ -2580,13 +2842,70 @@ void setSwitchValue(Request &req, Response &res)
 		return;
 	}
 
-	if(!FormData["azimuth"].is<double>()) {
+	if(!FormData["id"].is<int>()) {
 		AlpacaError_x401(AlpacaResp, res);
 		return;
 	}
 
-	switchID = FormData["id"];
-	// do other things
+	switchId = FormData["id"];
+	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	if(!FormData["Value"].is<double>()) {
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	nValue = int(FormData["Value"]);
+
+	switch(switchId) {
+		case 0:
+			if(nValue < 0 || nValue > 1 ) {
+				AlpacaError_x401(AlpacaResp, res);
+				return;
+			}
+			if(podPowerController)
+				podPowerController->setPortState(DC1, int(nValue)==1?true:false);
+			break;
+		case 1:
+			if(nValue < 0 || nValue > 1 ) {
+				AlpacaError_x401(AlpacaResp, res);
+				return;
+			}
+			if(podPowerController)
+				podPowerController->setPortState(DC2, int(nValue)==1?true:false);
+			break;
+		case 2:
+			if(nValue < 0 || nValue > 100 ) {
+				AlpacaError_x401(AlpacaResp, res);
+				return;
+			}
+			if(podPowerController)
+				podPowerController->setPwmPortState(PWM1PwmChannel,nValue);
+			break;
+		case 3:
+			if(nValue < 0 || nValue > 100 ) {
+				AlpacaError_x401(AlpacaResp, res);
+				return;
+			}
+			if(podPowerController)
+				podPowerController->setPwmPortState(PWM2PwmChannel,nValue);
+			break;
+		case 4:
+			if(nValue < 0 || nValue > 1 ) {
+				AlpacaError_x401(AlpacaResp, res);
+				return;
+			}
+			if(podPowerController)
+				podPowerController->setPortState(USB_C, int(nValue)==1?true:false);
+			break;
+		default:
+			AlpacaError_x401(AlpacaResp, res);
+			return;
+			break;
+	}
 
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
@@ -2602,13 +2921,28 @@ void switchStateChangeComplete(Request &req, Response &res)
 	bool bParamsOk = false;
 	podStates nState;
 	String sResp;
+	int switchId = -1;
+	std::vector<std::vector<String>> svParameters;
+
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	// do the thing
 
+	getQueryGetVariables(String(req.query()), svParameters);
+	for( std::vector<String> &svParamEntry : svParameters ) {
+		if(svParamEntry.at(0).equals("id")) {
+			switchId = svParamEntry.at(1).toInt();
+		}
+	}
+
+	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	AlpacaResp["Value"] = true;
 
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
@@ -2622,13 +2956,47 @@ void switchStep(Request &req, Response &res)
 	bool bParamsOk = false;
 	podStates nState;
 	String sResp;
+	int switchId = -1;
+	std::vector<std::vector<String>> svParameters;
+
+
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	AlpacaResp["ErrorNumber"] = 0;
 	AlpacaResp["ErrorMessage"] = "";
-	// do the thing
 
+	getQueryGetVariables(String(req.query()), svParameters);
+	for( std::vector<String> &svParamEntry : svParameters ) {
+		if(svParamEntry.at(0).equals("id")) {
+			switchId = svParamEntry.at(1).toInt();
+		}
+	}
+
+	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+	switch(switchId) {
+		case 0:
+			AlpacaResp["Value"] = 2;
+			break;
+		case 1:
+			AlpacaResp["Value"] = 2;
+			break;
+		case 2:
+			AlpacaResp["Value"] = 100;
+			break;
+		case 3:
+			AlpacaResp["Value"] = 100;
+			break;
+		case 4:
+			AlpacaResp["Value"] = 2;
+			break;
+		default:
+			AlpacaError_x401(AlpacaResp, res);
+			return;
+	}
 
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
@@ -2719,7 +3087,7 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->get("/api/v1/switch/0/driverinfo", &getSwitchDriverInfo);
 	m_AlpacaRestServer->get("/api/v1/switch/0/driverversion", &getDriverVersion);
 	m_AlpacaRestServer->get("/api/v1/switch/0/interfaceversion", &getSwitchInterfaceVersion);
-	m_AlpacaRestServer->get("/api/v1/switch/0/name", &getSwitchDevicehName);
+	m_AlpacaRestServer->get("/api/v1/switch/0/name", &getSwitchDeviceName);
 	m_AlpacaRestServer->get("/api/v1/switch/0/supportedactions", &getSupportedActions);
 	//
 	m_AlpacaRestServer->get("/api/v1/switch/0/maxswitch", &maxSwitch);
@@ -2732,8 +3100,8 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->get("/api/v1/switch/0/minswitchvalue", &minSwitchValue);
 	m_AlpacaRestServer->get("/api/v1/switch/0/maxswitchvalue", &maxSwitchValue);
 
-	m_AlpacaRestServer->put("/api/v1/switch/0/setasync", &switchSetasync);
-	m_AlpacaRestServer->put("/api/v1/switch/0/setasyncvalue", &switchSetAsyncValue);
+	m_AlpacaRestServer->put("/api/v1/switch/0/setasync", &setSwitch);
+	m_AlpacaRestServer->put("/api/v1/switch/0/setasyncvalue", &setSwitchValue);
 	m_AlpacaRestServer->put("/api/v1/switch/0/setswitch", &setSwitch);
 	m_AlpacaRestServer->put("/api/v1/switch/0/setswitchname", &setSwitchName);
 	m_AlpacaRestServer->put("/api/v1/switch/0/setswitchvalue", &setSwitchValue);
@@ -2745,7 +3113,7 @@ void AlpacaServer::startServer()
 
 	//
 	// adding our own endpoints for the settings and controls
-	// 
+	//
 
 	m_AlpacaRestServer->use("/setup/useDHCP", &useDHCPState);
 	m_AlpacaRestServer->use("/setup/ipAddress", &ipAddressValue);
