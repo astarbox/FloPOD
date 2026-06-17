@@ -2287,7 +2287,7 @@ void maxSwitch(Request &req, Response &res)
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
 }
 
-void switchCanaSync(Request &req, Response &res)
+void switchCanAsync(Request &req, Response &res)
 {
 	JsonDocument AlpacaResp;
 	JsonDocument FormData;
@@ -2548,31 +2548,31 @@ void getSwitchValue(Request &req, Response &res)
 		case 0:
 			if(podPowerController) {
 				podPowerController->getPortState(DC1 , bOn);
-				AlpacaResp["Value"] = bOn;
+				AlpacaResp["Value"] = bOn?1.0:0.0;
 			}
 			break;
 		case 1:
 			if(podPowerController) {
 				podPowerController->getPortState(DC2 , bOn);
-				AlpacaResp["Value"] = bOn;
+				AlpacaResp["Value"] = bOn?1.0:0.0;
 			}
 			break;
 		case 2:
 			if(podPowerController) {
 				podPowerController->getPwmPortState(PWM1 , nPercent);
-				AlpacaResp["Value"] = nPercent;
+				AlpacaResp["Value"] = double(nPercent);
 			}
 			break;
 		case 3:
 			if(podPowerController) {
 				podPowerController->getPwmPortState(PWM2 , nPercent);
-				AlpacaResp["Value"] = nPercent;
+				AlpacaResp["Value"] = double(nPercent);
 			}
 			break;
 		case 4:
 			if(podPowerController) {
 				podPowerController->getPortState(USB_C , bOn);
-				AlpacaResp["Value"] = bOn;
+				AlpacaResp["Value"] = bOn?1.0:0.0;
 			}
 			break;
 		default:
@@ -2615,19 +2615,19 @@ void minSwitchValue(Request &req, Response &res)
 
 	switch(switchId) {
 		case 0:
-			AlpacaResp["Value"] = 0.0f;
+			AlpacaResp["Value"] = 0.0;
 			break;
 		case 1:
-			AlpacaResp["Value"] = 0.0f;
+			AlpacaResp["Value"] = 0.0;
 			break;
 		case 2:
-			AlpacaResp["Value"] = 0.0f;
+			AlpacaResp["Value"] = 0.0;
 			break;
 		case 3:
-			AlpacaResp["Value"] = 0.0f;
+			AlpacaResp["Value"] = 0.0;
 			break;
 		case 4:
-			AlpacaResp["Value"] = 0.0f;
+			AlpacaResp["Value"] = 0.0;
 			break;
 		default:
 			AlpacaError_x401(AlpacaResp, res);
@@ -2669,19 +2669,19 @@ void maxSwitchValue(Request &req, Response &res)
 
 	switch(switchId) {
 		case 0:
-			AlpacaResp["Value"] = 1.0f;
+			AlpacaResp["Value"] = 1.0;
 			break;
 		case 1:
-			AlpacaResp["Value"] = 1.0f;
+			AlpacaResp["Value"] = 1.0;
 			break;
 		case 2:
-			AlpacaResp["Value"] = 100.0f;
+			AlpacaResp["Value"] = 100.0;
 			break;
 		case 3:
-			AlpacaResp["Value"] = 100.0f;
+			AlpacaResp["Value"] = 100.0;
 			break;
 		case 4:
-			AlpacaResp["Value"] = 1.0f;
+			AlpacaResp["Value"] = 1.0;
 			break;
 		default:
 			AlpacaError_x401(AlpacaResp, res);
@@ -3091,7 +3091,7 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->get("/api/v1/switch/0/supportedactions", &getSupportedActions);
 	//
 	m_AlpacaRestServer->get("/api/v1/switch/0/maxswitch", &maxSwitch);
-	m_AlpacaRestServer->get("/api/v1/switch/0/canasync", &switchCanaSync);
+	m_AlpacaRestServer->get("/api/v1/switch/0/canasync", &switchCanAsync);
 	m_AlpacaRestServer->get("/api/v1/switch/0/canwrite", &switchCanWrite);
 	m_AlpacaRestServer->get("/api/v1/switch/0/getswitch", &getSwitch);
 	m_AlpacaRestServer->get("/api/v1/switch/0/getswitchdescription", &getSwitchDescription);
