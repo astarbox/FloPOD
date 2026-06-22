@@ -103,7 +103,6 @@ void setup()
 	xTaskCreatePinnedToCore(MotorTask, "MotorTask", 10000, NULL, 8, NULL,  0); // priority 8 (medium) on Core 0
 	xTaskCreatePinnedToCore(PowerTask, "PowerTask", 10000, NULL, 16, NULL,  0); // priority 16 (High) on Core 0
 	xTaskCreatePinnedToCore(EnvTask, "EnvTask", 10000, NULL, 12, NULL,  0); // priority 12 (between medium and high) on Core 0
-	xTaskCreatePinnedToCore(RemoteBoardsTask, "RemoteBoardsTask", 10000, NULL, 12, NULL,  1); // priority 12 (between medium and high) on Core 1 as this is mostlky I2C communucations
 
 	// MAG_TRIG interrupt
 	attachInterrupt(MAG_TRIG, magnetHandler, FALLING);
@@ -200,6 +199,12 @@ void PowerTask(void *)
 				// Also turn off motors
 				podController->Stop();
 			}
+			if(podPowerController->checkAlert(INA260_VMOT)) {
+				podController->Stop();
+			}
+			if(podPowerController->checkAlert(INA260_VMOT2)) {
+				podController->Stop();
+			}
 		}
 		// FreeRTOS task management
 		vTaskDelay(xDelay);
@@ -230,24 +235,6 @@ void EnvTask(void *)
 		vTaskDelay(xDelay);
 		taskYIELD();
 	}
-}
-
-void RemoteBoardsTask(void *)
-{
-		const TickType_t xDelay = 10/ portTICK_PERIOD_MS; // 10ms task block to give time back
-
-		for(;;) {
-			// check if any of the motor INA260 triggered an alert
-			if(podPowerController->checkAlert(INA260_VMOT)) {
-				podController->Stop();
-			}
-			if(podPowerController->checkAlert(INA260_VMOT2)) {
-				podController->Stop();
-			}
-		// FreeRTOS task management
-		vTaskDelay(xDelay);
-		taskYIELD();
-		}
 }
 
 void chackAllDc()

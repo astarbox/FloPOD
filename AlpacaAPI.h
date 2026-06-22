@@ -32,7 +32,7 @@ enum AlpacaShutterStates {A_OPEN=0, A_CLOSED, A_OPENING, A_CLOSING, A_ERROR};
 enum AlpacaSwicthId {A_DC1=0, A_DC2, A_PWM1, A_PWM2, A_USB_C};
 
 uint32_t nTransactionID;
-UUID PodUuid, PodPowerUuid, PodSafetyMonitorUUID;
+UUID PodUuid, PodPowerUuid, PodSafetyMonitorUuid;
 String sAlpacaDiscovery = "alpacadiscovery1";
 volatile bool bAlpacaPodConnected = false;
 volatile bool bAlpacaSwitchConnected = false;
@@ -370,7 +370,7 @@ void getConfiguredDevice(Request &req, Response &res)
 	AlpacaResp["Value"][2] ["DeviceName"]= "Pulsar-Imaging-Pod-Safety-Monitor";
 	AlpacaResp["Value"][2] ["DeviceType"]= "safetymonitor";
 	AlpacaResp["Value"][2] ["DeviceNumber"]= 0;
-	AlpacaResp["Value"][2] ["UniqueID"]= PodSafetyMonitorUUID;
+	AlpacaResp["Value"][2] ["UniqueID"]= PodSafetyMonitorUuid;
 
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
@@ -1400,8 +1400,8 @@ AlpacaServer::AlpacaServer(int port)
 	PodPowerUuid.seed(sSerialNumber[4],sSerialNumber[5]+1);
 	PodPowerUuid.generate();
 
-	PodSafetyMonitorUUID.seed(sSerialNumber[4],sSerialNumber[5]+2);
-	PodSafetyMonitorUUID.generate();
+	PodSafetyMonitorUuid.seed(sSerialNumber[4],sSerialNumber[5]+2);
+	PodSafetyMonitorUuid.generate();
 
 }
 
@@ -3292,7 +3292,9 @@ void AlpacaServer::startServer()
 	mRestServer = new NetworkServer(m_nRestPort);
 	m_AlpacaRestServer = new Application();
 	DBPrintln("m_AlpacaRestServer starting");
-	DBPrintln("m_AlpacaRestServer UUID : " + String(PodUuid.toCharArray()));
+	DBPrintln("m_AlpacaRestServer Pod UUID : " + String(PodUuid.toCharArray()));
+	DBPrintln("m_AlpacaRestServer PodPower UUID : " + String(PodPowerUuid.toCharArray()));
+	DBPrintln("m_AlpacaRestServer PodSafetyMonitor UUID : " + String(PodSafetyMonitorUuid.toCharArray()));
 	// check if we're connected as client, if not, use AP IP
 	mRestServer->begin();
 	DBPrintln("m_AlpacaRestServer mapping endpoints");

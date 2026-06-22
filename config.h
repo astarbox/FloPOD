@@ -82,10 +82,10 @@ String podHostname;
 #define DC2             36
 #define PWM1            37
 #define PWM2            38
-#define MOT_EN          39  // MOT1 , Motor PWM
-#define MOT_PH          40  // MOT2 , Direction
-#define MOT_SLEEP       41  // MOT3
-#define MOT_FAULT       42  // MOT4
+#define MOT_EN          39  // MOT1_1 , Motor PWM
+#define MOT_PH          40  // MOT1_2 , Direction
+#define MOT_SLEEP       41  // MOT1_3
+#define MOT_FAULT       42  // MOT1_4
 
 // PWM port settingz
 #define PWM_FREQ 			5000
