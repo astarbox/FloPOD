@@ -21,7 +21,7 @@
 #define DISCOVERY_ERROR -1
 #define POD_INTERFACE_VERSION 3
 #define SWITCH_INTERFACE_VERSION 3
-
+#define SAFETY_MONITOR_INTERFACE_VERSION 3
 #define UDP_PACKET_MAX_SIZE 16
 
 volatile bool bParked = false;
@@ -32,10 +32,11 @@ enum AlpacaShutterStates {A_OPEN=0, A_CLOSED, A_OPENING, A_CLOSING, A_ERROR};
 enum AlpacaSwicthId {A_DC1=0, A_DC2, A_PWM1, A_PWM2, A_USB_C};
 
 uint32_t nTransactionID;
-UUID PodUuid, PodPowerUuid;
+UUID PodUuid, PodPowerUuid, PodSafetyMonitorUUID;
 String sAlpacaDiscovery = "alpacadiscovery1";
 volatile bool bAlpacaPodConnected = false;
 volatile bool bAlpacaSwitchConnected = false;
+volatile bool bAlpacaSafetyMonitorConnected = false;
 
 class AlpacaDiscoveryServer
 {
@@ -365,6 +366,11 @@ void getConfiguredDevice(Request &req, Response &res)
 	AlpacaResp["Value"][1] ["DeviceType"]= "switch";
 	AlpacaResp["Value"][1] ["DeviceNumber"]= 0;
 	AlpacaResp["Value"][1] ["UniqueID"]= PodPowerUuid;
+
+	AlpacaResp["Value"][2] ["DeviceName"]= "Pulsar-Imaging-Pod-Safety-Monitor";
+	AlpacaResp["Value"][2] ["DeviceType"]= "safetymonitor";
+	AlpacaResp["Value"][2] ["DeviceNumber"]= 0;
+	AlpacaResp["Value"][2] ["UniqueID"]= PodSafetyMonitorUUID;
 
 	serializeJson(AlpacaResp, sResp);
 	DBPrintln("sResp : " + sResp);
@@ -1394,7 +1400,8 @@ AlpacaServer::AlpacaServer(int port)
 	PodPowerUuid.seed(sSerialNumber[4],sSerialNumber[5]+1);
 	PodPowerUuid.generate();
 
-
+	PodSafetyMonitorUUID.seed(sSerialNumber[4],sSerialNumber[5]+2);
+	PodSafetyMonitorUUID.generate();
 
 }
 
@@ -3003,6 +3010,282 @@ void switchStep(Request &req, Response &res)
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
 }
 
+// SafetyMonitor Alpaca interface
+void getSafetyMonitorConnected(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	AlpacaResp["Value"] = bAlpacaSafetyMonitorConnected;
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void setSafetyMonitorConnected(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	String sClientId;
+	String sClientTransactionId;
+	String sParameter;
+	String sTmp;
+
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	if(!bParamsOk){
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	if(!FormData["connected"].is<bool>()) {
+		AlpacaError_x401(AlpacaResp, res, "Invalid parameters, missing 'Connected'");
+		return;
+	}
+
+	bAlpacaSafetyMonitorConnected = FormData["connected"];
+	DBPrintln("bAlpacaSafetyMonitorConnected : " + (bAlpacaSafetyMonitorConnected?String("true"):String("false")));
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void SafetyMonitorConnect(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	String sClientId;
+	String sClientTransactionId;
+	String sParameter;
+	String sTmp;
+
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+
+	if(!bParamsOk){
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	bAlpacaSafetyMonitorConnected = true;
+	DBPrintln("bAlpacaSafetyMonitorConnected : " + (bAlpacaSafetyMonitorConnected?String("true"):String("false")));
+
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void SafetyMonitorConnecting(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	String sClientId;
+	String sClientTransactionId;
+	String sParameter;
+	String sTmp;
+
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+
+	if(!bParamsOk){
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	AlpacaResp["Value"] = false; // it's already connected
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void getSafetyMonitorDeviceState(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument jsTmp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	float Alt, Az;
+	float dParkPos, dCurrentAz;
+	bool bParked = false;
+	int nState;
+	int nPercent;
+	bool bPortOn;
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+
+	// add states to response
+	if(podRainSensor) {
+		jsTmp["Name"] = "IsSafe";
+		jsTmp["Value"] = podRainSensor->isRaining()?false:true;
+		AlpacaResp["Value"].add(jsTmp);
+	}
+	else {
+		jsTmp["Name"] = "IsSafe";
+		jsTmp["Value"] = true;
+		AlpacaResp["Value"].add(jsTmp);
+	}
+
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void SafetyMonitorDisconnect(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	String sClientId;
+	String sClientTransactionId;
+	String sParameter;
+	String sTmp;
+
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+
+	if(!bParamsOk){
+		AlpacaError_x401(AlpacaResp, res);
+		return;
+	}
+
+	bAlpacaSafetyMonitorConnected = false;
+	DBPrintln("bAlpacaSafetyMonitorConnected : " + (bAlpacaSafetyMonitorConnected?String("true"):String("false")));
+
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void getSafetyMonitorDeviceDescription(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	AlpacaResp["Value"]= "Pulsar Imaging POD rain sensor";
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void getSafetyMonitorDriverInfo(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	AlpacaResp["Value"]= "Pulsar Pod rain sensor";
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void getSafetyMonitorInterfaceVersion(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	AlpacaResp["Value"]= SAFETY_MONITOR_INTERFACE_VERSION;
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void getSafetyMonitorDeviceName(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	AlpacaResp["Value"]= "Pulsar Imaging POD safety monitor";
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void getIsSafe(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	res.set("Content-Type", "application/json");
+	AlpacaResp["ErrorNumber"] = 0;
+	AlpacaResp["ErrorMessage"] = "";
+	if(podRainSensor) {
+		AlpacaResp["Value"] = podRainSensor->isRaining()?false:true;;
+	}
+	else {
+		AlpacaResp["Value"] = true;;
+	}
+
+	serializeJson(AlpacaResp, sResp);
+	DBPrintln("sResp : " + sResp);
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
 
 void AlpacaServer::startServer()
 {
@@ -3069,7 +3352,8 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->put("/api/v1/dome/0/slewtoazimuth", &doGoTo);
 	m_AlpacaRestServer->put("/api/v1/dome/0/synctoazimuth", &doSyncAzimuth);
 
-	// switch device 0
+	//
+	// switch device
 	// Common method
 	m_AlpacaRestServer->put("/api/v1/switch/0/action", &doAction);
 	m_AlpacaRestServer->put("/api/v1/switch/0/commandblind", &doCommandBlind);
@@ -3109,7 +3393,30 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->get("/api/v1/switch/0/statechangecomplete", &switchStateChangeComplete);
 	m_AlpacaRestServer->get("/api/v1/switch/0/switchstep", &switchStep);
 
-
+	//
+	// Safety monitor device
+	//
+	// Common method
+	m_AlpacaRestServer->put("/api/v1/safetymonitor/0/action", &doAction);
+	m_AlpacaRestServer->put("/api/v1/safetymonitor/0/commandblind", &doCommandBlind);
+	m_AlpacaRestServer->put("/api/v1/safetymonitor/0/commandbool", &doCommandBool);
+	m_AlpacaRestServer->put("/api/v1/safetymonitor/0/commandstring", &doCommandString);
+	m_AlpacaRestServer->get("/api/v1/safetymonitor/0/connected", &getSafetyMonitorConnected);
+	m_AlpacaRestServer->put("/api/v1/safetymonitor/0/connected", &setSafetyMonitorConnected);
+	// platform 7
+	m_AlpacaRestServer->put("/api/v1/safetymonitor/0/connect", &SafetyMonitorConnect);
+	m_AlpacaRestServer->get("/api/v1/safetymonitor/0/connecting", &SafetyMonitorConnecting);
+	m_AlpacaRestServer->put("/api/v1/safetymonitor/0/disconnect", &SafetyMonitorDisconnect);
+	m_AlpacaRestServer->get("/api/v1/safetymonitor/0/devicestate", &getSafetyMonitorDeviceState);
+	//
+	m_AlpacaRestServer->get("/api/v1/safetymonitor/0/description", &getSafetyMonitorDeviceDescription);
+	m_AlpacaRestServer->get("/api/v1/safetymonitor/0/driverinfo", &getSafetyMonitorDriverInfo);
+	m_AlpacaRestServer->get("/api/v1/safetymonitor/0/driverversion", &getDriverVersion);
+	m_AlpacaRestServer->get("/api/v1/safetymonitor/0/interfaceversion", &getSafetyMonitorInterfaceVersion);
+	m_AlpacaRestServer->get("/api/v1/safetymonitor/0/name", &getSafetyMonitorDeviceName);
+	m_AlpacaRestServer->get("/api/v1/safetymonitor/0/supportedactions", &getSupportedActions);
+	//
+	m_AlpacaRestServer->get("/api/v1/safetymonitor/0/issafe", &getIsSafe);
 
 	//
 	// adding our own endpoints for the settings and controls
