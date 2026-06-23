@@ -82,10 +82,10 @@ String podHostname;
 #define DC2             36
 #define PWM1            37
 #define PWM2            38
-#define MOT_EN          39  // MOT1_1 , Motor PWM
-#define MOT_PH          40  // MOT1_2 , Direction
-#define MOT_SLEEP       41  // MOT1_3
-#define MOT_FAULT       42  // MOT1_4
+#define MOT1_EN          39  // MOT1_1 , Motor PWM
+#define MOT1_PH          40  // MOT1_2 , Direction
+#define MOT1_SLEEP       41  // MOT1_3
+#define MOT1_FAULT       42  // MOT1_4
 
 // PWM port settingz
 #define PWM_FREQ 			5000
@@ -93,7 +93,7 @@ String podHostname;
 
 const int MAX_DUTY_CYCLE = (int)(pow(2, LEDC_TIMER_12_BIT) - 1);
 
-const int MotorPwmChannel = 0;
+const int Motor1PwmChannel = 0;
 const int PWM1PwmChannel = 1;
 const int PWM2PwmChannel = 2;
 
@@ -212,7 +212,7 @@ PodConfig::PodConfig()
 	pinMode(MAG_TRIG,           INPUT_PULLUP);
 	pinMode(OC_ALARM,           INPUT_PULLUP);
 	pinMode(MAIN_OC_ALARM,      INPUT_PULLUP);
-	pinMode(MOT_FAULT,          INPUT_PULLUP);
+	pinMode(MOT1_FAULT,          INPUT_PULLUP);
 
 	// output
 	pinMode(HEATER,     OUTPUT);
@@ -225,9 +225,9 @@ PodConfig::PodConfig()
 	pinMode(LED2,       OUTPUT);
 	pinMode(PWM1,       OUTPUT);
 	pinMode(PWM2,       OUTPUT);
-	pinMode(MOT_EN,     OUTPUT); // MOT1 , Motor PWM
-	pinMode(MOT_PH,     OUTPUT); // MOT2 , Direction
-	pinMode(MOT_SLEEP,  OUTPUT); // MOT3
+	pinMode(MOT1_EN,     OUTPUT); // MOT1 , Motor PWM
+	pinMode(MOT1_PH,     OUTPUT); // MOT2 , Direction
+	pinMode(MOT1_SLEEP,  OUTPUT); // MOT3
 
 }
 
@@ -264,7 +264,7 @@ void PodConfig::LoadApConfig(WIFIConfig &wifiApConfig)
 	m_preferences.begin("PodConfig", false);
 	wifiApConfig.sSSID =  m_preferences.getString("APSSID","PulsarPod");
 	wifiApConfig.sPassword =  m_preferences.getString("APPassword","PulsarPod");
-	wifiApConfig.nChannel = m_preferences.getInt("APChannel", 1);
+	wifiApConfig.nChannel = m_preferences.getInt("APChannel", 6);
 	m_preferences.end();
 }
 
