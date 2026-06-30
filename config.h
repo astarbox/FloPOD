@@ -24,6 +24,9 @@
 #define USE_HDC1080
 // #define USE_SHT30
 
+// #define USE_FDC1004
+#define USE_FDC2112
+
 #ifdef DEBUG
 #pragma message "Debug messages enabled"
 #define DebugPort Serial
@@ -88,7 +91,7 @@ String podHostname;
 #define MOT1_FAULT       42  // MOT1_4
 
 // PWM port settingz
-#define PWM_FREQ 			5000
+#define PWM_FREQ 			20000
 #define LEDC_TIMER_12_BIT	12
 
 const int MAX_DUTY_CYCLE = (int)(pow(2, LEDC_TIMER_12_BIT) - 1);
@@ -185,6 +188,9 @@ public:
 private:
 	Preferences m_preferences;
 };
+
+PodConfig *globalPodConfig; // init GPIO, provide config management
+
 
 PodConfig::PodConfig()
 {
@@ -428,6 +434,5 @@ void PodConfig::resetAllSettings()
 }
 
 
-PodConfig *globalPodConfig; // init GPIO, provide config management
 
 #endif

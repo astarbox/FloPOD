@@ -3472,5 +3472,5 @@ void AlpacaServer::checkForRequest()
 		m_AlpacaRestServer->process(&client);
 		client.stop();
 		nTransactionID++;
-  }
+	}
 }
