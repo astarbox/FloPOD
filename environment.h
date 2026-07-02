@@ -8,6 +8,8 @@
 #define __ENV_SENSOR__
 #include <Wire.h>
 
+#include "config.h"
+
 #if defined(USE_FDC1004)
 #include <Protocentral_FDC1004.h>
 #elif defined(USE_FDC2112)
@@ -21,7 +23,6 @@ using HDC1080 = GuL::HDC1080;
 #include <SHT31.h>
 #endif 
 
-#include "config.h"
 
 #define IT_S_RAINING 65 // value in pF .. for now.
 

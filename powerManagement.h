@@ -8,9 +8,9 @@
 
 #include <sys/types.h>
 #include <sys/_stdint.h>
-
-#include "INA260.h"
 #include "config.h"
+
+#include <INA260.h>
 
 // define all INA260 addresses
 /*
