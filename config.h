@@ -69,7 +69,6 @@ byte MAC_Address[6];
 String podHostname;
 
 // input
-#define MOTOR_CURRENT   1 // Analog input
 #define MAG_TRIG        2
 #define OC_ALARM        3
 #define MAIN_OC_ALARM   20
@@ -85,10 +84,17 @@ String podHostname;
 #define DC2             36
 #define PWM1            37
 #define PWM2            38
+
+// Motors
 #define MOT1_EN          39  // MOT1_1 , Motor PWM
 #define MOT1_PH          40  // MOT1_2 , Direction
-#define MOT1_SLEEP       41  // MOT1_3
-#define MOT1_FAULT       42  // MOT1_4
+#define MOT1_SLEEP       41  // MOT1_3 , sleep
+#define MOT1_FAULT       42  // MOT1_4 , fault, set to input
+
+#define MOT2_EN          4  // MOT2_1 , Motor PWM
+#define MOT2_PH          5  // MOT2_2 , Direction
+#define MOT2_SLEEP       6  // MOT2_3 , sleep
+#define MOT2_FAULT       7  // MOT2_4 , fault, set to input
 
 // PWM port settingz
 #define PWM_FREQ 			20000
@@ -97,8 +103,9 @@ String podHostname;
 const int MAX_DUTY_CYCLE = (int)(pow(2, LEDC_TIMER_12_BIT) - 1);
 
 const int Motor1PwmChannel = 0;
-const int PWM1PwmChannel = 1;
-const int PWM2PwmChannel = 2;
+const int Motor2PwmChannel = 1;
+const int PWM1PwmChannel = 2;
+const int PWM2PwmChannel = 3;
 
 
 // config for station mode
@@ -219,6 +226,7 @@ PodConfig::PodConfig()
 	pinMode(OC_ALARM,           INPUT_PULLUP);
 	pinMode(MAIN_OC_ALARM,      INPUT_PULLUP);
 	pinMode(MOT1_FAULT,          INPUT_PULLUP);
+	pinMode(MOT2_FAULT,          INPUT_PULLUP);
 
 	// output
 	pinMode(HEATER,     OUTPUT);
@@ -231,9 +239,12 @@ PodConfig::PodConfig()
 	pinMode(LED2,       OUTPUT);
 	pinMode(PWM1,       OUTPUT);
 	pinMode(PWM2,       OUTPUT);
-	pinMode(MOT1_EN,     OUTPUT); // MOT1 , Motor PWM
-	pinMode(MOT1_PH,     OUTPUT); // MOT2 , Direction
-	pinMode(MOT1_SLEEP,  OUTPUT); // MOT3
+	pinMode(MOT1_EN,     OUTPUT); // MOT1-1 , Motor PWM
+	pinMode(MOT1_PH,     OUTPUT); // MOT1-2 , Direction
+	pinMode(MOT1_SLEEP,  OUTPUT); // MOT1-3
+	pinMode(MOT2_EN,     OUTPUT); // MOT2-1 , Motor PWM
+	pinMode(MOT2_PH,     OUTPUT); // MOT2-2 , Direction
+	pinMode(MOT2_SLEEP,  OUTPUT); // MOT2-3
 
 }
 

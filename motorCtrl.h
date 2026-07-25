@@ -65,7 +65,9 @@ motorCtrl::motorCtrl()
 
 	// init dir pin and led pwm pin
 	ledcAttachChannel(MOT1_EN, PWM_FREQ, LEDC_TIMER_12_BIT, Motor1PwmChannel);
+	ledcAttachChannel(MOT2_EN, PWM_FREQ, LEDC_TIMER_12_BIT, Motor2PwmChannel);
 	ledcWriteChannel(Motor1PwmChannel, 0); // make sure we're not moving.
+	ledcWriteChannel(Motor2PwmChannel, 0); // make sure we're not moving.
 	m_nMotorState = M_STOPPED;
 	if(globalPodConfig) {
 		globalPodConfig->LoadEncoderConfig(m_EncoderConfig);
@@ -156,12 +158,17 @@ void motorCtrl::Close()
 void motorCtrl::Stop()
 {
 	ledcWriteChannel(Motor1PwmChannel, 0); // make sure we're not moving.
+	ledcWriteChannel(Motor2PwmChannel, 0); // make sure we're not moving.
 	m_nMotorState = M_STOPPED;
 }
 
 void motorCtrl::Run()
 {
 	uint32_t newPWMDuty = 0;
+
+	// we might need 2 PIDs as we have 2 encoder moving
+	// in opposite direction that might need different update
+	// if the encoder show one moving slower that the other
 
 	if(m_nMotorState == M_STOPPED)
 		return;
@@ -206,6 +213,7 @@ void motorCtrl::Run()
 			digitalWrite(MOT1_PH, FORWARD);
 		}
 		ledcWriteChannel(Motor1PwmChannel, newPWMDuty);
+		ledcWriteChannel(Motor2PwmChannel, newPWMDuty);
 	}
 }
 
@@ -223,6 +231,7 @@ void motorCtrl::getShutterState(PodShutterState &nPsState)
 void motorCtrl::OverCurrentStop()
 {
 		ledcWriteChannel(Motor1PwmChannel, 0); // Motor is stalling, stop everyting
+		ledcWriteChannel(Motor2PwmChannel, 0); // Motor is stalling, stop everyting
 		m_nMotorState = M_STOPPED;
 }
 
