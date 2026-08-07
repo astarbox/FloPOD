@@ -30,6 +30,7 @@ WIFIConfig	wifiClientConfig;
 IPConfig	wifiClientIpConfig;
 IPConfig	ethernetClientIpConfig;
 PowerConfig powerConfig;
+Configuration podConfiguration;
 
 // include Alpaca here so it gets the definition above.
 #include "AlpacaAPI.h"
@@ -70,8 +71,6 @@ esp_task_wdt_config_t twdt_config = {
 void setup()
 {
 	bool bEthernetOk = false;
-	String sNumber;
-
 	// configure all pins
 	globalPodConfig = new PodConfig();
 	esp_task_wdt_deinit();
@@ -79,8 +78,8 @@ void setup()
 	esp_task_wdt_add(NULL);
 	disableCore0WDT();
 	disableCore1WDT();
-	globalPodConfig->getSerialNumber(sNumber);
-	podHostname = "PulsarPod-"+sNumber;
+	globalPodConfig->LoadPodConfig(podConfiguration);
+	podHostname = "PulsarPod-" + String(podConfiguration.serialNum, HEX) ;
 
 	// start the network stack so all server sees all interfaces.
 	Network.begin();

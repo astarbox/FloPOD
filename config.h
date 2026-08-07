@@ -128,6 +128,7 @@ typedef struct PodConfiguration {
 	float			openPos;
 	float			closedPos;
 	byte			serialNum[6];
+	int				deviceType;
 } Configuration;
 
 //power port config
@@ -187,6 +188,7 @@ public:
 
 	void setWifiDefault();
 	void getSerialNumber(String &serNum);
+	void getSerialNumberRaw(byte *serNum);
 
 	void setAlpacaPortName(int nPort, String sName);
 	void getAlpacaPortName(int nPort, String &sName);
@@ -221,7 +223,6 @@ PodConfig::PodConfig()
 	ledcSetClockSource(LEDC_AUTO_CLK);
 
 	// configure input pins
-	pinMode(MOTOR_CURRENT,      INPUT_PULLUP);
 	pinMode(MAG_TRIG,           INPUT_PULLUP);
 	pinMode(OC_ALARM,           INPUT_PULLUP);
 	pinMode(MAIN_OC_ALARM,      INPUT_PULLUP);
@@ -313,12 +314,20 @@ void PodConfig::saveStaConfig(WIFIConfig wifiApConfig)
 void PodConfig::LoadPodConfig(Configuration &podConfig)
 {
 	m_preferences.begin("PodConfig", false);
+	podConfig.openPos = m_preferences.getFloat("openPos", 0);
+	podConfig.closedPos = m_preferences.getFloat("closedPos", 90);
+	podConfig.deviceType = m_preferences.getInt("deviceType", 1);
+	getSerialNumberRaw(podConfig.serialNum);
 	m_preferences.end();
+
 }
 
 void PodConfig::savePodConfig(Configuration podConfig)
 {
 	m_preferences.begin("PodConfig", false);
+	m_preferences.putFloat("openPos", podConfig.openPos);
+	m_preferences.putFloat("closedPos", podConfig.closedPos);
+	m_preferences.putInt("deviceType", podConfig.deviceType);
 	m_preferences.end();
 }
 
@@ -364,15 +373,21 @@ void PodConfig::getSerialNumber(String &serNum)
 {
 	uint64_t nFuseMac = ESP.getEfuseMac();
 	byte nSerNum[7];
+	getSerialNumberRaw(nSerNum);
+	nSerNum[6] = 0x00;
+	serNum = String(nSerNum, HEX);
+	DBPrintln("Serial : " + String(nSerNum, HEX));
+}
+
+void PodConfig::getSerialNumberRaw(byte *nSerNum)
+{
+	uint64_t nFuseMac = ESP.getEfuseMac();
 	nSerNum[0] = (byte)(nFuseMac>>48);
 	nSerNum[1] = (byte)(nFuseMac>>32);
 	nSerNum[2] = (byte)(nFuseMac>>24);
 	nSerNum[3] = (byte)(nFuseMac>>16);
 	nSerNum[4] = (byte)(nFuseMac>>8);
 	nSerNum[5] = (byte)(nFuseMac);
-	nSerNum[7] = 0x00;
-	serNum = String(nSerNum, HEX);
-	DBPrintln("Serial : " + String(nSerNum, HEX));
 }
 
 void PodConfig::setAlpacaPortName(int nPort, String sName)
@@ -436,10 +451,19 @@ void PodConfig::getAlpacaPortName(int nPort, String &sName)
 
 void PodConfig::resetAllSettings()
 {
+	// save device type
+	int nCurrentDeviceType;
+	
+	m_preferences.begin("PodConfig", false);
+	nCurrentDeviceType = m_preferences.getInt("deviceType", 1);
+	m_preferences.end();
+
 	nvs_flash_erase();
 	nvs_flash_init();
 	m_preferences.begin("PodConfig", false);
 	m_preferences.putBool("nvsInit", true);
+	// set device type back
+	m_preferences.putInt("deviceType", nCurrentDeviceType);
 	m_preferences.end();
 	ESP.restart();
 }
