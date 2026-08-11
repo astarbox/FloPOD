@@ -100,6 +100,13 @@ String podHostname;
 #define PWM_FREQ 			20000
 #define LEDC_TIMER_12_BIT	12
 
+// over current alarm default threshold
+#define DEFAULT_MAIN_OC	10.0
+#define DEFAULT_DC_OC	 3.5
+#define DEFAULT_PWM_OC	 3.5
+#define DEFAULT_USBC_OC	 3.5
+
+
 const int MAX_DUTY_CYCLE = (int)(pow(2, LEDC_TIMER_12_BIT) - 1);
 
 const int Motor1PwmChannel = 0;
@@ -128,7 +135,7 @@ typedef struct PodConfiguration {
 	float			openPos;
 	float			closedPos;
 	byte			serialNum[6];
-	int				deviceType;
+	int				podType;
 } Configuration;
 
 //power port config
@@ -154,6 +161,7 @@ typedef struct ENCODER_CONFIG {
 } EncoderConfig;
 
 enum podStates { OPEN, CLOSED, IDLE, OPENING, CLOSING, FINISHING_OPENING, FINISHING_CLOSING, CALIBRATION_STEP_RESET, CALIBRATION_STEP_OPENING, CALIBRATION_STEP_OPEN, CALIBRATION_MEASURE, POD_ERROR};
+enum podType {POD_60=0, POD_100, POD_BIG, POD_NEXT_BIG};
 
 String IpAddress2String(const IPAddress& ipAddress)
 {
@@ -303,11 +311,11 @@ void PodConfig::LoadStaConfig(WIFIConfig &wifiStaConfig)
 	m_preferences.end();
 }
 
-void PodConfig::saveStaConfig(WIFIConfig wifiApConfig)
+void PodConfig::saveStaConfig(WIFIConfig wifiStaConfig)
 {
 	m_preferences.begin("PodConfig", false);
-	m_preferences.putString("StaSSID", wifiApConfig.sSSID);
-	m_preferences.putString("StaPassword",wifiApConfig.sPassword);
+	m_preferences.putString("StaSSID", wifiStaConfig.sSSID);
+	m_preferences.putString("StaPassword",wifiStaConfig.sPassword);
 	m_preferences.end();
 }
 
@@ -316,7 +324,7 @@ void PodConfig::LoadPodConfig(Configuration &podConfig)
 	m_preferences.begin("PodConfig", false);
 	podConfig.openPos = m_preferences.getFloat("openPos", 0);
 	podConfig.closedPos = m_preferences.getFloat("closedPos", 90);
-	podConfig.deviceType = m_preferences.getInt("deviceType", 1);
+	podConfig.podType = m_preferences.getInt("podType", POD_60);
 	getSerialNumberRaw(podConfig.serialNum);
 	m_preferences.end();
 
@@ -327,19 +335,42 @@ void PodConfig::savePodConfig(Configuration podConfig)
 	m_preferences.begin("PodConfig", false);
 	m_preferences.putFloat("openPos", podConfig.openPos);
 	m_preferences.putFloat("closedPos", podConfig.closedPos);
-	m_preferences.putInt("deviceType", podConfig.deviceType);
+	m_preferences.putInt("podType", podConfig.podType);
 	m_preferences.end();
 }
+
 
 void PodConfig::LoadPowerConfig(PowerConfig &powerConfig)
 {
 	m_preferences.begin("PodConfig", false);
+	powerConfig.bDc1On = m_preferences.getBool("DC1_State", false);
+	powerConfig.bDc2On = m_preferences.getBool("DC1_State", false);
+	powerConfig.bUsbcOn = m_preferences.getBool("USBC_State", false);
+	powerConfig.nPwm1Percent = m_preferences.getInt("Pwm1Percent", 0);
+	powerConfig.nPwm2Percent = m_preferences.getInt("Pwm2Percent", 0);
+	powerConfig.fMain_OC = m_preferences.getFloat("Main_OC", DEFAULT_MAIN_OC);
+	powerConfig.fDc1_OC = m_preferences.getFloat("Dc1_OC", DEFAULT_DC_OC);
+	powerConfig.fDc2_OC = m_preferences.getFloat("Dc2_OC", DEFAULT_DC_OC);
+	powerConfig.fPwm1_OC = m_preferences.getFloat("Pwm1_OC", DEFAULT_PWM_OC);
+	powerConfig.fPwm2_OC = m_preferences.getFloat("Pwm2_OC", DEFAULT_PWM_OC);
+	powerConfig.fUsbc_OC = m_preferences.getFloat("Usbc_OC", DEFAULT_USBC_OC);
 	m_preferences.end();
 }
 
 void PodConfig::savePowerConfig(PowerConfig powerConfig)
 {
 	m_preferences.begin("PodConfig", false);
+	m_preferences.putBool("DC1_State", powerConfig.bDc1On);
+	m_preferences.putBool("DC1_State", powerConfig.bDc2On);
+	m_preferences.putBool("USBC_State", powerConfig.bUsbcOn);
+	m_preferences.putInt("Pwm1Percent", powerConfig.nPwm1Percent);
+	m_preferences.putInt("Pwm2Percent", powerConfig.nPwm2Percent);
+	m_preferences.putFloat("Main_OC", powerConfig.fMain_OC);
+	m_preferences.putFloat("Dc1_OC", powerConfig.fDc1_OC);
+	m_preferences.putFloat("Dc2_OC", powerConfig.fDc2_OC);
+	m_preferences.putFloat("Pwm1_OC", powerConfig.fPwm1_OC);
+	m_preferences.putFloat("Pwm2_OC", powerConfig.fPwm2_OC);
+	m_preferences.putFloat("Usbc_OC", powerConfig.fUsbc_OC);
 	m_preferences.end();
 }
 
@@ -366,6 +397,13 @@ void PodConfig::saveEncoderConfig(EncoderConfig encoderConfig)
 void PodConfig::setWifiDefault()
 {
 	m_preferences.begin("PodConfig", false);
+	// AP default
+	m_preferences.putString("APSSID", "PulsarPod");
+	m_preferences.putString("APPassword","PulsarPod");
+	m_preferences.putInt("APChannel",6);
+	// No STA SSID/password
+	m_preferences.remove("StaSSID");
+	m_preferences.remove("StaPassword");
 	m_preferences.end();
 }
 
@@ -452,10 +490,10 @@ void PodConfig::getAlpacaPortName(int nPort, String &sName)
 void PodConfig::resetAllSettings()
 {
 	// save device type
-	int nCurrentDeviceType;
-	
+	int nCurrentPodType;
+
 	m_preferences.begin("PodConfig", false);
-	nCurrentDeviceType = m_preferences.getInt("deviceType", 1);
+	nCurrentPodType = m_preferences.getInt("podType", 1);
 	m_preferences.end();
 
 	nvs_flash_erase();
@@ -463,7 +501,7 @@ void PodConfig::resetAllSettings()
 	m_preferences.begin("PodConfig", false);
 	m_preferences.putBool("nvsInit", true);
 	// set device type back
-	m_preferences.putInt("deviceType", nCurrentDeviceType);
+	m_preferences.putInt("podType", nCurrentPodType);
 	m_preferences.end();
 	ESP.restart();
 }

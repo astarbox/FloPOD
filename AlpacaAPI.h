@@ -1976,6 +1976,40 @@ void podMot2Power(Request &req, Response &res)
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
 }
 
+void podType(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPodType;
+	Configuration podConfig;
+
+	globalPodConfig->LoadPodConfig(podConfig);
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			AlpacaError_x401(controllerResp, res);
+			return;
+		}
+		else {
+			if(FormData["value"].is<int>()) {
+				nPodType = FormData["value"];
+				if(globalPodConfig)
+					podConfig.podType = nPodType;
+					globalPodConfig->savePodConfig(podConfig);
+			}
+		}
+	}
+
+	controllerResp["value"] = podConfig.podType;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
 
 // Switch Alpaca interface
 void getSwitchConnected(Request &req, Response &res)
@@ -3458,6 +3492,8 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->get("/setup/podUsbCPower", &podUsbCPower);
 	m_AlpacaRestServer->get("/setup/podMot1Power", &podMot1Power);
 	m_AlpacaRestServer->get("/setup/podMot2Power", &podMot2Power);
+
+	m_AlpacaRestServer->use("/setup/podType", &podType);
 
 	m_AlpacaRestServer->get("/setup/serialNumber", &getSerialNumber);
 	DBPrintln("m_AlpacaRestServer started");
