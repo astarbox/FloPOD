@@ -45,6 +45,8 @@ volatile bool bMagnetTriggered = false;
 void MotorTask(void *);
 void PowerTask(void *);
 void EnvTask(void *);
+void AlpacaDiscoveryTask(void *);
+void AlpacaTask(void *);
 
 // network config functions
 bool initEthernet();
@@ -87,7 +89,7 @@ void setup()
 	// create new power controller, it will be used by the PodController
 	podPowerController = new powerPorts();
 
-	// create tasks
+	// create tasks fo core 0
 	xTaskCreatePinnedToCore(MotorTask, "MotorTask", 10000, NULL, 8, NULL,  0); // priority 8 (medium) on Core 0
 	xTaskCreatePinnedToCore(PowerTask, "PowerTask", 10000, NULL, 16, NULL,  0); // priority 16 (High) on Core 0
 	xTaskCreatePinnedToCore(EnvTask, "EnvTask", 10000, NULL, 12, NULL,  0); // priority 12 (between medium and high) on Core 0
@@ -104,6 +106,10 @@ void setup()
 	pod_AlpacaServer = new AlpacaServer();
 	pod_AlpacaServer->startServer();
 
+	// creaet Alpaca tasks
+	xTaskCreatePinnedToCore(AlpacaDiscoveryTask, "AlpacaDiscoveryTask", 10000, NULL, 12, NULL,  1); // priority 12 (between medium and high) on Core 1
+	xTaskCreatePinnedToCore(AlpacaTask, "AlpacaTas", 10000, NULL, 12, NULL,  1); // priority 12 (between medium and high) on Core 1
+
 		// Start mDNS
 	MDNS.begin(podHostname.c_str());
 	MDNS.addService("http", "tcp", 80); // web ui and Alpaca
@@ -112,20 +118,38 @@ void setup()
 	OTA_httpServer.begin();
 	MDNS.addService("OTA_update", "tcp", OTA_PORT);
 	MDNS.addServiceTxt("OTA_update", "tcp", "url", "http://" + podHostname + ".local:" + String(OTA_PORT) + "/update");
-
-
 }
 
-// core 1 main loop takes care of Alpaca coms
+// core 1 main loop, wait for firmware upgrade
 void loop()
 {
 	const TickType_t xDelay = 1 / portTICK_PERIOD_MS;
-
-	pod_AlpacaDiscoveryServer->checkForRequest();
-	pod_AlpacaServer->checkForRequest();
 	OTA_httpServer.handleClient();
 	vTaskDelay(xDelay);
 	taskYIELD();
+}
+
+
+void AlpacaDiscoveryTask(void *)
+{
+	const TickType_t xDelay = 50/ portTICK_PERIOD_MS; // 50ms task block to give time back
+	for(;;) {
+		pod_AlpacaDiscoveryServer->checkForRequest();
+		vTaskDelay(xDelay);
+		taskYIELD();
+	}
+}
+
+void AlpacaTask(void *)
+{
+	const TickType_t xDelay = 50/ portTICK_PERIOD_MS; // 50ms task block to give time back
+
+	for(;;) {
+		pod_AlpacaServer->checkForRequest();
+		// FreeRTOS task management
+		vTaskDelay(xDelay);
+		taskYIELD();
+	}
 }
 
 
@@ -182,9 +206,7 @@ void PowerTask(void *)
 		podPowerController->setPortState(PWM2, powerConfig.nPwm2Percent);
 		podPowerController->setPortState(USB_C, powerConfig.bUsbcOn);
 	}
-	else {
-
-	}
+	
 	for(;;) {
 		// do a whole lot of nothing
 		if(bOcTriggered) {
@@ -241,6 +263,8 @@ void chackAllDc()
 {
 	// check which INA260 triggered the OC interrupt
 	// and turn power off on corrresponding port
+	if(!podPowerController)
+		return;
 
 	if(podPowerController->checkAlert(INA260_DC_1)) {
 		podPowerController->setPortState(DC1, false);
@@ -264,6 +288,8 @@ void chackAllDc()
 
 void turnAllDcOff()
 {
+	if(!podPowerController)
+		return;
 	podPowerController->setPortState(DC1, false);
 	podPowerController->setPortState(DC2, false);
 	podPowerController->setPortState(PWM1, false);
