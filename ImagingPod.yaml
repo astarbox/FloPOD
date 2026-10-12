@@ -168,7 +168,7 @@ paths:
       tags:
       - POD WiFi
     put:
-      summary: set the POD WiFi HotSpot SSID
+      summary: Set the POD WiFi HotSpot SSID
       description: 'Set the POD WiFi HotSpot SSID.'
       operationId: setWifiClientSSID
       responses:
@@ -203,7 +203,7 @@ paths:
       tags:
       - POD WiFi
     put:
-      summary: set the WiFi password of the network the POD will connected to
+      summary: Set the WiFi password of the network the POD will connected to
       description: 'Set the POD WiFi client password.'
       operationId: setWifiClientPassword
       responses:
@@ -238,7 +238,7 @@ paths:
       tags:
       - POD WiFi Hotspot
     put:
-      summary: set the POD WiFi HotSpot SSID
+      summary: Set the POD WiFi HotSpot SSID
       description: 'Set the POD WiFi HotSpot SSID.'
       operationId: setApWiFiSSID
       responses:
@@ -273,7 +273,7 @@ paths:
       tags:
       - POD WiFi Hotspot
     put:
-      summary: set the POD WiFi HotSpot Password
+      summary: Set the POD WiFi HotSpot Password
       description: 'Set the POD WiFi HotSpot Password.'
       operationId: setApWiFiPassword
       responses:
@@ -308,7 +308,7 @@ paths:
       tags:
       - POD WiFi Hotspot
     put:
-      summary: set the POD WiFi HotSpot Channel
+      summary: Set the POD WiFi HotSpot Channel
       description: 'Set the POD WiFi HotSpot Channel.'
       operationId: setApWiFiChannel
       responses:
@@ -402,7 +402,7 @@ paths:
       tags:
       - Shutter settings
     put:
-      summary: set the POD Shutter speed
+      summary: Set the POD Shutter speed
       description: 'Set the POD Shutter speed in percent.'
       operationId: setShutterSpeed
       responses:
@@ -646,7 +646,7 @@ paths:
       tags:
       - Power Ports Control
     put:
-      summary: set the POD DC1 output state
+      summary: Set the POD DC1 output state
       description: 'Set the POD DC1 output state (On/Off).'
       operationId: setStateDC1
       responses:
@@ -680,7 +680,7 @@ paths:
       tags:
       - Power Ports Control
     put:
-      summary: set the POD DC2 output state
+      summary: Set the POD DC2 output state
       description: 'Set the POD DC2 output state (On/Off).'
       operationId: setStateDC2
       responses:
@@ -714,7 +714,7 @@ paths:
       tags:
       - Power Ports Control
     put:
-      summary: set the POD PWM1 output state
+      summary: Set the POD PWM1 output state
       description: 'Set the POD PWM1 output state (On/Off).'
       operationId: setStatePWM1
       responses:
@@ -748,7 +748,7 @@ paths:
       tags:
       - Power Ports Control
     put:
-      summary: set the POD PWM2 output state
+      summary: Set the POD PWM2 output state
       description: 'Set the POD PWM2 output state (On/Off).'
       operationId: setStatePWM2
       responses:
@@ -782,7 +782,7 @@ paths:
       tags:
       - Power Ports Control
     put:
-      summary: set the POD USB-C output state
+      summary: Set the POD USB-C output state
       description: 'Set the POD USB-C output state (On/Off).'
       operationId: setStateUsbC
       responses:
@@ -816,7 +816,7 @@ paths:
       tags:
       - General Informations
     put:
-      summary: set the POD type
+      summary: Set the POD type
       description: 'Set the POD type.'
       operationId: setPodType
       responses:
@@ -874,7 +874,7 @@ components:
       - CAL_FINISH_CLOSE
       - CAL_DONE
       x-enum-descriptions:
-      - POD is not calibration.
+      - POD is not calibrating.
       - POD is doing first initial close.
       - POD is opening.
       - POD is doing 2nd close.

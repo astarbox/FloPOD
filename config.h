@@ -5,13 +5,19 @@
 //
 #ifndef __P_CONFIG__
 #define __P_CONFIG__
+// network stack
 #include <Network.h>
+#include <WiFi.h>
+#include <ESPmDNS.h>
+#include <NetworkUdp.h>
+#include <WebServer.h>
+#include <HTTPUpdateServer.h>
+
 #include <Wire.h>
 #include <Preferences.h>
 #include <nvs_flash.h>
-#include <Network.h>
-#include <WiFi.h>
 #include <esp32-hal-ledc.h>
+
 
 #define PodWiFi WiFi
 
@@ -19,13 +25,6 @@
 
 #define DEBUG   // enable debug to serial port defined as DebugPort
 
-// temp & hum sensor
-// define one OR the other, not both..
-// #define USE_HDC1080
-#define USE_SHT30
-
-// #define USE_FDC1004
-#define USE_FDC2112
 
 #ifdef DEBUG
 #pragma message "Debug messages enabled"
@@ -64,6 +63,7 @@
 byte MAC_Address[6];
 #endif // USE_ETHERNET
 
+#define OTA_PORT	8080
 
 #define VERSION "0.1"
 String podHostname;

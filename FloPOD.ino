@@ -13,16 +13,14 @@
 // --------------------------------
 //
 
-
-#include "Arduino.h"
-#include <rtc_wdt.h>
-#include <esp_task_wdt.h>
-
 #include "config.h"
 #include "powerManagement.h"
-// #include "motorCtrl.h"
 #include "podController.h"
 #include "environment.h"
+
+// OTA update web server
+WebServer OTA_httpServer(OTA_PORT);
+HTTPUpdateServer OTA_httpUpdater;
 
 String sLocalIPAdress = "";
 WIFIConfig	wifiApConfig;
@@ -61,23 +59,14 @@ float rainSensorValuePf;
 void chackAllDc();
 void turnAllDcOff();
 
-// other object
-esp_task_wdt_config_t twdt_config = {
-	.timeout_ms = 1000000,
-	.idle_core_mask = 0,    // Bitmask of cores
-	.trigger_panic = false,
-};
+
+uint32_t last_ota_time = 0;
 
 void setup()
 {
 	bool bEthernetOk = false;
 	// configure all pins
 	globalPodConfig = new PodConfig();
-	esp_task_wdt_deinit();
-	esp_task_wdt_init(&twdt_config);
-	esp_task_wdt_add(NULL);
-	disableCore0WDT();
-	disableCore1WDT();
 	globalPodConfig->LoadPodConfig(podConfiguration);
 	podHostname = "PulsarPod-" + String(podConfiguration.serialNum, HEX) ;
 
@@ -114,6 +103,17 @@ void setup()
 	pod_AlpacaDiscoveryServer->startServer();
 	pod_AlpacaServer = new AlpacaServer();
 	pod_AlpacaServer->startServer();
+
+		// Start mDNS
+	MDNS.begin(podHostname.c_str());
+	MDNS.addService("http", "tcp", 80); // web ui and Alpaca
+	DBPrintln("OTA Update server started on port " + String(OTA_PORT));
+	OTA_httpUpdater.setup(&OTA_httpServer);
+	OTA_httpServer.begin();
+	MDNS.addService("OTA_update", "tcp", OTA_PORT);
+	MDNS.addServiceTxt("OTA_update", "tcp", "url", "http://" + podHostname + ".local:" + String(OTA_PORT) + "/update");
+
+
 }
 
 // core 1 main loop takes care of Alpaca coms
@@ -123,6 +123,7 @@ void loop()
 
 	pod_AlpacaDiscoveryServer->checkForRequest();
 	pod_AlpacaServer->checkForRequest();
+	OTA_httpServer.handleClient();
 	vTaskDelay(xDelay);
 	taskYIELD();
 }
