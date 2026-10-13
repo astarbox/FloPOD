@@ -255,7 +255,7 @@ void loop()
         Serial.println("Rain Sensor  : " + String(rainSensorValuePf) + "pF");
         Serial.println("");
     } else {
-        Serial.println("No FDC1004 sensor detected");
+        Serial.println("No rain sensor detected");
     }
 
 
