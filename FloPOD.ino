@@ -79,9 +79,8 @@ void setup()
 	bEthernetOk = initEthernet();
 #endif
 	// Start local hostspot and connect to local wifi if configured and available
-	// Also prefer Ethernet as the default interface if present.
-	// If Ethernet is not present, configure wifi as client and hotspot, hots;pot only otherwise.
-	configureWiFi(bEthernetOk==false);
+	// Ionfigure wifi as client and hotspot
+	configureWiFi(true);
 
 	// start I2C
 	Wire.begin();
@@ -110,7 +109,7 @@ void setup()
 	xTaskCreatePinnedToCore(AlpacaDiscoveryTask, "AlpacaDiscoveryTask", 10000, NULL, 12, NULL,  1); // priority 12 (between medium and high) on Core 1
 	xTaskCreatePinnedToCore(AlpacaTask, "AlpacaTas", 10000, NULL, 12, NULL,  1); // priority 12 (between medium and high) on Core 1
 
-		// Start mDNS
+	// Start mDNS
 	MDNS.begin(podHostname.c_str());
 	MDNS.addService("http", "tcp", 80); // web ui and Alpaca
 	DBPrintln("OTA Update server started on port " + String(OTA_PORT));
@@ -206,7 +205,7 @@ void PowerTask(void *)
 		podPowerController->setPortState(PWM2, powerConfig.nPwm2Percent);
 		podPowerController->setPortState(USB_C, powerConfig.bUsbcOn);
 	}
-	
+
 	for(;;) {
 		// do a whole lot of nothing
 		if(bOcTriggered) {
