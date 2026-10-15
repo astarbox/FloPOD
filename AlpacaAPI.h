@@ -1338,679 +1338,6 @@ void doSyncAzimuth(Request &req, Response &res)
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
 }
 
-
-void doSetup(Request &req, Response &res)
-{
-	JsonDocument AlpacaResp;
-	JsonDocument FormData;
-	bool bParamsOk = false;
-	String sResp;
-	String sHTML;
-	res.set("Content-Type", "text/html");
-	DBPrintln("[ **********" + String(__func__) + "********** ]");
-	bParamsOk = getIDs(req, AlpacaResp, FormData);
-	sHTML = "<!DOCTYPE html>\n<html>\n";
-	sHTML += "<head>";
-	sHTML += "<title>Pulsar Imaging POD Setup</title>\n";
-	sHTML += "</head>\n";
-	sHTML += "<body>\n";
-	sHTML += "<H1>Pulsar Imaging POD Setup</H1>\n";
-
-	sHTML += "</body>\n</html>\n";
-	res.print(sHTML);
-}
-
-//
-// controller settings API
-//
-
-
-void getSerialNumber(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	String sSerialNumber;
-
-	globalPodConfig->getSerialNumber(sSerialNumber);
-
-	controllerResp["value"] = sSerialNumber;
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-
-
-AlpacaServer::AlpacaServer(int port)
-{
-	String sSerialNumber;    // Mac address, uses part of the unique ID
-
-	m_nRestPort = port;
-	mRestServer = nullptr;
-	m_AlpacaRestServer = nullptr;
-	nTransactionID = 0;
-
-	globalPodConfig->getSerialNumber(sSerialNumber);
-
-	PodUuid.seed(sSerialNumber[4],sSerialNumber[5]);
-	PodUuid.generate();
-
-	PodPowerUuid.seed(sSerialNumber[4],sSerialNumber[5]+1);
-	PodPowerUuid.generate();
-
-	PodSafetyMonitorUuid.seed(sSerialNumber[4],sSerialNumber[5]+2);
-	PodSafetyMonitorUuid.generate();
-
-}
-
-void useDHCPState(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	bool bUseDhcp = false;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<bool>()) {
-				bUseDhcp = FormData["value"];
-				// globalPodConfig->setDHCPFlag(bUseDhcp);
-			}
-		}
-	}
-
-	// controllerResp["value"] = globalPodConfig->getDHCPFlag();
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void ipAddressValue(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<String>()) {
-				// globalPodConfig->setIPAddress(FormData["value"]);
-			}
-		}
-	}
-
-	// controllerResp["value"] = String(RotatorClass::IpAddress2String(domeEthernet.localIP()));
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void subnetMaskValue(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<String>()) {
-				// globalPodConfig->setIPSubnetMask(FormData["value"]);
-			}
-		}
-	}
-
-	// controllerResp["value"] = String(RotatorClass::IpAddress2String(domeEthernet.subnetMask()));
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void ipGatewayValue(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<String>()) {
-				// globalPodConfig->setIPGateway(FormData["value"]);
-			}
-		}
-	}
-
-	// controllerResp["value"] = String(RotatorClass::IpAddress2String(domeEthernet.gatewayIP()));
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podCalibrate(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	MotorCalibrationSteps nCalState;
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<String>()) {
-				if(FormData["value"] == "start") {
-					PodMotorController->Calibrate();
-				}
-				if(FormData["value"] == "stop") {
-					PodMotorController->Stop();
-				}
-			}
-		}
-	}
-	PodMotorController->getCalState(nCalState);
-	controllerResp["value"] = nCalState;
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void environmentData(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	float temp, hum;
-
-	if(humTempSensor && podRainSensor) {
-		humTempSensor->getTempAndHum(temp, hum);
-		controllerResp["humidity"] = hum;
-		controllerResp["temp"] = temp;
-		controllerResp["rain"] = podRainSensor->isRaining();
-	}
-	else {
-		AlpacaError_x401(controllerResp, res, "POD can't read environment sensor.");
-		return;
-	}
-
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podOpen(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-
-	PodMotorController->Open();
-	controllerResp["value"] = A_OPENING;
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podClose(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	float fParkAz;
-
-	PodMotorController->Close();
-	controllerResp["value"] = A_CLOSING;
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podState(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	PodShutterState nState;
-
-	PodMotorController->getShutterState(nState);
-	switch(nState){
-		case PS_OPEN :
-			controllerResp["value"] = A_OPEN;
-			break;
-		case PS_CLOSED :
-			controllerResp["value"] = A_CLOSED;
-			break;
-		case PS_OPENING :
-			controllerResp["value"] = A_OPENING;
-			break;
-		case PS_CLOSING :
-			controllerResp["value"] = A_CLOSING;
-			break;
-		case PS_UNKNOWN :
-			controllerResp["value"] = A_ERROR;
-			break;
-		default:
-			controllerResp["value"] = A_ERROR;
-			break;
-	}
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-
-void podDC1(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	bool bPortOn = false;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<bool>()) {
-				bPortOn = FormData["value"];
-				if(podPowerController)
-					podPowerController->setPortState(DC1, bPortOn);
-			}
-		}
-	}
-	podPowerController->getPortState(DC1, bPortOn);
-	controllerResp["value"] = bPortOn;
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podDC2(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	bool bPortOn = false;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<bool>()) {
-				bPortOn = FormData["value"];
-				if(podPowerController)
-					podPowerController->setPortState(DC2, bPortOn);
-			}
-		}
-	}
-	podPowerController->getPortState(DC2, bPortOn);
-	controllerResp["value"] = bPortOn;
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podPWM1(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<int>()) {
-				nPercent = FormData["value"];
-				if(podPowerController)
-					podPowerController->setPwmPortState(PWM1, nPercent);
-
-			}
-		}
-	}
-	podPowerController->getPwmPortState(PWM1, nPercent);
-	controllerResp["value"] = nPercent;
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podPWM2(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<int>()) {
-				nPercent = FormData["value"];
-				if(podPowerController)
-					podPowerController->setPwmPortState(PWM2, nPercent);
-
-			}
-		}
-	}
-	podPowerController->getPwmPortState(PWM2, nPercent);
-	controllerResp["value"] = nPercent;
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podUsbC(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	bool bPortOn = false;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<bool>()) {
-				bPortOn = FormData["value"];
-				if(podPowerController)
-					podPowerController->setPortState(USB_C, bPortOn);
-			}
-		}
-	}
-	podPowerController->getPortState(USB_C, bPortOn);
-	controllerResp["value"] = bPortOn;
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podMainPower(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-	float fValue;
-
-	fValue = podPowerController->readVolts(INA260_MAIN);
-	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_MAIN);
-	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_MAIN);
-	controllerResp["watt"] = fValue;
-
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podDC1Power(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-	float fValue;
-
-	fValue = podPowerController->readVolts(INA260_DC_1);
-	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_DC_1);
-	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_DC_1);
-	controllerResp["watt"] = fValue;
-
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podDC2Power(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-	float fValue;
-
-	fValue = podPowerController->readVolts(INA260_DC_2);
-	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_DC_2);
-	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_DC_2);
-	controllerResp["watt"] = fValue;
-
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podPWM1Power(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-	float fValue;
-
-	fValue = podPowerController->readVolts(INA260_PWM1);
-	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_PWM1);
-	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_PWM1);
-	controllerResp["watt"] = fValue;
-
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podPWM2Power(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-	float fValue;
-
-	fValue = podPowerController->readVolts(INA260_PWM2);
-	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_PWM2);
-	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_PWM2);
-	controllerResp["watt"] = fValue;
-
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podBatPower(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-	float fValue;
-
-	fValue = podPowerController->readVolts(INA260_BAT);
-	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_BAT);
-	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_BAT);
-	controllerResp["watt"] = fValue;
-
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podUsbCPower(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-	float fValue;
-
-	fValue = podPowerController->readVolts(INA260_USB_C);
-	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_USB_C);
-	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_USB_C);
-	controllerResp["watt"] = fValue;
-
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podMot1Power(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-	float fValue;
-
-	fValue = podPowerController->readVolts(INA260_VMOT);
-	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_VMOT);
-	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_VMOT);
-	controllerResp["watt"] = fValue;
-
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podMot2Power(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-	float fValue;
-
-	fValue = podPowerController->readVolts(INA260_VMOT2);
-	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_VMOT2);
-	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_VMOT2);
-	controllerResp["watt"] = fValue;
-
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podType(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPodType;
-	Configuration podConfig;
-
-	globalPodConfig->LoadPodConfig(podConfig);
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<int>()) {
-				nPodType = FormData["value"];
-				if(globalPodConfig)
-					podConfig.podType = nPodType;
-					globalPodConfig->savePodConfig(podConfig);
-			}
-		}
-	}
-
-	controllerResp["value"] = podConfig.podType;
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-
 // Switch Alpaca interface
 void getSwitchConnected(Request &req, Response &res)
 {
@@ -3321,6 +2648,719 @@ void getIsSafe(Request &req, Response &res)
 }
 
 
+void doSetup(Request &req, Response &res)
+{
+	JsonDocument AlpacaResp;
+	JsonDocument FormData;
+	bool bParamsOk = false;
+	String sResp;
+	String sHTML;
+	res.set("Content-Type", "text/html");
+	DBPrintln("[ **********" + String(__func__) + "********** ]");
+	bParamsOk = getIDs(req, AlpacaResp, FormData);
+	sHTML = "<!DOCTYPE html>\n<html>\n";
+	sHTML += "<head>";
+	sHTML += "<title>Pulsar Imaging POD Setup</title>\n";
+	sHTML += "</head>\n";
+	sHTML += "<body>\n";
+	sHTML += "<H1>Pulsar Imaging POD Setup</H1>\n";
+
+	sHTML += "</body>\n</html>\n";
+	res.print(sHTML);
+}
+
+
+
+//
+// controller settings API
+//
+
+
+void getSerialNumber(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	String sSerialNumber;
+
+	globalPodConfig->getSerialNumber(sSerialNumber);
+
+	controllerResp["value"] = sSerialNumber;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+
+void useDHCPState(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	bool bUseDhcp = false;
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			AlpacaError_x401(controllerResp, res);
+			return;
+		}
+		else {
+			if(FormData["value"].is<bool>()) {
+				bUseDhcp = FormData["value"];
+				// globalPodConfig->setDHCPFlag(bUseDhcp);
+			}
+		}
+	}
+
+	// controllerResp["value"] = globalPodConfig->getDHCPFlag();
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void ipAddressValue(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			AlpacaError_x401(controllerResp, res);
+			return;
+		}
+		else {
+			if(FormData["value"].is<String>()) {
+				// globalPodConfig->setIPAddress(FormData["value"]);
+			}
+		}
+	}
+
+	// controllerResp["value"] = String(RotatorClass::IpAddress2String(domeEthernet.localIP()));
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void subnetMaskValue(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			AlpacaError_x401(controllerResp, res);
+			return;
+		}
+		else {
+			if(FormData["value"].is<String>()) {
+				// globalPodConfig->setIPSubnetMask(FormData["value"]);
+			}
+		}
+	}
+
+	// controllerResp["value"] = String(RotatorClass::IpAddress2String(domeEthernet.subnetMask()));
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void ipGatewayValue(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			AlpacaError_x401(controllerResp, res);
+			return;
+		}
+		else {
+			if(FormData["value"].is<String>()) {
+				// globalPodConfig->setIPGateway(FormData["value"]);
+			}
+		}
+	}
+
+	// controllerResp["value"] = String(RotatorClass::IpAddress2String(domeEthernet.gatewayIP()));
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podCalibrate(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	MotorCalibrationSteps nCalState;
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			AlpacaError_x401(controllerResp, res);
+			return;
+		}
+		else {
+			if(FormData["value"].is<String>()) {
+				if(FormData["value"] == "start") {
+					PodMotorController->Calibrate();
+				}
+				if(FormData["value"] == "stop") {
+					PodMotorController->Stop();
+				}
+			}
+		}
+	}
+	PodMotorController->getCalState(nCalState);
+	controllerResp["value"] = nCalState;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void environmentData(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	float temp, hum;
+
+	if(humTempSensor && podRainSensor) {
+		humTempSensor->getTempAndHum(temp, hum);
+		controllerResp["humidity"] = hum;
+		controllerResp["temp"] = temp;
+		controllerResp["rain"] = podRainSensor->isRaining();
+	}
+	else {
+		AlpacaError_x401(controllerResp, res, "POD can't read environment sensor.");
+		return;
+	}
+
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podOpen(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+
+	PodMotorController->Open();
+	controllerResp["value"] = A_OPENING;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podClose(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	float fParkAz;
+
+	PodMotorController->Close();
+	controllerResp["value"] = A_CLOSING;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podState(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	PodShutterState nState;
+
+	PodMotorController->getShutterState(nState);
+	switch(nState){
+		case PS_OPEN :
+			controllerResp["value"] = A_OPEN;
+			break;
+		case PS_CLOSED :
+			controllerResp["value"] = A_CLOSED;
+			break;
+		case PS_OPENING :
+			controllerResp["value"] = A_OPENING;
+			break;
+		case PS_CLOSING :
+			controllerResp["value"] = A_CLOSING;
+			break;
+		case PS_UNKNOWN :
+			controllerResp["value"] = A_ERROR;
+			break;
+		default:
+			controllerResp["value"] = A_ERROR;
+			break;
+	}
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+
+void podDC1(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	bool bPortOn = false;
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			AlpacaError_x401(controllerResp, res);
+			return;
+		}
+		else {
+			if(FormData["value"].is<bool>()) {
+				bPortOn = FormData["value"];
+				if(podPowerController)
+					podPowerController->setPortState(DC1, bPortOn);
+			}
+		}
+	}
+	podPowerController->getPortState(DC1, bPortOn);
+	controllerResp["value"] = bPortOn;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podDC2(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	bool bPortOn = false;
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			AlpacaError_x401(controllerResp, res);
+			return;
+		}
+		else {
+			if(FormData["value"].is<bool>()) {
+				bPortOn = FormData["value"];
+				if(podPowerController)
+					podPowerController->setPortState(DC2, bPortOn);
+			}
+		}
+	}
+	podPowerController->getPortState(DC2, bPortOn);
+	controllerResp["value"] = bPortOn;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podPWM1(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			AlpacaError_x401(controllerResp, res);
+			return;
+		}
+		else {
+			if(FormData["value"].is<int>()) {
+				nPercent = FormData["value"];
+				if(podPowerController)
+					podPowerController->setPwmPortState(PWM1, nPercent);
+
+			}
+		}
+	}
+	podPowerController->getPwmPortState(PWM1, nPercent);
+	controllerResp["value"] = nPercent;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podPWM2(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			AlpacaError_x401(controllerResp, res);
+			return;
+		}
+		else {
+			if(FormData["value"].is<int>()) {
+				nPercent = FormData["value"];
+				if(podPowerController)
+					podPowerController->setPwmPortState(PWM2, nPercent);
+
+			}
+		}
+	}
+	podPowerController->getPwmPortState(PWM2, nPercent);
+	controllerResp["value"] = nPercent;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podUsbC(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	bool bPortOn = false;
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			AlpacaError_x401(controllerResp, res);
+			return;
+		}
+		else {
+			if(FormData["value"].is<bool>()) {
+				bPortOn = FormData["value"];
+				if(podPowerController)
+					podPowerController->setPortState(USB_C, bPortOn);
+			}
+		}
+	}
+	podPowerController->getPortState(USB_C, bPortOn);
+	controllerResp["value"] = bPortOn;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podMainPower(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+	float fValue;
+
+	fValue = podPowerController->readVolts(INA260_MAIN);
+	controllerResp["volts"] = fValue;
+	fValue = podPowerController->readAmps(INA260_MAIN);
+	controllerResp["amps"] = fValue;
+	fValue = podPowerController->readPower(INA260_MAIN);
+	controllerResp["watt"] = fValue;
+
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podDC1Power(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+	float fValue;
+
+	fValue = podPowerController->readVolts(INA260_DC_1);
+	controllerResp["volts"] = fValue;
+	fValue = podPowerController->readAmps(INA260_DC_1);
+	controllerResp["amps"] = fValue;
+	fValue = podPowerController->readPower(INA260_DC_1);
+	controllerResp["watt"] = fValue;
+
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podDC2Power(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+	float fValue;
+
+	fValue = podPowerController->readVolts(INA260_DC_2);
+	controllerResp["volts"] = fValue;
+	fValue = podPowerController->readAmps(INA260_DC_2);
+	controllerResp["amps"] = fValue;
+	fValue = podPowerController->readPower(INA260_DC_2);
+	controllerResp["watt"] = fValue;
+
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podPWM1Power(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+	float fValue;
+
+	fValue = podPowerController->readVolts(INA260_PWM1);
+	controllerResp["volts"] = fValue;
+	fValue = podPowerController->readAmps(INA260_PWM1);
+	controllerResp["amps"] = fValue;
+	fValue = podPowerController->readPower(INA260_PWM1);
+	controllerResp["watt"] = fValue;
+
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podPWM2Power(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+	float fValue;
+
+	fValue = podPowerController->readVolts(INA260_PWM2);
+	controllerResp["volts"] = fValue;
+	fValue = podPowerController->readAmps(INA260_PWM2);
+	controllerResp["amps"] = fValue;
+	fValue = podPowerController->readPower(INA260_PWM2);
+	controllerResp["watt"] = fValue;
+
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podBatPower(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+	float fValue;
+
+	fValue = podPowerController->readVolts(INA260_BAT);
+	controllerResp["volts"] = fValue;
+	fValue = podPowerController->readAmps(INA260_BAT);
+	controllerResp["amps"] = fValue;
+	fValue = podPowerController->readPower(INA260_BAT);
+	controllerResp["watt"] = fValue;
+
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podUsbCPower(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+	float fValue;
+
+	fValue = podPowerController->readVolts(INA260_USB_C);
+	controllerResp["volts"] = fValue;
+	fValue = podPowerController->readAmps(INA260_USB_C);
+	controllerResp["amps"] = fValue;
+	fValue = podPowerController->readPower(INA260_USB_C);
+	controllerResp["watt"] = fValue;
+
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podMot1Power(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+	float fValue;
+
+	fValue = podPowerController->readVolts(INA260_VMOT);
+	controllerResp["volts"] = fValue;
+	fValue = podPowerController->readAmps(INA260_VMOT);
+	controllerResp["amps"] = fValue;
+	fValue = podPowerController->readPower(INA260_VMOT);
+	controllerResp["watt"] = fValue;
+
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podMot2Power(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPercent;
+	float fValue;
+
+	fValue = podPowerController->readVolts(INA260_VMOT2);
+	controllerResp["volts"] = fValue;
+	fValue = podPowerController->readAmps(INA260_VMOT2);
+	controllerResp["amps"] = fValue;
+	fValue = podPowerController->readPower(INA260_VMOT2);
+	controllerResp["watt"] = fValue;
+
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void podType(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	int nPodType;
+	Configuration podConfig;
+
+	globalPodConfig->LoadPodConfig(podConfig);
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			AlpacaError_x401(controllerResp, res);
+			return;
+		}
+		else {
+			if(FormData["value"].is<int>()) {
+				nPodType = FormData["value"];
+				if(globalPodConfig)
+					podConfig.podType = nPodType;
+					globalPodConfig->savePodConfig(podConfig);
+			}
+		}
+	}
+
+	controllerResp["value"] = podConfig.podType;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+}
+
+void RebootTask(void *)
+{
+	const TickType_t xDelay = 100 / portTICK_PERIOD_MS;
+	vTaskDelay(xDelay);
+	ESP.restart();
+}
+
+void podReboot(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+
+	controllerResp["value"] = "Rebooting";
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+	xTaskCreatePinnedToCore(RebootTask, "Reboot", 10000, NULL, 16, NULL,  1);
+}
+
+void FactoryRebootTask(void *)
+{
+	const TickType_t xDelay = 100 / portTICK_PERIOD_MS;
+	vTaskDelay(xDelay);
+	globalPodConfig->resetAllSettings(); // this reboot the ESP
+}
+void podFactoryReset(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+
+	controllerResp["value"] = "Resseting to factory default";
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
+	xTaskCreatePinnedToCore(FactoryRebootTask, "FactoryRebootTask", 10000, NULL, 16, NULL,  1);
+}
+
+AlpacaServer::AlpacaServer(int port)
+{
+	String sSerialNumber;    // Mac address, uses part of the unique ID
+
+	m_nRestPort = port;
+	mRestServer = nullptr;
+	m_AlpacaRestServer = nullptr;
+	nTransactionID = 0;
+
+	globalPodConfig->getSerialNumber(sSerialNumber);
+
+	PodUuid.seed(sSerialNumber[4],sSerialNumber[5]);
+	PodUuid.generate();
+
+	PodPowerUuid.seed(sSerialNumber[4],sSerialNumber[5]+1);
+	PodPowerUuid.generate();
+
+	PodSafetyMonitorUuid.seed(sSerialNumber[4],sSerialNumber[5]+2);
+	PodSafetyMonitorUuid.generate();
+
+}
+
 void AlpacaServer::startServer()
 {
 	mRestServer = new NetworkServer(m_nRestPort);
@@ -3496,6 +3536,10 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->use("/setup/podType", &podType);
 
 	m_AlpacaRestServer->get("/setup/serialNumber", &getSerialNumber);
+
+	m_AlpacaRestServer->put("/setup/reboot", &podReboot);
+	m_AlpacaRestServer->put("/setup/factoryReset", &podFactoryReset);
+
 	DBPrintln("m_AlpacaRestServer started");
 }
 

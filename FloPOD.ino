@@ -70,7 +70,7 @@ void setup()
 	// configure all pins
 	globalPodConfig = new PodConfig();
 	globalPodConfig->LoadPodConfig(podConfiguration);
-	podHostname = "PulsarPod-" + String(podConfiguration.serialNum, HEX) ;
+	podHostname = "ImagingPod-" + String(podConfiguration.serialNum, HEX) ;
 
 	// start the network stack so all server sees all interfaces.
 	Network.begin();
@@ -346,11 +346,11 @@ void configureWiFi(bool bDualMode)
 	}
 	// Start AP (aka Hotspot)
 	if(wifiApConfig.sSSID.length()) {
-		if(wifiApConfig.sSSID == "PulsarPod") {
+		if(wifiApConfig.sSSID == "ImagingPod") {
 			// add the serial number to it.
 			String sNumber;
 			globalPodConfig->getSerialNumber(sNumber);
-			wifiApConfig.sSSID = "PulsarPod-"+sNumber;
+			wifiApConfig.sSSID = "ImagingPod-"+sNumber;
 			globalPodConfig->saveApConfig(wifiApConfig);
 		}
 		bWiFiAPOk = PodWiFi.softAP(wifiApConfig.sSSID.c_str(),

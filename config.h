@@ -288,8 +288,8 @@ void PodConfig::saveIpConfig(IPConfig ipClientConfig)
 void PodConfig::LoadApConfig(WIFIConfig &wifiApConfig)
 {
 	m_preferences.begin("PodConfig", false);
-	wifiApConfig.sSSID =  m_preferences.getString("APSSID","PulsarPod");
-	wifiApConfig.sPassword =  m_preferences.getString("APPassword","PulsarPod");
+	wifiApConfig.sSSID =  m_preferences.getString("APSSID","ImagingPod");
+	wifiApConfig.sPassword =  m_preferences.getString("APPassword","ImagingPod");
 	wifiApConfig.nChannel = m_preferences.getInt("APChannel", 6);
 	m_preferences.end();
 }
@@ -398,8 +398,8 @@ void PodConfig::setWifiDefault()
 {
 	m_preferences.begin("PodConfig", false);
 	// AP default
-	m_preferences.putString("APSSID", "PulsarPod");
-	m_preferences.putString("APPassword","PulsarPod");
+	m_preferences.putString("APSSID", "ImagingPod");
+	m_preferences.putString("APPassword","ImagingPod");
 	m_preferences.putInt("APChannel",6);
 	// No STA SSID/password
 	m_preferences.remove("StaSSID");
@@ -409,6 +409,7 @@ void PodConfig::setWifiDefault()
 
 void PodConfig::getSerialNumber(String &serNum)
 {
+	// change to use WiFi.macAddress()
 	uint64_t nFuseMac = ESP.getEfuseMac();
 	byte nSerNum[7];
 	getSerialNumberRaw(nSerNum);
