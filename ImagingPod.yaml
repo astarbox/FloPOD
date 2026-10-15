@@ -330,7 +330,6 @@ paths:
               required:
               - value
 
-
   /setup/podCalibrate:
     get:
       summary: Get the POD calibration status
@@ -832,6 +831,46 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               $ref: '#/components/schemas/podTypes'
+
+  /setup/serialNumber:
+    get:
+      summary: Get the POD serial number
+      description: 'Retrieve the POD serial number.
+        value.'
+      operationId: getPodSerialNumber
+      responses:
+        '200':
+          description: POD Shutter speed successfully set
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - General Informations
+
+  /setup/reboot:
+    put:
+      summary: Reboot the POD
+      description: 'This will reboot the POD'
+      operationId: podReboot
+      responses:
+        '200':
+          description: Rebooting
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD management
+
+  /setup/factoryReset:
+    put:
+      summary: Reset the POD to factory defaults
+      description: 'This will reset the POD to factory defaults and reboot'
+      operationId: podResetToFactory
+      responses:
+        '200':
+          description: Reseting
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD management
 
 components:
   schemas:
