@@ -3,7 +3,7 @@
 // --------------------------------
 // Board:            ESP32S3 Dev Module
 // Flash Size:       8MB
-// Partition Scheme: Default 8MB  (3MB APP/1.5MB SPIFFS)
+// Partition Scheme: 8MB  (3MB APP/1.5MB SPIFFS)
 // --------------------------------
 //
 

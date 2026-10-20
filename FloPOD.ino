@@ -105,9 +105,9 @@ void setup()
 	pod_AlpacaServer = new AlpacaServer();
 	pod_AlpacaServer->startServer();
 
-	// creaet Alpaca tasks
+	// create Alpaca tasks
 	xTaskCreatePinnedToCore(AlpacaDiscoveryTask, "AlpacaDiscoveryTask", 10000, NULL, 12, NULL,  1); // priority 12 (between medium and high) on Core 1
-	xTaskCreatePinnedToCore(AlpacaTask, "AlpacaTask", 10000, NULL, 12, NULL,  1); // priority 12 (between medium and high) on Core 1
+	xTaskCreatePinnedToCore(AlpacaTask, "AlpacaTask", 32768, NULL, 12, NULL,  1); // priority 12 (between medium and high) on Core 1
 
 	// Start mDNS
 	MDNS.begin(podHostname.c_str());

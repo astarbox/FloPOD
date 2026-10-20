@@ -3301,7 +3301,13 @@ void podType(Request &req, Response &res)
 void RebootTask(void *)
 {
 	const TickType_t xDelay = 100 / portTICK_PERIOD_MS;
-	vTaskDelay(xDelay);
+
+	esp_wifi_stop();
+	vTaskDelay(xDelay/2);
+
+	esp_wifi_deinit();
+	vTaskDelay(xDelay/2);
+
 	ESP.restart();
 }
 
