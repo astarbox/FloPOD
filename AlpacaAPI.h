@@ -4,6 +4,7 @@
 //  Copyright © 2024 Rodolphe Pineau. All rights reserved.
 //
 
+
 #pragma message "Alpaca server enabled"
 #include <vector>
 #include <functional>
@@ -12,11 +13,12 @@
 #include <UUID.h>
 #include <aWOT.h>
 
+#include "ApiCommon.h"
+
 #include "podController.h"
 
 #define ALPACA_DISCOVERY_PORT 32227
 #define ALPACA_SERVER_PORT 8088
-#define ALPACA_VAR_BUF_LEN 256
 #define ALPACA_OK 0
 #define DISCOVERY_ERROR -1
 #define POD_INTERFACE_VERSION 3
@@ -25,8 +27,6 @@
 #define UDP_PACKET_MAX_SIZE 16
 
 volatile bool bParked = false;
-
-enum AlpacaShutterStates {A_OPEN=0, A_CLOSED, A_OPENING, A_CLOSING, A_ERROR};
 
 #define NB_MAX_SWITCH 5
 enum AlpacaSwicthId {A_DC1=0, A_DC2, A_PWM1, A_PWM2, A_USB_C};
@@ -148,90 +148,6 @@ int getAlpacaShutterState()
 }
 
 
-void formDataToJson(Request &req, JsonDocument &FormData)
-{
-	char name[ALPACA_VAR_BUF_LEN];
-	char value[ALPACA_VAR_BUF_LEN];
-	String sName;
-	String sValue;
-	memset(name,0,ALPACA_VAR_BUF_LEN);
-	memset(value,0,ALPACA_VAR_BUF_LEN);
-	while(req.form(name, ALPACA_VAR_BUF_LEN-1, value, ALPACA_VAR_BUF_LEN-1)){
-		sName  = String(name);
-		sName.toLowerCase();
-		sValue = String(value);
-		sValue.toLowerCase();
-
-		DBPrintln(String(__func__) + " : name :'" + String(sName) + "' with value : '" + String(sValue) + "'");
-
-		if(isDigit(value[0])) {
-			if(sValue.indexOf('.') == -1) {
-				// int
-				FormData[sName] = sValue.toInt();
-			} else {
-				// check if it could be an IP (more than one dot)
-				int dotCount = 0;
-				for(char c : sValue) if(c == '.') dotCount++;
-				if(dotCount > 1) {
-					// IP address or similar — treat as string
-					FormData[sName] = sValue;
-				} else {
-					// float
-					FormData[sName] = sValue.toFloat();
-				}
-			}
-		}
-		else {
-			// string
-			// check for boolean
-			if(sValue == "true") {
-				FormData[sName]=true;
-			}
-			else if(sValue == "false") {
-				FormData[sName]=false;
-			}
-			else {
-				FormData[sName]=sValue;
-			}
-		}
-	}
-}
-
-
-void  getQueryGetVariables(String sQueryString, std::vector<std::vector<String>> &svParameters)
-{
-	int nErr;
-	int nIndex = 0;
-	int nCurIndex = 0;
-	String sEntry;
-	std::vector<String> svKV;
-	std::vector<String> svFields;
-
-	DBPrintln("[ **********" + String(__func__) + "********** ]");
-	// url parameters are separate by '&'
-	while(true) {
-		nIndex = sQueryString.indexOf('&',nCurIndex);
-		if(nIndex == -1) {
-			svFields.push_back(sQueryString.substring(nCurIndex));
-			break;
-		}
-		svFields.push_back(sQueryString.substring(nCurIndex,nIndex));
-		nCurIndex = nIndex+1;
-	}
-	if(svFields.size()) {
-		// now split each field in key,value pair with '=' as the separator
-		for(String &sTmp : svFields) {
-			sTmp.toLowerCase();
-			nIndex = sTmp.indexOf('=');
-			svKV.push_back(sTmp.substring(0,nIndex));
-			svKV.push_back(sTmp.substring(nIndex+1));
-			svParameters.push_back(svKV);
-			svKV.clear();
-		}
-	}
-	return;
-}
-
 bool getIDs(Request &req, JsonDocument &AlpacaResp, JsonDocument &FormData)
 {
 	char ClientID[64];
@@ -288,27 +204,6 @@ bool getIDs(Request &req, JsonDocument &AlpacaResp, JsonDocument &FormData)
 	DBPrintln("sClientId : " + sClientId);
 	DBPrintln("sClientTransactionId : " + sClientTransactionId);
 	return bParamOk;
-}
-
-void AlpacaError_x400(JsonDocument AlpacaResp, Response &res)
-{
-	String sResp;
-	AlpacaResp["ErrorNumber"] = 0x400;
-	AlpacaResp["ErrorMessage"] = "Not Implemented";
-	AlpacaResp["Value"] = false;
-	serializeJson(AlpacaResp, sResp);
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void AlpacaError_x401(JsonDocument &AlpacaResp, Response &res, String errMsg="Invalid parameters")
-{
-	String sResp;
-	AlpacaResp["ErrorNumber"] = 0x401;
-	AlpacaResp["ErrorMessage"] = errMsg;
-	serializeJson(AlpacaResp, sResp);
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
 }
 
 
@@ -390,7 +285,7 @@ void doAction(Request &req, Response &res)
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -422,7 +317,7 @@ void doCommandBlind(Request &req, Response &res)
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -446,7 +341,7 @@ void doCommandBool(Request &req, Response &res)
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -471,7 +366,7 @@ void doCommandString(Request &req, Response &res)
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -516,12 +411,12 @@ void setConnected(Request &req, Response &res)
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
 	if(!FormData["connected"].is<bool>()) {
-		AlpacaError_x401(AlpacaResp, res, "Invalid parameters, missing 'Connected'");
+		RestError_x401(AlpacaResp, res, "Invalid parameters, missing 'Connected'");
 		return;
 	}
 
@@ -550,7 +445,7 @@ void domeConnect(Request &req, Response &res)
 	res.set("Content-Type", "application/json");
 
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -581,7 +476,7 @@ void domeConnecting(Request &req, Response &res)
 	res.set("Content-Type", "application/json");
 
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -671,7 +566,7 @@ void domeDisconnect(Request &req, Response &res)
 	res.set("Content-Type", "application/json");
 
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -1078,7 +973,7 @@ void setSlaved(Request &req, Response &res)
 	String sResp;
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
-	AlpacaError_x400(AlpacaResp, res);
+	RestError_x400(AlpacaResp, res);
 
 }
 
@@ -1117,7 +1012,7 @@ void doAbort(Request &req, Response &res)
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -1141,7 +1036,7 @@ void doCloseShutter(Request &req, Response &res)
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -1163,7 +1058,7 @@ void doFindHome(Request &req, Response &res)
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -1186,7 +1081,7 @@ void doOpenShutter(Request &req, Response &res)
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -1210,7 +1105,7 @@ void doPark(Request &req, Response &res)
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -1233,7 +1128,7 @@ void setPark(Request &req, Response &res)
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -1256,17 +1151,17 @@ void doAltitudeSlew(Request &req, Response &res)
 	DBPrintln("[ **********" + String(__func__) + "********** ]");
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
 	if(!FormData["altitude"].is<double>()) {
-		AlpacaError_x401(AlpacaResp, res, "Invalid value");
+		RestError_x401(AlpacaResp, res, "Invalid value");
 		return;
 	}
 
 	res.set("Content-Type", "application/json");
-	AlpacaError_x400(AlpacaResp, res);
+	RestError_x400(AlpacaResp, res);
 }
 
 void doGoTo(Request &req, Response &res)
@@ -1280,19 +1175,19 @@ void doGoTo(Request &req, Response &res)
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
 
 	if(!FormData["azimuth"].is<double>()) {
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
 	dNewPos = FormData["azimuth"];
 	if(dNewPos < 0 || dNewPos>360) {
-		AlpacaError_x401(AlpacaResp, res, "Invalid azimuth");
+		RestError_x401(AlpacaResp, res, "Invalid azimuth");
 		return;
 	}
 
@@ -1315,18 +1210,18 @@ void doSyncAzimuth(Request &req, Response &res)
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
 	if(!FormData["azimuth"].is<double>()) {
-		AlpacaError_x401(AlpacaResp, res, "Invalid azimuth");
+		RestError_x401(AlpacaResp, res, "Invalid azimuth");
 		return;
 	}
 
 	dNewPos = FormData["azimuth"];
 	if(dNewPos<0 || dNewPos > 360) {
-		AlpacaError_x401(AlpacaResp, res, "Invalid Azimuth");
+		RestError_x401(AlpacaResp, res, "Invalid Azimuth");
 		return;
 	}
 
@@ -1372,12 +1267,12 @@ void setSwitchConnected(Request &req, Response &res)
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
 	if(!FormData["connected"].is<bool>()) {
-		AlpacaError_x401(AlpacaResp, res, "Invalid parameters, missing 'Connected'");
+		RestError_x401(AlpacaResp, res, "Invalid parameters, missing 'Connected'");
 		return;
 	}
 
@@ -1406,7 +1301,7 @@ void switchConnect(Request &req, Response &res)
 	res.set("Content-Type", "application/json");
 
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -1437,7 +1332,7 @@ void switchConnecting(Request &req, Response &res)
 	res.set("Content-Type", "application/json");
 
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -1549,7 +1444,7 @@ void switchDisconnect(Request &req, Response &res)
 	res.set("Content-Type", "application/json");
 
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -1723,7 +1618,7 @@ void getSwitch(Request &req, Response &res)
 	}
 
 	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -1754,7 +1649,7 @@ void getSwitch(Request &req, Response &res)
 			AlpacaResp["Value"] = bOn;
 			break;
 		default:
-			AlpacaError_x401(AlpacaResp, res);
+			RestError_x401(AlpacaResp, res);
 			return;
 	}
 
@@ -1787,7 +1682,7 @@ void getSwitchDescription(Request &req, Response &res)
 	}
 
 	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -1808,7 +1703,7 @@ void getSwitchDescription(Request &req, Response &res)
 			AlpacaResp["Value"] = "USB-C power port";
 			break;
 		default:
-			AlpacaError_x401(AlpacaResp, res);
+			RestError_x401(AlpacaResp, res);
 			return;
 	}
 
@@ -1842,7 +1737,7 @@ void getSwitchName(Request &req, Response &res)
 	}
 
 	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -1873,7 +1768,7 @@ void getSwitchName(Request &req, Response &res)
 			AlpacaResp["Value"] = sName;
 			break;
 		default:
-			AlpacaError_x401(AlpacaResp, res);
+			RestError_x401(AlpacaResp, res);
 			return;
 	}
 
@@ -1908,7 +1803,7 @@ void getSwitchValue(Request &req, Response &res)
 	}
 
 	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -1944,7 +1839,7 @@ void getSwitchValue(Request &req, Response &res)
 			}
 			break;
 		default:
-			AlpacaError_x401(AlpacaResp, res);
+			RestError_x401(AlpacaResp, res);
 			return;
 	}
 
@@ -1977,7 +1872,7 @@ void minSwitchValue(Request &req, Response &res)
 	}
 
 	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -1998,7 +1893,7 @@ void minSwitchValue(Request &req, Response &res)
 			AlpacaResp["Value"] = 0.0;
 			break;
 		default:
-			AlpacaError_x401(AlpacaResp, res);
+			RestError_x401(AlpacaResp, res);
 			return;
 	}
 
@@ -2031,7 +1926,7 @@ void maxSwitchValue(Request &req, Response &res)
 	}
 
 	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -2052,7 +1947,7 @@ void maxSwitchValue(Request &req, Response &res)
 			AlpacaResp["Value"] = 1.0;
 			break;
 		default:
-			AlpacaError_x401(AlpacaResp, res);
+			RestError_x401(AlpacaResp, res);
 			return;
 	}
 
@@ -2075,22 +1970,22 @@ void setSwitch(Request &req, Response &res)
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
 	if(!FormData["id"].is<int>()) {
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
 	switchId = FormData["id"];
 	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 	if(!FormData["State"].is<bool>()) {
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -2117,7 +2012,7 @@ void setSwitch(Request &req, Response &res)
 				podPowerController->setPortState(USB_C, bState);
 			break;
 		default:
-			AlpacaError_x401(AlpacaResp, res);
+			RestError_x401(AlpacaResp, res);
 			return;
 	}
 
@@ -2141,22 +2036,22 @@ void setSwitchName(Request &req, Response &res)
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
 	if(!FormData["id"].is<int>()) {
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
 	switchId = FormData["id"];
 	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 	if(!FormData["Name"].is<String>()) {
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 	sName = String(FormData["Name"]);
@@ -2182,7 +2077,7 @@ void setSwitchName(Request &req, Response &res)
 				globalPodConfig->setAlpacaPortName(USB_C, sName);
 			break;
 		default:
-			AlpacaError_x401(AlpacaResp, res);
+			RestError_x401(AlpacaResp, res);
 			return;
 	}
 
@@ -2206,23 +2101,23 @@ void setSwitchValue(Request &req, Response &res)
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
 	if(!FormData["id"].is<int>()) {
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
 	switchId = FormData["id"];
 	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
 	if(!FormData["Value"].is<double>()) {
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -2231,7 +2126,7 @@ void setSwitchValue(Request &req, Response &res)
 	switch(switchId) {
 		case 0:
 			if(nValue < 0 || nValue > 1 ) {
-				AlpacaError_x401(AlpacaResp, res);
+				RestError_x401(AlpacaResp, res);
 				return;
 			}
 			if(podPowerController)
@@ -2239,7 +2134,7 @@ void setSwitchValue(Request &req, Response &res)
 			break;
 		case 1:
 			if(nValue < 0 || nValue > 1 ) {
-				AlpacaError_x401(AlpacaResp, res);
+				RestError_x401(AlpacaResp, res);
 				return;
 			}
 			if(podPowerController)
@@ -2247,7 +2142,7 @@ void setSwitchValue(Request &req, Response &res)
 			break;
 		case 2:
 			if(nValue < 0 || nValue > 100 ) {
-				AlpacaError_x401(AlpacaResp, res);
+				RestError_x401(AlpacaResp, res);
 				return;
 			}
 			if(podPowerController)
@@ -2255,7 +2150,7 @@ void setSwitchValue(Request &req, Response &res)
 			break;
 		case 3:
 			if(nValue < 0 || nValue > 100 ) {
-				AlpacaError_x401(AlpacaResp, res);
+				RestError_x401(AlpacaResp, res);
 				return;
 			}
 			if(podPowerController)
@@ -2263,14 +2158,14 @@ void setSwitchValue(Request &req, Response &res)
 			break;
 		case 4:
 			if(nValue < 0 || nValue > 1 ) {
-				AlpacaError_x401(AlpacaResp, res);
+				RestError_x401(AlpacaResp, res);
 				return;
 			}
 			if(podPowerController)
 				podPowerController->setPortState(USB_C, int(nValue)==1?true:false);
 			break;
 		default:
-			AlpacaError_x401(AlpacaResp, res);
+			RestError_x401(AlpacaResp, res);
 			return;
 			break;
 	}
@@ -2306,7 +2201,7 @@ void switchStateChangeComplete(Request &req, Response &res)
 	}
 
 	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -2342,7 +2237,7 @@ void switchStep(Request &req, Response &res)
 	}
 
 	if(switchId<0 || switchId >= NB_MAX_SWITCH) {
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 	switch(switchId) {
@@ -2362,7 +2257,7 @@ void switchStep(Request &req, Response &res)
 			AlpacaResp["Value"] = 2;
 			break;
 		default:
-			AlpacaError_x401(AlpacaResp, res);
+			RestError_x401(AlpacaResp, res);
 			return;
 	}
 
@@ -2405,12 +2300,12 @@ void setSafetyMonitorConnected(Request &req, Response &res)
 	bParamsOk = getIDs(req, AlpacaResp, FormData);
 	res.set("Content-Type", "application/json");
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
 	if(!FormData["connected"].is<bool>()) {
-		AlpacaError_x401(AlpacaResp, res, "Invalid parameters, missing 'Connected'");
+		RestError_x401(AlpacaResp, res, "Invalid parameters, missing 'Connected'");
 		return;
 	}
 
@@ -2439,7 +2334,7 @@ void SafetyMonitorConnect(Request &req, Response &res)
 	res.set("Content-Type", "application/json");
 
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -2470,7 +2365,7 @@ void SafetyMonitorConnecting(Request &req, Response &res)
 	res.set("Content-Type", "application/json");
 
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -2537,7 +2432,7 @@ void SafetyMonitorDisconnect(Request &req, Response &res)
 	res.set("Content-Type", "application/json");
 
 	if(!bParamsOk){
-		AlpacaError_x401(AlpacaResp, res);
+		RestError_x401(AlpacaResp, res);
 		return;
 	}
 
@@ -2647,703 +2542,6 @@ void getIsSafe(Request &req, Response &res)
 	res.write((uint8_t*)(sResp.c_str()),sResp.length());
 }
 
-
-void doSetup(Request &req, Response &res)
-{
-	JsonDocument AlpacaResp;
-	JsonDocument FormData;
-	bool bParamsOk = false;
-	String sResp;
-	String sHTML;
-	res.set("Content-Type", "text/html");
-	DBPrintln("[ **********" + String(__func__) + "********** ]");
-	bParamsOk = getIDs(req, AlpacaResp, FormData);
-	sHTML = "<!DOCTYPE html>\n<html>\n";
-	sHTML += "<head>";
-	sHTML += "<title>Pulsar Imaging POD Setup</title>\n";
-	sHTML += "</head>\n";
-	sHTML += "<body>\n";
-	sHTML += "<H1>Pulsar Imaging POD Setup</H1>\n";
-
-	sHTML += "</body>\n</html>\n";
-	res.print(sHTML);
-}
-
-
-
-//
-// controller settings API
-//
-
-
-void getSerialNumber(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	String sSerialNumber;
-
-	globalPodConfig->getSerialNumber(sSerialNumber);
-
-	controllerResp["value"] = sSerialNumber;
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-
-void useDHCPState(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	bool bUseDhcp = false;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<bool>()) {
-				bUseDhcp = FormData["value"];
-				// globalPodConfig->setDHCPFlag(bUseDhcp);
-			}
-		}
-	}
-
-	// controllerResp["value"] = globalPodConfig->getDHCPFlag();
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void ipAddressValue(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<String>()) {
-				// globalPodConfig->setIPAddress(FormData["value"]);
-			}
-		}
-	}
-
-	// controllerResp["value"] = String(RotatorClass::IpAddress2String(domeEthernet.localIP()));
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void subnetMaskValue(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<String>()) {
-				// globalPodConfig->setIPSubnetMask(FormData["value"]);
-			}
-		}
-	}
-
-	// controllerResp["value"] = String(RotatorClass::IpAddress2String(domeEthernet.subnetMask()));
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void ipGatewayValue(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<String>()) {
-				// globalPodConfig->setIPGateway(FormData["value"]);
-			}
-		}
-	}
-
-	// controllerResp["value"] = String(RotatorClass::IpAddress2String(domeEthernet.gatewayIP()));
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podCalibrate(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	MotorCalibrationSteps nCalState;
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<String>()) {
-				if(FormData["value"] == "start") {
-					PodMotorController->Calibrate();
-				}
-				if(FormData["value"] == "stop") {
-					PodMotorController->Stop();
-				}
-			}
-		}
-	}
-	PodMotorController->getCalState(nCalState);
-	controllerResp["value"] = nCalState;
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void environmentData(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	float temp, hum;
-
-	if(humTempSensor && podRainSensor) {
-		humTempSensor->getTempAndHum(temp, hum);
-		controllerResp["humidity"] = hum;
-		controllerResp["temp"] = temp;
-		controllerResp["rain"] = podRainSensor->isRaining();
-	}
-	else {
-		AlpacaError_x401(controllerResp, res, "POD can't read environment sensor.");
-		return;
-	}
-
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podOpen(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-
-	PodMotorController->Open();
-	controllerResp["value"] = A_OPENING;
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podClose(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	float fParkAz;
-
-	PodMotorController->Close();
-	controllerResp["value"] = A_CLOSING;
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podState(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	PodShutterState nState;
-
-	PodMotorController->getShutterState(nState);
-	switch(nState){
-		case PS_OPEN :
-			controllerResp["value"] = A_OPEN;
-			break;
-		case PS_CLOSED :
-			controllerResp["value"] = A_CLOSED;
-			break;
-		case PS_OPENING :
-			controllerResp["value"] = A_OPENING;
-			break;
-		case PS_CLOSING :
-			controllerResp["value"] = A_CLOSING;
-			break;
-		case PS_UNKNOWN :
-			controllerResp["value"] = A_ERROR;
-			break;
-		default:
-			controllerResp["value"] = A_ERROR;
-			break;
-	}
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-
-void podDC1(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	bool bPortOn = false;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<bool>()) {
-				bPortOn = FormData["value"];
-				if(podPowerController)
-					podPowerController->setPortState(DC1, bPortOn);
-			}
-		}
-	}
-	podPowerController->getPortState(DC1, bPortOn);
-	controllerResp["value"] = bPortOn;
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podDC2(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	bool bPortOn = false;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<bool>()) {
-				bPortOn = FormData["value"];
-				if(podPowerController)
-					podPowerController->setPortState(DC2, bPortOn);
-			}
-		}
-	}
-	podPowerController->getPortState(DC2, bPortOn);
-	controllerResp["value"] = bPortOn;
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podPWM1(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<int>()) {
-				nPercent = FormData["value"];
-				if(podPowerController)
-					podPowerController->setPwmPortState(PWM1, nPercent);
-
-			}
-		}
-	}
-	podPowerController->getPwmPortState(PWM1, nPercent);
-	controllerResp["value"] = nPercent;
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podPWM2(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<int>()) {
-				nPercent = FormData["value"];
-				if(podPowerController)
-					podPowerController->setPwmPortState(PWM2, nPercent);
-
-			}
-		}
-	}
-	podPowerController->getPwmPortState(PWM2, nPercent);
-	controllerResp["value"] = nPercent;
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podUsbC(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	bool bPortOn = false;
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<bool>()) {
-				bPortOn = FormData["value"];
-				if(podPowerController)
-					podPowerController->setPortState(USB_C, bPortOn);
-			}
-		}
-	}
-	podPowerController->getPortState(USB_C, bPortOn);
-	controllerResp["value"] = bPortOn;
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podMainPower(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-	float fValue;
-
-	fValue = podPowerController->readVolts(INA260_MAIN);
-	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_MAIN);
-	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_MAIN);
-	controllerResp["watt"] = fValue;
-
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podDC1Power(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-	float fValue;
-
-	fValue = podPowerController->readVolts(INA260_DC_1);
-	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_DC_1);
-	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_DC_1);
-	controllerResp["watt"] = fValue;
-
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podDC2Power(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-	float fValue;
-
-	fValue = podPowerController->readVolts(INA260_DC_2);
-	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_DC_2);
-	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_DC_2);
-	controllerResp["watt"] = fValue;
-
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podPWM1Power(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-	float fValue;
-
-	fValue = podPowerController->readVolts(INA260_PWM1);
-	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_PWM1);
-	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_PWM1);
-	controllerResp["watt"] = fValue;
-
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podPWM2Power(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-	float fValue;
-
-	fValue = podPowerController->readVolts(INA260_PWM2);
-	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_PWM2);
-	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_PWM2);
-	controllerResp["watt"] = fValue;
-
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podBatPower(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-	float fValue;
-
-	fValue = podPowerController->readVolts(INA260_BAT);
-	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_BAT);
-	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_BAT);
-	controllerResp["watt"] = fValue;
-
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podUsbCPower(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-	float fValue;
-
-	fValue = podPowerController->readVolts(INA260_USB_C);
-	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_USB_C);
-	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_USB_C);
-	controllerResp["watt"] = fValue;
-
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podMot1Power(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-	float fValue;
-
-	fValue = podPowerController->readVolts(INA260_VMOT);
-	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_VMOT);
-	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_VMOT);
-	controllerResp["watt"] = fValue;
-
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podMot2Power(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPercent;
-	float fValue;
-
-	fValue = podPowerController->readVolts(INA260_VMOT2);
-	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_VMOT2);
-	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_VMOT2);
-	controllerResp["watt"] = fValue;
-
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void podType(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-	int nPodType;
-	Configuration podConfig;
-
-	globalPodConfig->LoadPodConfig(podConfig);
-
-	if(req.method() == Request::PUT) {
-		JsonDocument FormData;
-		formDataToJson(req, FormData);
-		if(FormData.size()==0){
-			AlpacaError_x401(controllerResp, res);
-			return;
-		}
-		else {
-			if(FormData["value"].is<int>()) {
-				nPodType = FormData["value"];
-				if(globalPodConfig)
-					podConfig.podType = nPodType;
-					globalPodConfig->savePodConfig(podConfig);
-			}
-		}
-	}
-
-	controllerResp["value"] = podConfig.podType;
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-}
-
-void RebootTask(void *)
-{
-	const TickType_t xDelay = 100 / portTICK_PERIOD_MS;
-
-	esp_wifi_stop();
-	vTaskDelay(xDelay/2);
-
-	esp_wifi_deinit();
-	vTaskDelay(xDelay/2);
-
-	ESP.restart();
-}
-
-void podReboot(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-
-	controllerResp["value"] = "Rebooting";
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-	xTaskCreatePinnedToCore(RebootTask, "Reboot", 10000, NULL, 16, NULL,  1);
-}
-
-void FactoryRebootTask(void *)
-{
-	const TickType_t xDelay = 100 / portTICK_PERIOD_MS;
-	vTaskDelay(xDelay);
-	globalPodConfig->resetAllSettings(); // this reboot the ESP
-}
-void podFactoryReset(Request &req, Response &res)
-{
-	JsonDocument controllerResp;
-	String sResp;
-
-	controllerResp["value"] = "Resseting to factory default";
-	serializeJson(controllerResp, sResp);
-	DBPrintln("sResp : " + sResp);
-
-	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());
-	xTaskCreatePinnedToCore(FactoryRebootTask, "FactoryRebootTask", 10000, NULL, 16, NULL,  1);
-}
 
 AlpacaServer::AlpacaServer(int port)
 {
@@ -3499,52 +2697,6 @@ void AlpacaServer::startServer()
 	m_AlpacaRestServer->get("/api/v1/safetymonitor/0/supportedactions", &getSupportedActions);
 	//
 	m_AlpacaRestServer->get("/api/v1/safetymonitor/0/issafe", &getIsSafe);
-
-	//
-	// adding our own endpoints for the settings and controls
-	//
-
-	m_AlpacaRestServer->use("/setup/useDHCP", &useDHCPState);
-	m_AlpacaRestServer->use("/setup/ipAddress", &ipAddressValue);
-	m_AlpacaRestServer->use("/setup/subnetMask", &subnetMaskValue);
-	m_AlpacaRestServer->use("/setup/ipGateway", &ipGatewayValue);
-
-	// m_AlpacaRestServer->use("/setup/wifiApSSID", &podHotSpotSSID);
-	// m_AlpacaRestServer->use("/setup/wifiApPassword", &podHotSpotPAssword);
-	// m_AlpacaRestServer->use("/setup/wifiApChannel", &podHotSpotChannel);
-
-	m_AlpacaRestServer->put("/setup/podCalibrate", &podCalibrate);
-	m_AlpacaRestServer->get("/setup/environmentData", &environmentData);
-
-	// shutter control
-	m_AlpacaRestServer->put("/setup/podOpen", &podOpen);
-	m_AlpacaRestServer->put("/setup/podClose", &podClose);
-	m_AlpacaRestServer->get("/setup/podState", &podState);
-
-	// Power ports control
-	m_AlpacaRestServer->use("/setup/podDC1", &podDC1);
-	m_AlpacaRestServer->use("/setup/podDC2", &podDC2);
-	m_AlpacaRestServer->use("/setup/podPWM1", &podPWM1);
-	m_AlpacaRestServer->use("/setup/podPWM2", &podPWM2);
-	m_AlpacaRestServer->use("/setup/podUsbC", &podUsbC);
-	// Power usage
-	m_AlpacaRestServer->get("/setup/podMainPower", &podMainPower);
-	m_AlpacaRestServer->get("/setup/podDC1Power", &podDC1Power);
-	m_AlpacaRestServer->get("/setup/podDC2Power", &podDC2Power);
-	m_AlpacaRestServer->get("/setup/podPWM1Power", &podPWM1Power);
-	m_AlpacaRestServer->get("/setup/podPWM2Power", &podPWM2Power);
-
-	m_AlpacaRestServer->get("/setup/podBatPower", &podBatPower);
-	m_AlpacaRestServer->get("/setup/podUsbCPower", &podUsbCPower);
-	m_AlpacaRestServer->get("/setup/podMot1Power", &podMot1Power);
-	m_AlpacaRestServer->get("/setup/podMot2Power", &podMot2Power);
-
-	m_AlpacaRestServer->use("/setup/podType", &podType);
-
-	m_AlpacaRestServer->get("/setup/serialNumber", &getSerialNumber);
-
-	m_AlpacaRestServer->put("/setup/reboot", &podReboot);
-	m_AlpacaRestServer->put("/setup/factoryReset", &podFactoryReset);
 
 	DBPrintln("m_AlpacaRestServer started");
 }

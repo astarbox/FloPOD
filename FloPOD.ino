@@ -103,7 +103,7 @@ void setup()
 
 	// create API server
 	pod_ApiServer = new PodAPIServer();
-	PodAPIServer->startServer();
+	pod_ApiServer->startServer();
 	// Start mDNS
 	MDNS.begin(podHostname.c_str());
 	MDNS.addService("http", "tcp", POD_API_PORT); // web ui and API
