@@ -17,6 +17,7 @@
 #include "powerManagement.h"
 #include "podController.h"
 #include "environment.h"
+#include "PodAPI.h"
 
 // OTA update web server
 WebServer OTA_httpServer(OTA_PORT);
@@ -29,6 +30,7 @@ IPConfig	wifiClientIpConfig;
 IPConfig	ethernetClientIpConfig;
 PowerConfig powerConfig;
 Configuration podConfiguration;
+
 
 // include Alpaca here so it gets the definition above.
 #include "AlpacaAPI.h"
@@ -99,6 +101,14 @@ void setup()
 	// create Pod controller
 	podController = new PodController();
 
+	// create API server
+	pod_ApiServer = new PodAPIServer();
+	PodAPIServer->startServer();
+	// Start mDNS
+	MDNS.begin(podHostname.c_str());
+	MDNS.addService("http", "tcp", POD_API_PORT); // web ui and API
+
+	// ***** if Alpaca is enabled (TBD) ****
 	// start Alpaca on all interfaces.
 	pod_AlpacaDiscoveryServer = new AlpacaDiscoveryServer();
 	pod_AlpacaDiscoveryServer->startServer();
@@ -109,14 +119,14 @@ void setup()
 	xTaskCreatePinnedToCore(AlpacaDiscoveryTask, "AlpacaDiscoveryTask", 10000, NULL, 12, NULL,  1); // priority 12 (between medium and high) on Core 1
 	xTaskCreatePinnedToCore(AlpacaTask, "AlpacaTask", 32768, NULL, 12, NULL,  1); // priority 12 (between medium and high) on Core 1
 
-	// Start mDNS
-	MDNS.begin(podHostname.c_str());
-	MDNS.addService("http", "tcp", 80); // web ui and Alpaca
 	DBPrintln("OTA Update server started on port " + String(OTA_PORT));
 	OTA_httpUpdater.setup(&OTA_httpServer);
 	OTA_httpServer.begin();
 	MDNS.addService("OTA_update", "tcp", OTA_PORT);
 	MDNS.addServiceTxt("OTA_update", "tcp", "url", "http://" + podHostname + ".local:" + String(OTA_PORT) + "/update");
+	MDNS.addService("alpaca", "tcp", ALPACA_SERVER_PORT);
+	MDNS.addServiceTxt("alpaca", "tcp", "url", "http://" + podHostname + ".local:" + String(ALPACA_SERVER_PORT));
+
 }
 
 // core 1 main loop, wait for firmware upgrade

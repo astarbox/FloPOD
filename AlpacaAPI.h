@@ -15,7 +15,7 @@
 #include "podController.h"
 
 #define ALPACA_DISCOVERY_PORT 32227
-#define ALPACA_SERVER_PORT 80
+#define ALPACA_SERVER_PORT 8088
 #define ALPACA_VAR_BUF_LEN 256
 #define ALPACA_OK 0
 #define DISCOVERY_ERROR -1
