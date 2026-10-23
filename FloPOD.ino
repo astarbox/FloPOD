@@ -47,8 +47,6 @@ volatile bool bMagnetTriggered = false;
 void MotorTask(void *);
 void PowerTask(void *);
 void EnvTask(void *);
-void AlpacaDiscoveryTask(void *);
-void AlpacaTask(void *);
 
 // network config functions
 bool initEthernet();
@@ -110,14 +108,8 @@ void setup()
 
 	// ***** if Alpaca is enabled (TBD) ****
 	// start Alpaca on all interfaces.
-	pod_AlpacaDiscoveryServer = new AlpacaDiscoveryServer();
-	pod_AlpacaDiscoveryServer->startServer();
-	pod_AlpacaServer = new AlpacaServer();
-	pod_AlpacaServer->startServer();
+	startAlpaca(xHandleAlpacaDiscovery, xHandleAlpacaDApi);
 
-	// create Alpaca tasks
-	xTaskCreatePinnedToCore(AlpacaDiscoveryTask, "AlpacaDiscoveryTask", 10000, NULL, 12, NULL,  1); // priority 12 (between medium and high) on Core 1
-	xTaskCreatePinnedToCore(AlpacaTask, "AlpacaTask", 32768, NULL, 12, NULL,  1); // priority 12 (between medium and high) on Core 1
 
 	DBPrintln("OTA Update server started on port " + String(OTA_PORT));
 	OTA_httpUpdater.setup(&OTA_httpServer);
@@ -139,27 +131,7 @@ void loop()
 }
 
 
-void AlpacaDiscoveryTask(void *)
-{
-	const TickType_t xDelay = 50/ portTICK_PERIOD_MS; // 50ms task block to give time back
-	for(;;) {
-		pod_AlpacaDiscoveryServer->checkForRequest();
-		vTaskDelay(xDelay);
-		taskYIELD();
-	}
-}
 
-void AlpacaTask(void *)
-{
-	const TickType_t xDelay = 50/ portTICK_PERIOD_MS; // 50ms task block to give time back
-
-	for(;;) {
-		pod_AlpacaServer->checkForRequest();
-		// FreeRTOS task management
-		vTaskDelay(xDelay);
-		taskYIELD();
-	}
-}
 
 
 // core 0  task(s)

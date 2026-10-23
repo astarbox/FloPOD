@@ -38,6 +38,9 @@ volatile bool bAlpacaPodConnected = false;
 volatile bool bAlpacaSwitchConnected = false;
 volatile bool bAlpacaSafetyMonitorConnected = false;
 
+TaskHandle_t xHandleAlpacaDiscovery = NULL;
+TaskHandle_t xHandleAlpacaDApi = NULL;
+
 class AlpacaDiscoveryServer
 {
 public:
@@ -2710,5 +2713,68 @@ void AlpacaServer::checkForRequest()
 		m_AlpacaRestServer->process(&client);
 		client.stop();
 		nTransactionID++;
+	}
+}
+
+
+void AlpacaDiscoveryTask(void *)
+{
+	const TickType_t xDelay = 50/ portTICK_PERIOD_MS; // 50ms task block to give time back
+	for(;;) {
+		pod_AlpacaDiscoveryServer->checkForRequest();
+		vTaskDelay(xDelay);
+		taskYIELD();
+	}
+}
+
+void AlpacaTask(void *)
+{
+	const TickType_t xDelay = 50/ portTICK_PERIOD_MS; // 50ms task block to give time back
+
+	for(;;) {
+		pod_AlpacaServer->checkForRequest();
+		// FreeRTOS task management
+		vTaskDelay(xDelay);
+		taskYIELD();
+	}
+}
+
+void startAlpaca(TaskHandle_t &xHandleDiscover, TaskHandle_t &xHandleDApi)
+{
+	BaseType_t resDisc, resApi;
+
+	// create Alpaca tasks
+	resDisc =  xTaskCreatePinnedToCore(AlpacaDiscoveryTask, "AlpacaDiscoveryTask", 10000, NULL, 12, &xHandleDiscover,  1); // priority 12 (between medium and high) on Core 1
+
+	if(resDisc != pdPASS) {
+		xHandleDiscover = NULL;
+		return;
+	}
+	else {
+		pod_AlpacaDiscoveryServer = new AlpacaDiscoveryServer();
+		pod_AlpacaDiscoveryServer->startServer();
+	}
+
+	resApi =  xTaskCreatePinnedToCore(AlpacaTask, "AlpacaTask", 32768, NULL, 12, &xHandleDApi,  1); // priority 12 (between medium and high) on Core 1
+	if(resApi != pdPASS) {
+		xHandleDApi = NULL;
+		vTaskDelete(xHandleDiscover);
+		xHandleDiscover = NULL;
+		return;
+	}
+	else {
+		pod_AlpacaServer = new AlpacaServer();
+		pod_AlpacaServer->startServer();
+	}
+}
+
+void stopAlpaca(TaskHandle_t xHandleDiscover, TaskHandle_t xHandleDApi)
+{
+	if( xHandleDiscover != NULL ){
+		vTaskDelete( xHandleDiscover );
+	}
+
+	if( xHandleDApi != NULL ){
+		vTaskDelete( xHandleDApi );
 	}
 }
