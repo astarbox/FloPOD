@@ -872,6 +872,41 @@ paths:
       tags:
       - POD management
 
+  /setup/alpacaState:
+    get:
+      summary: Get the POD Alpaca server state
+      description: 'Retrieve the POD Alpaca server state.'
+      operationId: getAlpacaEnabled
+      responses:
+        '200':
+          description: Alpaca state successfully retrieved
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD management
+    put:
+      summary: Set the POD Alpaca server state
+      description: 'Set the POD Alpaca server state.'
+      operationId: setAlpacaEnabled
+      responses:
+        '200':
+          description: Alpaca server state successfully set
+        '400':
+          $ref: '#/components/responses/Response400'
+      tags:
+      - POD management
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                value:
+                  type: boolean
+              required:
+              - value
+
 components:
   schemas:
     ErrorCode:

@@ -835,8 +835,10 @@ void PodAPIServer::startServer()
 	m_ApiRestServer = new Application();
 	DBPrintln("PodAPIServer starting");
 	DBPrintln("PodAPIServer Pod UUID : " + String(m_ApiServerUUID.toCharArray()));
-	// check if we're connected as client, if not, use AP IP
+
 	mRestServer->begin();
+
+	// adding auth middleware
 	m_ApiRestServer->header("Authorization", m_AuthBuffer, AUTH_BUFFER_SIZE);
   	m_ApiRestServer->use(&auth);
 

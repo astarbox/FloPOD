@@ -131,8 +131,6 @@ void loop()
 
 
 
-
-
 // core 0  task(s)
 
 void MotorTask(void *)
@@ -162,7 +160,7 @@ void MotorTask(void *)
 		}
 		// run motor if needed
 		podController->Run();
-		// FreeRTOS task management
+
 		vTaskDelay(xDelay);
 		taskYIELD();
 	}
@@ -188,7 +186,7 @@ void PowerTask(void *)
 	}
 
 	for(;;) {
-		// do a whole lot of nothing
+		// Check for over current alarm
 		if(bOcTriggered) {
 			bOcTriggered = false;
 			chackAllDc();
@@ -208,7 +206,7 @@ void PowerTask(void *)
 				podController->Stop();
 			}
 		}
-		// FreeRTOS task management
+
 		vTaskDelay(xDelay);
 		taskYIELD();
 	}
