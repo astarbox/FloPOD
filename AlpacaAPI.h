@@ -1,3 +1,4 @@
+#include "mdns.h"
 // Alpaca API functions
 //
 //  Created by Rodolphe Pineau on 2024/04/16
@@ -38,8 +39,6 @@ volatile bool bAlpacaPodConnected = false;
 volatile bool bAlpacaSwitchConnected = false;
 volatile bool bAlpacaSafetyMonitorConnected = false;
 
-TaskHandle_t xHandleAlpacaDiscovery = NULL;
-TaskHandle_t xHandleAlpacaDApi = NULL;
 
 class AlpacaDiscoveryServer
 {
@@ -2716,7 +2715,6 @@ void AlpacaServer::checkForRequest()
 	}
 }
 
-
 void AlpacaDiscoveryTask(void *)
 {
 	const TickType_t xDelay = 50/ portTICK_PERIOD_MS; // 50ms task block to give time back
@@ -2748,6 +2746,7 @@ void startAlpaca(TaskHandle_t &xHandleDiscover, TaskHandle_t &xHandleDApi)
 
 	if(resDisc != pdPASS) {
 		xHandleDiscover = NULL;
+		xHandleDApi = NULL;
 		return;
 	}
 	else {
@@ -2766,15 +2765,24 @@ void startAlpaca(TaskHandle_t &xHandleDiscover, TaskHandle_t &xHandleDApi)
 		pod_AlpacaServer = new AlpacaServer();
 		pod_AlpacaServer->startServer();
 	}
+
+	MDNS.addService("alpaca", "tcp", ALPACA_SERVER_PORT);
+	MDNS.addServiceTxt("alpaca", "tcp", "url", "http://" + podHostname + ".local:" + String(ALPACA_SERVER_PORT));
+
 }
 
 void stopAlpaca(TaskHandle_t xHandleDiscover, TaskHandle_t xHandleDApi)
 {
 	if( xHandleDiscover != NULL ){
-		vTaskDelete( xHandleDiscover );
+		vTaskDelete(xHandleDiscover);
 	}
 
 	if( xHandleDApi != NULL ){
-		vTaskDelete( xHandleDApi );
+		vTaskDelete(xHandleDApi);
 	}
+
+	xHandleDiscover = NULL;
+	xHandleDApi = NULL;
+
+	mdns_service_remove("alpaca", "tcp");
 }

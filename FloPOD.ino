@@ -108,7 +108,8 @@ void setup()
 
 	// ***** if Alpaca is enabled (TBD) ****
 	// start Alpaca on all interfaces.
-	startAlpaca(xHandleAlpacaDiscovery, xHandleAlpacaDApi);
+	if(podConfiguration.alpacaEnabled)
+		startAlpaca(xHandleAlpacaDiscovery, xHandleAlpacaDApi);
 
 
 	DBPrintln("OTA Update server started on port " + String(OTA_PORT));
@@ -116,8 +117,6 @@ void setup()
 	OTA_httpServer.begin();
 	MDNS.addService("OTA_update", "tcp", OTA_PORT);
 	MDNS.addServiceTxt("OTA_update", "tcp", "url", "http://" + podHostname + ".local:" + String(OTA_PORT) + "/update");
-	MDNS.addService("alpaca", "tcp", ALPACA_SERVER_PORT);
-	MDNS.addServiceTxt("alpaca", "tcp", "url", "http://" + podHostname + ".local:" + String(ALPACA_SERVER_PORT));
 
 }
 

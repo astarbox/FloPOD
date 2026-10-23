@@ -8,6 +8,14 @@
 
 #define API_VAR_BUF_LEN 256
 enum RestShutterStates {A_OPEN=0, A_CLOSED, A_OPENING, A_CLOSING, A_ERROR};
+TaskHandle_t xHandleAlpacaDiscovery = NULL;
+TaskHandle_t xHandleAlpacaDApi = NULL;
+
+void AlpacaDiscoveryTask(void *);
+void AlpacaTask(void *);
+void startAlpaca(TaskHandle_t &xHandleDiscover, TaskHandle_t &xHandleDApi);
+void stopAlpaca(TaskHandle_t xHandleDiscover, TaskHandle_t xHandleDApi);
+
 
 void RestError_x400(JsonDocument RestReso, Response &res)
 {

@@ -136,6 +136,7 @@ typedef struct PodConfiguration {
 	float			closedPos;
 	byte			serialNum[6];
 	int				podType;
+	bool			alpacaEnabled;
 } Configuration;
 
 //power port config
@@ -326,6 +327,7 @@ void PodConfig::LoadPodConfig(Configuration &podConfig)
 	podConfig.closedPos = m_preferences.getFloat("closedPos", 90);
 	podConfig.podType = m_preferences.getInt("podType", POD_60);
 	getSerialNumberRaw(podConfig.serialNum);
+	podConfig.alpacaEnabled = m_preferences.getBool("alpacaOn", false);
 	m_preferences.end();
 
 }
@@ -336,6 +338,7 @@ void PodConfig::savePodConfig(Configuration podConfig)
 	m_preferences.putFloat("openPos", podConfig.openPos);
 	m_preferences.putFloat("closedPos", podConfig.closedPos);
 	m_preferences.putInt("podType", podConfig.podType);
+	m_preferences.putBool("alpacaOn", podConfig.alpacaEnabled);
 	m_preferences.end();
 }
 

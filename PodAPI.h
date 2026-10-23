@@ -12,18 +12,22 @@
 // Alpaca REST server
 #include <UUID.h>
 #include <aWOT.h>
+#include <mbedtls/base64.h>
+#include <vector>
 
 #include "ApiCommon.h"
 #include "podController.h"
 
 #define POD_API_PORT 80
-
+#define AUTH_BUFFER_SIZE 200
 class PodAPIServer
 {
 public :
 	PodAPIServer(int port=POD_API_PORT);
 	void startServer();
 	void checkForRequest();
+	char m_AuthBuffer[AUTH_BUFFER_SIZE];
+
 private :
 	NetworkServer *mRestServer;
 	Application  *m_ApiRestServer;
@@ -47,10 +51,69 @@ PodAPIServer::PodAPIServer(int port)
 	m_ApiServerUUID.generate();
 }
 
-//
-// controller settings API
-//
+bool str_iseq(const char *s1, const char *s2)
+{
+  int    m = 0;
+  size_t i = 0;
+  size_t j = 0;
+  size_t k = 0;
 
+  if (s1 == NULL || s2 == NULL) {
+    return false;
+  }
+  while (true) {
+    m |= s1[i] ^ s2[j];
+    if (s1[i] == '\0') {
+      break;
+    }
+    i++;
+    if (s2[j] != '\0') {
+      j++;
+    }
+    if (s2[j] == '\0') {
+      k++;
+    }
+  }
+  return m == 0;
+}
+
+std::string encode_base64(std::vector<uint8_t>& data)
+{
+	size_t outputLength;
+	mbedtls_base64_encode(nullptr, 0, &outputLength, (unsigned char*)data.data(), data.size());
+
+	std::vector<uint8_t> encoded(outputLength);
+	mbedtls_base64_encode(encoded.data(), outputLength, &outputLength, (unsigned char*)data.data(), data.size());
+
+	std::string rst((char*)encoded.data(), outputLength);
+	return rst;
+}
+
+String encodeBase64(String plainData)
+{
+	size_t outputLength;
+
+	std::string stdStr(plainData.c_str(), plainData.length());
+	std::vector<uint8_t> encodedData(stdStr.begin(), stdStr.end());
+	
+	encode_base64(encodedData);
+
+    // Convert to Arduino String
+    String encodeString(reinterpret_cast<const char*>(encodedData.data()), encodedData.size());
+	return encodeString;
+}
+
+void auth(Request &req, Response &res) {
+	char * authHeader = req.get("Authorization");
+	String plainTextCred = "login:password"; // Replace with configured username and password
+	String encodedCred  = encodeBase64(plainTextCred);
+	String encodedAuth = "Basic " + encodedCred;
+	if (!str_iseq(authHeader, encodedAuth.c_str())) { 
+		res.set("WWW-Authenticate", "Basic realm=\"Secret Area\"");
+		res.sendStatus(401);
+		res.end();
+	}
+}
 
 void getSerialNumber(Request &req, Response &res)
 {
@@ -659,9 +722,10 @@ void podType(Request &req, Response &res)
 		else {
 			if(FormData["value"].is<int>()) {
 				nPodType = FormData["value"];
-				if(globalPodConfig)
+				if(globalPodConfig) {
 					podConfig.podType = nPodType;
 					globalPodConfig->savePodConfig(podConfig);
+				}
 			}
 		}
 	}
@@ -707,6 +771,7 @@ void FactoryRebootTask(void *)
 	vTaskDelay(xDelay);
 	globalPodConfig->resetAllSettings(); // this reboot the ESP
 }
+
 void podFactoryReset(Request &req, Response &res)
 {
 	JsonDocument controllerResp;
@@ -721,6 +786,49 @@ void podFactoryReset(Request &req, Response &res)
 	xTaskCreatePinnedToCore(FactoryRebootTask, "FactoryRebootTask", 10000, NULL, 16, NULL,  1);
 }
 
+void podAlpacaState(Request &req, Response &res)
+{
+	JsonDocument controllerResp;
+	String sResp;
+	bool bAlpacaState;
+	Configuration podConfig;
+
+	globalPodConfig->LoadPodConfig(podConfig);
+
+	if(req.method() == Request::PUT) {
+		JsonDocument FormData;
+		formDataToJson(req, FormData);
+		if(FormData.size()==0){
+			RestError_x401(controllerResp, res);
+			return;
+		}
+		else {
+			if(FormData["value"].is<bool>()) {
+				bAlpacaState = FormData["value"];
+				if(globalPodConfig) {
+					podConfig.alpacaEnabled = bAlpacaState;
+					globalPodConfig->savePodConfig(podConfig);
+				}
+				if(bAlpacaState) {
+					if(!xHandleAlpacaDiscovery && !xHandleAlpacaDApi)
+						startAlpaca(xHandleAlpacaDiscovery, xHandleAlpacaDApi);
+				}
+				else {
+					stopAlpaca(xHandleAlpacaDiscovery, xHandleAlpacaDApi);
+				}
+
+			}
+		}
+	}
+
+	controllerResp["value"] = podConfig.alpacaEnabled;
+	serializeJson(controllerResp, sResp);
+	DBPrintln("sResp : " + sResp);
+
+	res.set("Content-Type", "application/json");
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());	
+}
+
 void PodAPIServer::startServer()
 {
 	mRestServer = new NetworkServer(m_nRestPort);
@@ -729,6 +837,9 @@ void PodAPIServer::startServer()
 	DBPrintln("PodAPIServer Pod UUID : " + String(m_ApiServerUUID.toCharArray()));
 	// check if we're connected as client, if not, use AP IP
 	mRestServer->begin();
+	m_ApiRestServer->header("Authorization", m_AuthBuffer, AUTH_BUFFER_SIZE);
+  	m_ApiRestServer->use(&auth);
+
 	DBPrintln("m_ApiRestServer mapping endpoints");
 	m_ApiRestServer->use("/", &doSetup);
 	m_ApiRestServer->use("/setup", &doSetup);
@@ -778,6 +889,8 @@ void PodAPIServer::startServer()
 
 	m_ApiRestServer->put("/setup/reboot", &podReboot);
 	m_ApiRestServer->put("/setup/factoryReset", &podFactoryReset);
+
+	m_ApiRestServer->use("/setup/alpacaState", &podAlpacaState);
 
 	DBPrintln("m_ApiRestServer started");
 }
