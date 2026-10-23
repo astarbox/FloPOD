@@ -743,7 +743,7 @@ void PodAPIServer::startServer()
 	m_ApiRestServer->use("/setup/ipGateway", &ipGatewayValue);
 
 	// m_ApiRestServer->use("/setup/wifiApSSID", &podHotSpotSSID);
-	// m_ApiRestServer->use("/setup/wifiApPassword", &podHotSpotPAssword);
+	// m_ApiRestServer->use("/setup/wifiApPassword", &podHotSpotPassword);
 	// m_ApiRestServer->use("/setup/wifiApChannel", &podHotSpotChannel);
 
 	m_ApiRestServer->put("/setup/podCalibrate", &podCalibrate);
