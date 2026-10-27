@@ -203,6 +203,9 @@ public:
 	void getAlpacaPortName(int nPort, String &sName);
 	void resetAllSettings();
 
+	String getDefaultName(String sPrefix="ImagingPod-");
+	String getDefaultPassword();
+
 private:
 	Preferences m_preferences;
 };
@@ -288,9 +291,10 @@ void PodConfig::saveIpConfig(IPConfig ipClientConfig)
 
 void PodConfig::LoadApConfig(WIFIConfig &wifiApConfig)
 {
+	String defaultPW = getDefaultPassword();
 	m_preferences.begin("PodConfig", false);
 	wifiApConfig.sSSID =  m_preferences.getString("APSSID","ImagingPod");
-	wifiApConfig.sPassword =  m_preferences.getString("APPassword","ImagingPod");
+	wifiApConfig.sPassword =  m_preferences.getString("APPassword", defaultPW);
 	wifiApConfig.nChannel = m_preferences.getInt("APChannel", 6);
 	m_preferences.end();
 }
@@ -399,10 +403,13 @@ void PodConfig::saveEncoderConfig(EncoderConfig encoderConfig)
 
 void PodConfig::setWifiDefault()
 {
+	String defaultPW = getDefaultPassword();
+	String defaultSSID = getDefaultName();
+
 	m_preferences.begin("PodConfig", false);
 	// AP default
-	m_preferences.putString("APSSID", "ImagingPod");
-	m_preferences.putString("APPassword","ImagingPod");
+	m_preferences.putString("APSSID", defaultSSID);
+	m_preferences.putString("APPassword", defaultPW);
 	m_preferences.putInt("APChannel",6);
 	// No STA SSID/password
 	m_preferences.remove("StaSSID");
@@ -509,6 +516,29 @@ void PodConfig::resetAllSettings()
 	m_preferences.end();
 	ESP.restart();
 }
+
+
+String PodConfig::getDefaultName(String sPrefix)
+{
+	Configuration Prefs;
+
+	LoadPodConfig(Prefs);
+
+	String defaultName = sPrefix + String(Prefs.serialNum, HEX) ;
+	return defaultName;
+}
+
+String PodConfig::getDefaultPassword()
+{
+	int defaultPW = 0;
+	String sDefaultPw;
+	byte nSerNum[7];
+	getSerialNumberRaw(nSerNum);
+	defaultPW = (nSerNum[3] << 16 + nSerNum[4] << 8 + nSerNum[5]) * 3;
+	sDefaultPw = "PW" + String(defaultPW, HEX);
+	return sDefaultPw;
+}
+
 
 
 
