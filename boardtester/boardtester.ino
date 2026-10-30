@@ -281,6 +281,7 @@ void loop()
     }
 
     //if(nbLoop == 10) {
+/*
         if(bPortOn) {
             Serial.println("Switching port Off\n");
             bPortOn = false;
@@ -291,6 +292,7 @@ void loop()
             podPowerController->setPwmPortState(PWM2PwmChannel, 0);
         }
         else {
+  */
             Serial.println("Switching port On\n");
             bPortOn = true;
             podPowerController->setPortState(USB_C, true);
@@ -298,8 +300,8 @@ void loop()
             podPowerController->setPortState(DC2, true);
             podPowerController->setPwmPortState(PWM1PwmChannel, 50);
             podPowerController->setPwmPortState(PWM2PwmChannel, 50);
-        }
-        nbLoop = 0;
+    //    }
+    //    nbLoop = 0;
     //}
 
     nbLoop++;

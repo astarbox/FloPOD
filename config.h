@@ -97,7 +97,7 @@ String podHostname;
 #define MOT2_FAULT       7  // MOT2_4 , fault, set to input
 
 // PWM port settingz
-#define PWM_FREQ 			20000
+#define PWM_FREQ 			15000 // 20000kHz is too much for the channel config we use., 15kHz is ok
 #define LEDC_TIMER_12_BIT	12
 
 // over current alarm default threshold
