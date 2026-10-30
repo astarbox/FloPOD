@@ -292,8 +292,9 @@ void PodConfig::saveIpConfig(IPConfig ipClientConfig)
 void PodConfig::LoadApConfig(WIFIConfig &wifiApConfig)
 {
 	String defaultPW = getDefaultPassword();
+	String defaultSSID = getDefaultName();
 	m_preferences.begin("PodConfig", false);
-	wifiApConfig.sSSID =  m_preferences.getString("APSSID","ImagingPod");
+	wifiApConfig.sSSID =  m_preferences.getString("APSSID", defaultSSID);
 	wifiApConfig.sPassword =  m_preferences.getString("APPassword", defaultPW);
 	wifiApConfig.nChannel = m_preferences.getInt("APChannel", 6);
 	m_preferences.end();
