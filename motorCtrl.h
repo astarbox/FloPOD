@@ -33,7 +33,11 @@ public:
 	void	getShutterState(PodShutterState &nPsState);
 	void	OverCurrentStop();
 	bool	bIsEncoderCalibrated();
-	void	getEncoderPosition(float &fDegrees);
+	void	getEncoder1Position(float &fDegrees);
+	void	getEncoder2Position(float &fDegrees);
+
+	bool	isEncoder1Present();
+	bool	isEncoder2Present();
 private:
 	void	motorMoveTo(double fPosition);
 	bool	checkBoundaries(float dTarget, float dCurentPos, float dMargin);
@@ -43,7 +47,10 @@ private:
 	MotorCalibrationSteps m_CalsState = CAL_NONE;
 	PodShutterState m_nPsState = PS_UNKNOWN;
 
-	AMS_AS5048B *m_AMS_AS5048B;
+	AMS_AS5048B *m_AMS_AS5048B_1;
+	AMS_AS5048B *m_AMS_AS5048B_2;
+	bool	m_AS5048B_1_Present = false;
+	bool	m_AS5048B_2_Present = false;
 
 	double	m_dEncoderValue;
 	double	m_dTargetPosition;
@@ -72,14 +79,30 @@ motorCtrl::motorCtrl()
 	if(globalPodConfig) {
 		globalPodConfig->LoadEncoderConfig(m_EncoderConfig);
 	}
-	m_AMS_AS5048B = new AMS_AS5048B();
-	m_AMS_AS5048B->begin();
+	m_AMS_AS5048B_1 = new AMS_AS5048B(AS5048_1_ADDRESS);
+	m_AMS_AS5048B_1->begin();
+	DBPrintln("AMS AS5048B 1 diag register = " + String(m_AMS_AS5048B_1->getDiagReg()));
+	if(m_AMS_AS5048B_1->getDiagReg() == 255) {
+		m_AS5048B_1_Present = false;
+	}
+	else
+		m_AS5048B_1_Present = true;
+
+	m_AMS_AS5048B_2 = new AMS_AS5048B(AS5048_2_ADDRESS);
+	m_AMS_AS5048B_2->begin();
+	DBPrintln("AMS AS5048B 2 diag register = " + String(m_AMS_AS5048B_2->getDiagReg()));
+	if(m_AMS_AS5048B_2->getDiagReg() == 255) {
+		m_AS5048B_2_Present = false;
+	}
+	else
+		m_AS5048B_2_Present = true;
+
 	myPID = new PID(&m_dEncoderValue, &m_dPidOutput, &m_dTargetPosition, m_dKp, m_dKi, m_dKd, DIRECT);
 	myPID->SetMode(AUTOMATIC);    // Enable PID
 	myPID->SetOutputLimits(-4095, 4095); // Limit output to -4095 to 4095 as it's the PWM ratio for 12 bits
 
 	// read encoder
-	getEncoderPosition(fInitialPos);
+	getEncoder1Position(fInitialPos);
 	// compare with open/close position
 	if(checkBoundaries(m_EncoderConfig.closeAngle, fInitialPos, 0.1)) {
 		// we're closed, do nothing
@@ -107,7 +130,7 @@ void motorCtrl::Calibrate()
 	else if (m_CalsState == CAL_FIRST_CLOSE && m_nMotorState == M_STOPPED) {
 		// we just hit the close position.
 		// store closed value of encoder
-		getEncoderPosition(m_EncoderConfig.closeAngle);
+		getEncoder1Position(m_EncoderConfig.closeAngle);
 		// open
 		m_CalsState = CAL_OPENING;
 		Open();
@@ -116,7 +139,7 @@ void motorCtrl::Calibrate()
 	else if (m_CalsState == CAL_OPENING && m_nMotorState == M_STOPPED) {
 		// we just hit the open position.
 		// store closed value of encoder
-		getEncoderPosition(m_EncoderConfig.openAngle);
+		getEncoder1Position(m_EncoderConfig.openAngle);
 		// open
 		m_CalsState = CAL_FINISH_CLOSE;
 		Open();
@@ -173,10 +196,10 @@ void motorCtrl::Run()
 	if(m_nMotorState == M_STOPPED)
 		return;
 
-	m_dEncoderValue = m_AMS_AS5048B->angleR(U_DEG);
+	m_dEncoderValue = m_AMS_AS5048B_1->angleR(U_DEG);
 	myPID->Compute();
 
-	DBPrintln("m_dTargetPosition=" + String(m_dTargetPosition) + 
+	DBPrintln("m_dTargetPosition=" + String(m_dTargetPosition) +
 						" m_dEncoderValue="   + String(m_dEncoderValue)   +
 						" m_dPidOutput="  + String(m_dPidOutput));
 
@@ -236,9 +259,24 @@ void motorCtrl::OverCurrentStop()
 }
 
 
-void motorCtrl::getEncoderPosition(float &fDegrees)
+void motorCtrl::getEncoder1Position(float &fDegrees)
 {
-	fDegrees = float(m_AMS_AS5048B->angleR(U_DEG, true));
+	fDegrees = float(m_AMS_AS5048B_1->angleR(U_DEG, true));
+}
+
+void motorCtrl::getEncoder2Position(float &fDegrees)
+{
+	fDegrees = float(m_AMS_AS5048B_2->angleR(U_DEG, true));
+}
+
+bool motorCtrl::isEncoder1Present()
+{
+	return m_AS5048B_1_Present;
+}
+
+bool motorCtrl::isEncoder2Present()
+{
+	return m_AS5048B_2_Present;
 }
 
 bool motorCtrl::bIsEncoderCalibrated()

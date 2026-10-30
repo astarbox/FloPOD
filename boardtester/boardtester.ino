@@ -258,13 +258,29 @@ void loop()
         Serial.println("No rain sensor detected");
     }
 
+    if(PodMotorController->isEncoder1Present()){
+        PodMotorController->getEncoder1Position(fDeg);
+        Serial.println("AMS encoder 1 angle : " + String(fDeg));
+        Serial.println("");
+    }
+    else {
+        Serial.println("AMS encoder 1 not present");
+        Serial.println("");
 
-    PodMotorController->getEncoderPosition(fDeg);
-    Serial.println("AMS encoder angle : " + String(fDeg));
-    Serial.println("");
+    }
 
-/*
-    if(nbLoop == 10) {
+    if(PodMotorController->isEncoder2Present()){
+        PodMotorController->getEncoder2Position(fDeg);
+        Serial.println("AMS encoder 2 angle : " + String(fDeg));
+        Serial.println("");
+    }
+    else {
+        Serial.println("AMS encoder 2 not present");
+        Serial.println("");
+
+    }
+
+    //if(nbLoop == 10) {
         if(bPortOn) {
             Serial.println("Switching port Off\n");
             bPortOn = false;
@@ -284,8 +300,8 @@ void loop()
             podPowerController->setPwmPortState(PWM2PwmChannel, 50);
         }
         nbLoop = 0;
-    }
-*/
+    //}
+
     nbLoop++;
     vTaskDelay(xDelay);
     taskYIELD();
@@ -293,6 +309,35 @@ void loop()
 
 
 #ifdef USE_ETHERNET
+void onEvent(arduino_event_id_t event, arduino_event_info_t info)
+{
+  switch (event) {
+    case ARDUINO_EVENT_ETH_START:
+      Serial.println("ETH Started");
+      //set eth hostname here
+      Serial.println("esp32-eth0");
+      break;
+    case ARDUINO_EVENT_ETH_CONNECTED:
+      Serial.println("ETH Connected");
+      break;
+    case ARDUINO_EVENT_ETH_GOT_IP:
+      Serial.println("ETH Got IP: '" + String(esp_netif_get_desc(info.got_ip.esp_netif)) +"'");
+      Serial.println(ETH);
+      break;
+    case ARDUINO_EVENT_ETH_LOST_IP:
+      Serial.println("ETH Lost IP");
+      break;
+    case ARDUINO_EVENT_ETH_DISCONNECTED:
+      Serial.println("ETH Disconnected");
+      break;
+    case ARDUINO_EVENT_ETH_STOP:
+      Serial.println("ETH Stopped");
+      break;
+    default:
+      break;
+  }
+}
+
 bool initEthernet()
 {
 	char macBuffer[20];
@@ -300,6 +345,7 @@ bool initEthernet()
 	int nTimeout = 0;
 
 	Serial.println("========== Init Ethernet ==========");
+	Network.onEvent(onEvent); // this is just for debugging
 	// resetChip(ETHERNET_RESET);
 	SPI.begin(ETH_SPI_SCK, ETH_SPI_MISO, ETH_SPI_MOSI);
 	// network configuration

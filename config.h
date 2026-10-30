@@ -46,7 +46,7 @@
 // network interfaces
 #define PodEthernet ETH
 
-#define ETHERNET_CS     5
+#define ETHERNET_CS     10
 #define ETHERNET_RESET  46
 
 #define ETH_PHY_TYPE ETH_PHY_W5500

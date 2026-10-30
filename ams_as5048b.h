@@ -56,7 +56,8 @@
 // #define USE_WIREBEGIN_ENABLED // to comment if Wire.begin() function is called in Setup() for instance. Usefull to manage one or several I2C devices in the same sketch
 
 // Default addresses for AS5048B
-#define AS5048_ADDRESS 0x40 // 0b10000 + ( A1 & A2 to GND)
+#define AS5048_1_ADDRESS 0x40 // 0b10000 + ( A1 & A2 to GND)
+#define AS5048_2_ADDRESS 0x41 // 0b10000 + ( A1 & A2 )
 #define AS5048B_PROG_REG 0x03
 #define AS5048B_ADDR_REG 0x15
 #define AS5048B_ZEROMSB_REG 0x16 //bits 0..7
@@ -91,7 +92,6 @@
 
 class AMS_AS5048B {
  public:
-	AMS_AS5048B(void);
 	AMS_AS5048B(uint8_t chipAddress);
 
 	void		begin(void); // to init the object, must be called in the setup loop
@@ -148,10 +148,6 @@ class AMS_AS5048B {
 	Constructor
 */
 /**************************************************************************/
-AMS_AS5048B::AMS_AS5048B(void) {
-	_chipAddress = AS5048_ADDRESS;
-	_debugFlag = false;
-}
 
 AMS_AS5048B::AMS_AS5048B(uint8_t chipAddress) {
 	_chipAddress = chipAddress;
