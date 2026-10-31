@@ -97,8 +97,28 @@ String podHostname;
 #define MOT2_FAULT       7  // MOT2_4 , fault, set to input
 
 // PWM port settingz
-#define PWM_FREQ 			15000 // 20000kHz is too much for the channel config we use., 15kHz is ok
+/*
+Bit resolution | Min Frequency [Hz] | Max Frequency [Hz]
+             1 |              19532 |           20039138
+             2 |               9766 |           10019569
+             3 |               4883 |            5009784
+             4 |               2442 |            2504892
+             5 |               1221 |            1252446
+             6 |                611 |             626223
+             7 |                306 |             313111
+             8 |                153 |             156555
+             9 |                 77 |              78277
+            10 |                 39 |              39138
+            11 |                 20 |              19569
+            12 |                 10 |               9784
+            13 |                  5 |               4892
+            14 |                  3 |               2446
+*/
+#define PWM_FREQ 			15000 // works up to 12 bit timer resolution. If we need to go higher we can lower the resolution
 #define LEDC_TIMER_12_BIT	12
+#define LEDC_TIMER_11_BIT	11
+#define LEDC_TIMER_10_BIT	10
+#define LEDC_TIMER_9_BIT	9
 
 // over current alarm default threshold
 #define DEFAULT_MAIN_OC	10.0
