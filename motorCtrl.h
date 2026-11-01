@@ -72,8 +72,6 @@ motorCtrl::motorCtrl()
 
 	// init dir pin and led pwm pin
 #pragma message "FIX PWM"
-	// E (3764) ledc: requested frequency 20000 and duty resolution 12 can not be achieved, try reducing freq_hz or duty_resolution. div_param=0
-	// E (3765) ledc: requested frequency 20000 and duty resolution 12 can not be achieved, try reducing freq_hz or duty_resolution. div_param=0
 
 	ledcAttachChannel(MOT1_EN, PWM_FREQ, LEDC_TIMER_12_BIT, Motor1PwmChannel);
 	ledcAttachChannel(MOT2_EN, PWM_FREQ, LEDC_TIMER_12_BIT, Motor2PwmChannel);
