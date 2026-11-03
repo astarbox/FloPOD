@@ -114,11 +114,16 @@ Bit resolution | Min Frequency [Hz] | Max Frequency [Hz]
             13 |                  5 |               4892
             14 |                  3 |               2446
 */
-#define PWM_FREQ 			15000 // works up to 12 bit timer resolution. If we need to go higher we can lower the resolution
+#define PWM_FREQ 			100 // test at 100Hz as it looks like the MOSFET can't switch at high frequency.
+#define LEDC_TIMER_14_BIT	14
+#define LEDC_TIMER_13_BIT	13
 #define LEDC_TIMER_12_BIT	12
 #define LEDC_TIMER_11_BIT	11
 #define LEDC_TIMER_10_BIT	10
 #define LEDC_TIMER_9_BIT	9
+#define LEDC_TIMER_8_BIT	8
+
+#define PWM_TIMER	LEDC_TIMER_12_BIT
 
 // over current alarm default threshold
 #define DEFAULT_MAIN_OC	10.0
@@ -127,7 +132,7 @@ Bit resolution | Min Frequency [Hz] | Max Frequency [Hz]
 #define DEFAULT_USBC_OC	 3.5
 
 
-const int MAX_DUTY_CYCLE = (int)(pow(2, LEDC_TIMER_12_BIT) - 1);
+const int MAX_DUTY_CYCLE = (int)(pow(2, PWM_TIMER) - 1);
 
 const int Motor1PwmChannel = 0;
 const int Motor2PwmChannel = 1;

@@ -65,7 +65,7 @@ void loop()
     float fDeg;
 	static TickType_t xDelay = 2000/portTICK_PERIOD_MS; // 2s
 
-
+    Serial.println("========================");
 #ifdef USE_ETHERNET
     if(ethernetPresent) {
         Serial.println("W5500 Ok.");
@@ -81,7 +81,6 @@ void loop()
         Serial.println("No W5500 detected");
     }
 #endif
-
     Serial.println("Scanning I2C bus ...");
     for(address = 8; address < 127; address++ ) {
         // This uses the return value of
@@ -119,11 +118,9 @@ void loop()
         podRainSensor = new RainSensor();
         podRainSensor->enableHeater(false); // make sure this is off or we cook the temp sensor.
     }
-
     if(PodMotorController == nullptr) {
         PodMotorController = new motorCtrl();
     }
-
     if(podPowerController -> bMainInaPresent) {
         v = podPowerController->readVolts(INA260_MAIN);
         a = podPowerController->readAmps(INA260_MAIN);
@@ -279,7 +276,6 @@ void loop()
         Serial.println("");
 
     }
-
     //if(nbLoop == 10) {
 /*
         if(bPortOn) {
@@ -293,8 +289,8 @@ void loop()
         }
         else {
   */
-            Serial.println("Switching port On\n");
-            bPortOn = true;
+            //Serial.println("Switching port On\n");
+            //bPortOn = true;
             podPowerController->setPortState(USB_C, true);
             podPowerController->setPortState(DC1, true);
             podPowerController->setPortState(DC2, true);

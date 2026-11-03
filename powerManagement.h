@@ -93,56 +93,79 @@ powerPorts::powerPorts()
 	if (!INA260_MAIN.begin()) {
 		bMainInaPresent = false;
 	}
-	else
+	else {
 		bMainInaPresent = true;
-
+		INA260_MAIN.setMode();
+	}
 	if (!INA260_DC_1.begin()) {
 		bDC1InaPresent = false;
 	}
-	else
+	else {
 		bDC1InaPresent = true;
-
+		INA260_DC_1.setMode();
+	}
 	if (!INA260_DC_2.begin()) {
 		bDC2InaPresent = false;
 	}
-	else
+	else {
 		bDC2InaPresent = true;
+		INA260_DC_2.setMode();
+	}
 
 	if (!INA260_USB_C.begin()) {
 		bUSBCInaPresent = false;
 	}
-	else
+	else {
 		bUSBCInaPresent = true;
+		INA260_USB_C.setMode();
+	}
 
 	if (!INA260_PWM1.begin()) {
 		bPWM1InaPresent = false;
 	}
-	else
+	else {
 		bPWM1InaPresent = true;
+		INA260_PWM1.setMode();
+		INA260_PWM1.setAverage(INA260_128_SAMPLES);
+		INA260_PWM1.setBusVoltageConversionTime(INA260_8300_us);
+		INA260_PWM1.setShuntCurrentConversionTime(INA260_8300_us);
+	}
 
 	if (!INA260_PWM2.begin()) {
 		bPWM2InaPresent = false;
 	}
-	else
+	else {
 		bPWM2InaPresent = true;
+		INA260_PWM2.setMode();
+		INA260_PWM2.setAverage(INA260_128_SAMPLES);
+		INA260_PWM2.setBusVoltageConversionTime(INA260_8300_us);
+		INA260_PWM1.setShuntCurrentConversionTime(INA260_8300_us);
+	}
 
 	if (!INA260_BAT.begin()) {
 		bBATInaPresent = false;
 	}
-	else
+	else {
 		bBATInaPresent = true;
+		INA260_BAT.setMode();
+	}
 
 	if (!INA260_VMOT.begin()) {
 		bVMOTInaPresent = false;
 	}
-	else
+	else {
 		bVMOTInaPresent = true;
+		INA260_VMOT.setMode();
+	}
 
 	if (!INA260_VMOT2.begin()) {
 		bVMOT2InaPresent = false;
 	}
-	else
+	else {
 		bVMOT2InaPresent = true;
+		INA260_VMOT2.setMode();
+	}
+
 
 	// set PWM pins
 	setPortToPWM(PWM1,PWM1PwmChannel);
@@ -196,7 +219,7 @@ void powerPorts::getPortState(int nPort, bool &bOn)
 bool powerPorts::setPortToPWM(int nPort, int nChannel)
 {
 	bool bOk = true;
-	bOk = ledcAttachChannel(nPort, PWM_FREQ, LEDC_TIMER_12_BIT, nChannel);
+	bOk = ledcAttachChannel(nPort, PWM_FREQ, PWM_TIMER, nChannel);
 	return bOk;
 }
 
