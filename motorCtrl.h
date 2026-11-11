@@ -70,8 +70,6 @@ motorCtrl::motorCtrl()
 	float fInitialPos;
 
 	// init dir pin and led pwm pin
-#pragma message "FIX PWM"
-
 	ledcAttachChannel(MOT1_EN, PWM_FREQ, LEDC_TIMER_12_BIT, Motor1PwmChannel);
 	ledcAttachChannel(MOT2_EN, PWM_FREQ, LEDC_TIMER_12_BIT, Motor2PwmChannel);
 	ledcWriteChannel(Motor1PwmChannel, 0); // make sure we're not moving.

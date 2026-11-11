@@ -18,7 +18,7 @@
 #include "podController.h"
 #include "environment.h"
 #include "PodAPI.h"
-#include "ioEdxpander.h"
+#include "ioExpander.h"
 
 // OTA update web server
 WebServer OTA_httpServer(OTA_PORT);
@@ -98,7 +98,7 @@ void setup()
 	// MAG_TRIG interrupt -> on IO expander, no more interrupot, need to pull
 	// attachInterrupt(MAG_TRIG, magnetHandler, FALLING);
 
-	// create object to access IO Expanders 
+	// create object to access IO Expanders
 	IoExpanders = new ioExpander();
 	// create Pod controller
 	podController = new PodController();

@@ -7,8 +7,8 @@
 #ifndef __IO_EXP__
 #define __IO_EXP__
 #include <PID_v1.h>
-#include "config.h"
 #include <TCA6408A.h>
+#include "config.h"
 
 #define IO_EXP_ADDR1    0x20
 #define IO_EXP_ADDR2    0x21
@@ -19,7 +19,7 @@
 // output
 #define LED1        1   // bit 1 for PO1
 #define LED2        2   // bit 2 for PO2
-#define HEATER1_ON  3   // bit 3 for PO3
+#define HEATER_ON   3   // bit 3 for PO3
 
 class ioExpander
 {
@@ -54,6 +54,8 @@ private:
 
     uint8_t m_reg1Cache;
     uint8_t m_reg2Cache;
+
+    SemaphoreHandle_t m_mutex;
 };
 
 
@@ -61,6 +63,8 @@ ioExpander *IoExpanders = nullptr;
 
 ioExpander::ioExpander()
 {
+    m_mutex = xSemaphoreCreateMutex();
+
     ioExp1 = new TCA6408A(IO_EXP_ADDR1);
     if (ioExp1->begin() == false) {
         m_bIoExp1Present = false;
@@ -102,18 +106,24 @@ bool ioExpander::isIoExpander2Present()
 
 bool ioExpander::checkMagSwitch1()
 {
-    uint8_t pinState;
-    // read bit 0
-    pinState = ioExp1->digitalRead1(MAGSW);
+    uint8_t pinState = 1; // not triggered, in case we can't lock the mutex
+	if(xSemaphoreTake(m_mutex, portMAX_DELAY) == pdTRUE) {
+        // read MAGSW
+        pinState = ioExp1->digitalRead1(MAGSW);
+        xSemaphoreGive(m_mutex);
+    }
     // check value
     return pinState==0;
 }
 
 bool ioExpander::checkMagSwitch2()
 {
-    uint8_t pinState;
-    // read bit 0
-    pinState = ioExp2->digitalRead1(MAGSW);
+    uint8_t pinState = 1; // not triggered, in case we can't lock the mutex
+	if(xSemaphoreTake(m_mutex, portMAX_DELAY) == pdTRUE) {
+        // read MAGSW
+        pinState = ioExp2->digitalRead1(MAGSW);
+        xSemaphoreGive(m_mutex);
+    }
     // check value
     return pinState==0;
 }
@@ -129,13 +139,20 @@ bool ioExpander::checkMagSwitches()
 
 void ioExpander::setLed1_1(bool bOn)
 {
-    ioExp1->digitalWrite1(LED1, bOn?1:0);
+    // need to deal with the timeout and retry
+	if(xSemaphoreTake(m_mutex, portMAX_DELAY) == pdTRUE) {
+        ioExp1->digitalWrite1(LED1, bOn?1:0);
+        xSemaphoreGive(m_mutex);
+    }
 }
 
 void ioExpander::setLed1_2(bool bOn)
 {
-    ioExp2->digitalWrite1(LED1, bOn?1:0);
-
+    // need to deal with the timeout and retry
+	if(xSemaphoreTake(m_mutex, portMAX_DELAY) == pdTRUE) {
+        ioExp2->digitalWrite1(LED1, bOn?1:0);
+        xSemaphoreGive(m_mutex);
+    }
 }
 
 void ioExpander::setLed1(bool bOn)
@@ -146,12 +163,20 @@ void ioExpander::setLed1(bool bOn)
 
 void ioExpander::setLed2_1(bool bOn)
 {
-    ioExp1->digitalWrite1(LED2, bOn?1:0);
+    // need to deal with the timeout and retry
+	if(xSemaphoreTake(m_mutex, portMAX_DELAY) == pdTRUE) {
+        ioExp1->digitalWrite1(LED2, bOn?1:0);
+        xSemaphoreGive(m_mutex);
+    }
 }
 
 void ioExpander::setLed2_2(bool bOn)
 {
-    ioExp2->digitalWrite1(LED2, bOn?1:0);
+    // need to deal with the timeout and retry
+	if(xSemaphoreTake(m_mutex, portMAX_DELAY) == pdTRUE) {
+        ioExp2->digitalWrite1(LED2, bOn?1:0);
+        xSemaphoreGive(m_mutex);
+    }
 }
 
 void ioExpander::setLed2(bool bOn)
@@ -163,12 +188,20 @@ void ioExpander::setLed2(bool bOn)
 
 void ioExpander::setHeater1(bool bOn)
 {
-    ioExp1->digitalWrite1(HEATER1_ON, bOn?1:0);
+    // need to deal with the timeout and retry
+	if(xSemaphoreTake(m_mutex, portMAX_DELAY) == pdTRUE) {
+    ioExp1->digitalWrite1(HEATER_ON, bOn?1:0);
+        xSemaphoreGive(m_mutex);
+    }
 }
 
 void ioExpander::setHeater2(bool bOn)
 {
-    ioExp2->digitalWrite1(HEATER1_ON, bOn?1:0);
+    // need to deal with the timeout and retry
+	if(xSemaphoreTake(m_mutex, portMAX_DELAY) == pdTRUE) {
+        ioExp2->digitalWrite1(HEATER_ON, bOn?1:0);
+        xSemaphoreGive(m_mutex);
+    }
 }
 
 void ioExpander::setHeaters(bool bOn)

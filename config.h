@@ -68,17 +68,13 @@ byte MAC_Address[6];
 String podHostname;
 
 // input
-#define MAG_TRIG        2
 #define OC_ALARM        3
 #define MAIN_OC_ALARM   20
 
 // ouput
 #define MOTOR_V_EN		7
-#define HEATER          15
 #define USB_C           16
 #define BAT_EN          17
-#define LED1            18
-#define LED2            19
 #define DC1             35
 #define DC2             36
 #define PWM1            37
@@ -259,21 +255,16 @@ PodConfig::PodConfig()
 	ledcSetClockSource(LEDC_AUTO_CLK);
 
 	// configure input pins
-	pinMode(MAG_TRIG,           INPUT_PULLUP);
 	pinMode(OC_ALARM,           INPUT_PULLUP);
 	pinMode(MAIN_OC_ALARM,      INPUT_PULLUP);
 	pinMode(MOT1_FAULT,          INPUT_PULLUP);
 	pinMode(MOT2_FAULT,          INPUT_PULLUP);
 
 	// output
-	pinMode(HEATER,     OUTPUT);
 	pinMode(USB_C,      OUTPUT);
 	pinMode(BAT_EN,     OUTPUT);
-	pinMode(LED1,       OUTPUT);
-	pinMode(LED2,       OUTPUT);
 	pinMode(DC1,        OUTPUT);
 	pinMode(DC2,        OUTPUT);
-	pinMode(LED2,       OUTPUT);
 	pinMode(PWM1,       OUTPUT);
 	pinMode(PWM2,       OUTPUT);
 	pinMode(MOT1_EN,     OUTPUT); // MOT1-1 , Motor PWM

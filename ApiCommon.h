@@ -6,6 +6,7 @@
 #ifndef __API_COMMON__
 #define __API_COMMON__
 
+
 #define API_VAR_BUF_LEN 256
 enum RestShutterStates {A_OPEN=0, A_CLOSED, A_OPENING, A_CLOSING, A_ERROR};
 TaskHandle_t xHandleAlpacaDiscovery = NULL;

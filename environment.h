@@ -7,11 +7,10 @@
 #ifndef __ENV_SENSOR__
 #define __ENV_SENSOR__
 #include <Wire.h>
-
-#include "config.h"
-
 #include <FDC2x1x.h>
 #include <SHT31.h>
+#include "config.h"
+#include "ioExpander.h"
 
 
 #define IT_S_RAINING 65 // value in pF .. for now.
