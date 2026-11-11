@@ -32,6 +32,9 @@ private:
 	float		m_fAz = 0.0f;
 	podStates 	m_nState = IDLE;
 	bool		m_isCalibrated = false;
+
+	
+
 };
 
 PodController *podController = nullptr;

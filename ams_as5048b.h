@@ -57,7 +57,7 @@
 
 // Default addresses for AS5048B
 #define AS5048_1_ADDRESS 0x40 // 0b10000 + ( A1 & A2 to GND)
-#define AS5048_2_ADDRESS 0x41 // 0b10000 + ( A1 & A2 )
+#define AS5048_2_ADDRESS 0x41 // 0b10001 + ( A1 to vdd & A2 to gnd )
 #define AS5048B_PROG_REG 0x03
 #define AS5048B_ADDR_REG 0x15
 #define AS5048B_ZEROMSB_REG 0x16 //bits 0..7

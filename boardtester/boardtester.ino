@@ -241,7 +241,7 @@ void loop()
     // Environment sensors
     if(humTempSensor->isPresent()) {
         humTempSensor->getTempAndHum(fTemperature, fHumidity);
-        Serial.printf("HDC1080 : %f degC \n %f %% \n",fTemperature,fHumidity);
+        Serial.printf("SHT31 : %f degC \n %f %% \n",fTemperature,fHumidity);
         Serial.println("");
     } else {
         Serial.println("Temperature and humidity sensor not found");

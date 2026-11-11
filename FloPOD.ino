@@ -18,6 +18,7 @@
 #include "podController.h"
 #include "environment.h"
 #include "PodAPI.h"
+#include "ioEdxpander.h"
 
 // OTA update web server
 WebServer OTA_httpServer(OTA_PORT);
@@ -72,6 +73,7 @@ void setup()
 	globalPodConfig->LoadPodConfig(podConfiguration);
 	podHostname = "ImagingPod-" + String(podConfiguration.serialNum, HEX) ;
 
+
 	// start the network stack so all server sees all interfaces.
 	Network.begin();
 #ifdef USE_ETHERNET
@@ -93,9 +95,11 @@ void setup()
 	xTaskCreatePinnedToCore(PowerTask, "PowerTask", 10000, NULL, 16, NULL,  0); // priority 16 (High) on Core 0
 	xTaskCreatePinnedToCore(EnvTask, "EnvTask", 10000, NULL, 12, NULL,  0); // priority 12 (between medium and high) on Core 0
 
-	// MAG_TRIG interrupt
-	attachInterrupt(MAG_TRIG, magnetHandler, FALLING);
+	// MAG_TRIG interrupt -> on IO expander, no more interrupot, need to pull
+	// attachInterrupt(MAG_TRIG, magnetHandler, FALLING);
 
+	// create object to access IO Expanders 
+	IoExpanders = new ioExpander();
 	// create Pod controller
 	podController = new PodController();
 
@@ -277,13 +281,13 @@ void turnAllDcOff()
 }
 
 // Interrup handlers
-
+#pragma message "FIX ME .. reed switch for magnet are on io expanders"
 void IRAM_ATTR magnetHandler()
 {
 	// re-read the pin
-	if (digitalRead(MAG_TRIG) == LOW) {
-		bMagnetTriggered = true;
-	}
+	//if (digitalRead(MAG_TRIG) == LOW) {
+	//	bMagnetTriggered = true;
+	// }
 
 }
 

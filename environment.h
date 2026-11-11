@@ -115,23 +115,23 @@ bool RainSensor::isPresent()
 
 void RainSensor::enableHeater(bool bOn)
 {
-	digitalWrite(HEATER, bOn?1:0);
+	// this is now going through the TCAL6408.
+	IoExpanders->setHeaters(bOn);
 }
 
 float RainSensor::getValue()
 {
 	unsigned long nValueOne;
 	unsigned long nValueTwo;
-	nValueOne = capacitanceSensorOne->getReading(0);
-	nValueTwo = capacitanceSensorTwo->getReading(0);
-	// convert to pF
-
+	// read and convert to pF
+	nValueOne = convertToPF(capacitanceSensorOne->getReading(0));
+	nValueTwo = convertToPF(capacitanceSensorTwo->getReading(0));
 	// return the highest value as only one of the 2 sensor might have detected rain
 	m_fLastValue = nValueOne>nValueTwo?float(nValueOne):float(nValueTwo);
 	return m_fLastValue;
 }
 
-float convertToPF(long nValue)
+float RainSensor::convertToPF(long nValue)
 {
 	float pi = 3.14159265358979323846f;
 	float lHenries = LC_INDUCTANCE * 1.0e-6f;
@@ -140,10 +140,10 @@ float convertToPF(long nValue)
 	float totalPf = totalFarads * 1.0e12f;
 	float derivedPf = totalPf - LC_CAPACITENCE;
 
-  if ( derivedPf < 0.0f) {
-    // Invalid LC parameters produced negative derived capacitance
-    return -1.0;
-  }
+	if ( derivedPf < 0.0f) {
+    	// Invalid LC parameters produced negative derived capacitance
+    	return -1.0;
+  	}
   return derivedPf;
 }
 

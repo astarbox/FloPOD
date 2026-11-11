@@ -18,7 +18,6 @@
 #include <nvs_flash.h>
 #include <esp32-hal-ledc.h>
 
-
 #define PodWiFi WiFi
 
 #define USE_ETHERNET

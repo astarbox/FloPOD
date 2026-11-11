@@ -11,7 +11,6 @@
 #include "config.h"
 #include "ams_as5048b.h"
 
-#define AS5048B_ADDR	0x41
 #define MIN_PWM_DUTY 300
 #define FORWARD	0
 #define REVERSE	1
