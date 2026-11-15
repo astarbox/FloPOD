@@ -69,7 +69,8 @@ class RainSensor
 public:
 	RainSensor();
 	~RainSensor();
-	bool isPresent();
+	bool isPresentSideOne();
+	bool isPresentSideTwo();
 	void enableHeater(bool bOn=true);
 	float getValue();
 	bool isRaining();
@@ -95,11 +96,8 @@ RainSensor::RainSensor()
 	//setup first two channels, don't stay in sleep mode, deglitch at 10MHz, internal oscillator, gain=1
 	deviceOne = capacitanceSensorOne->begin(0x3, false, FDC2x1x_DEGLITCH_10Mhz, true, FDC2x1x_GAIN_1);
 	deviceTwo = capacitanceSensorTwo->begin(0x3, false, FDC2x1x_DEGLITCH_10Mhz, true, FDC2x1x_GAIN_1);
-
-	if (deviceOne != FDC2x1x_DEVICE_INVALID)
-		m_bDevOnePresent = false;
-	if (deviceTwo != FDC2x1x_DEVICE_INVALID)
-		m_bDevTwoPresent = false;
+	m_bDevOnePresent = (deviceOne != FDC2x1x_DEVICE_INVALID);
+	m_bDevTwoPresent = (deviceTwo != FDC2x1x_DEVICE_INVALID);
 }
 
 RainSensor::~RainSensor()
@@ -107,9 +105,14 @@ RainSensor::~RainSensor()
 
 }
 
-bool RainSensor::isPresent()
+bool RainSensor::isPresentSideOne()
 {
-	return (m_bDevOnePresent|m_bDevTwoPresent);
+	return m_bDevOnePresent;
+}
+
+bool RainSensor::isPresentSideTwo()
+{
+	return m_bDevTwoPresent;
 }
 
 void RainSensor::enableHeater(bool bOn)
@@ -120,11 +123,36 @@ void RainSensor::enableHeater(bool bOn)
 
 float RainSensor::getValue()
 {
+	unsigned long nValRefOne;
+	unsigned long nValReadOne;
 	unsigned long nValueOne;
+	unsigned long nValRefTwo;
+	unsigned long nValReadTwo;
 	unsigned long nValueTwo;
-	// read and convert to pF
-	nValueOne = convertToPF(capacitanceSensorOne->getReading(0));
-	nValueTwo = convertToPF(capacitanceSensorTwo->getReading(0));
+	if(m_bDevOnePresent){
+		nValReadOne = capacitanceSensorOne->getReading(0);
+		nValRefOne = capacitanceSensorOne->getReading(1);
+		Serial.println("nValRefOne = " + String(nValRefOne));
+		Serial.println("nValReadOne = " + String(nValReadOne));
+		nValueOne = nValRefOne - nValReadOne;
+		Serial.println("nValRefOne - nValReadOne = " + String(nValueOne));
+	}
+	else {
+		nValueOne = 0;
+	}
+
+	if(m_bDevTwoPresent){
+		nValReadTwo = capacitanceSensorTwo->getReading(0);
+		nValRefTwo = capacitanceSensorTwo->getReading(1);
+		Serial.println("nValRefTwo = " + String(nValRefTwo));
+		Serial.println("nValReadTwo = " + String(nValReadTwo));
+		nValueTwo = nValRefTwo - nValReadTwo;
+		Serial.println("nValRefTwo - nValReadTwo = " + String(nValueTwo));
+	}
+	else {
+		nValueTwo = 0;
+	}
+
 	// return the highest value as only one of the 2 sensor might have detected rain
 	m_fLastValue = nValueOne>nValueTwo?float(nValueOne):float(nValueTwo);
 	return m_fLastValue;
@@ -132,16 +160,22 @@ float RainSensor::getValue()
 
 float RainSensor::convertToPF(long nValue)
 {
+	Serial.println("nValue = " + String(nValue) );
 	float pi = 3.14159265358979323846f;
-	float lHenries = LC_INDUCTANCE * 1.0e-6f;
+	float lHenries = LC_INDUCTANCE * 0.000001f;
+	Serial.println("lHenries = " + String(lHenries,18) );
 	float omega = 2.0f * pi * 10000000; // Frq is 10Mhz
+	Serial.println("omega = " + String(omega,18) );
 	float totalFarads = 1.0f / (omega * omega * lHenries);
-	float totalPf = totalFarads * 1.0e12f;
-	float derivedPf = totalPf - LC_CAPACITENCE;
+	Serial.println("totalFarads = " + String(totalFarads,18) );
+	float totalPf = totalFarads * 1.0e12;
+	Serial.println("totalPf = " + String(totalPf,10) );
+	float derivedPf = totalPf - lHenries;
+	Serial.println("derivedPf = " + String(derivedPf,10) );
 
 	if ( derivedPf < 0.0f) {
     	// Invalid LC parameters produced negative derived capacitance
-    	return -1.0;
+    	return -1.0f;
   	}
   return derivedPf;
 }

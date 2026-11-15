@@ -15,7 +15,7 @@
 
 float fTemperature = 0.0f;
 float fHumidity = 0.0f;
-int32_t	rainSensorValuePf = 0;
+int32_t	rainSensorValue = 0;
 
 volatile bool bPortOn = false;
 int nbLoop = 0;
@@ -54,6 +54,9 @@ void setup()
     podPowerController->setPwmPortState(PWM1PwmChannel, 50);
     podPowerController->setPwmPortState(PWM2PwmChannel, 50);
     bPortOn = true;
+
+	// create object to access IO Expanders
+	IoExpanders = new ioExpander();
 
 }
 
@@ -110,6 +113,20 @@ void loop()
         return;
     }
     Serial.println("");
+
+    if(IoExpanders->isIoExpander1Present()) {
+        Serial.println("TCAL6408A side 1 detected");
+    }
+    else {
+        Serial.println("TCAL6408A side 1 not found");
+    }
+    if(IoExpanders->isIoExpander2Present()) {
+        Serial.println("TCAL6408A side 2 detected");
+    }
+    else {
+        Serial.println("TCAL6408A side 2 not found");
+    }
+
     // init the sensor
     if (humTempSensor == nullptr) {
         humTempSensor = new HumTempSensor();
@@ -237,7 +254,6 @@ void loop()
         Serial.println("Motor 2 INA260 not found");
     }
     Serial.println("");
-
     // Environment sensors
     if(humTempSensor->isPresent()) {
         humTempSensor->getTempAndHum(fTemperature, fHumidity);
@@ -247,9 +263,16 @@ void loop()
         Serial.println("Temperature and humidity sensor not found");
     }
 
-    if(podRainSensor->isPresent()) {
-        rainSensorValuePf = podRainSensor->getValue();
-        Serial.println("Rain Sensor  : " + String(rainSensorValuePf) + "pF");
+    if(podRainSensor->isPresentSideOne()) {
+         Serial.println("Rain sensor side 1 detected");
+    }
+    if(podRainSensor->isPresentSideTwo()) {
+         Serial.println("Rain sensor side 2 detected");
+    }
+
+    if(podRainSensor->isPresentSideOne() || podRainSensor->isPresentSideTwo()) {
+        rainSensorValue = podRainSensor->getValue();
+        Serial.println("Rain Sensor  : " + String(rainSensorValue));
         Serial.println("");
     } else {
         Serial.println("No rain sensor detected");

@@ -87,6 +87,9 @@ void setup()
 	// start I2C
 	Wire.begin();
 
+	// create object to access IO Expanders
+	IoExpanders = new ioExpander();
+
 	// create new power controller, it will be used by the PodController
 	podPowerController = new powerPorts();
 
@@ -98,8 +101,6 @@ void setup()
 	// MAG_TRIG interrupt -> on IO expander, no more interrupot, need to pull
 	// attachInterrupt(MAG_TRIG, magnetHandler, FALLING);
 
-	// create object to access IO Expanders
-	IoExpanders = new ioExpander();
 	// create Pod controller
 	podController = new PodController();
 
@@ -227,7 +228,7 @@ void EnvTask(void *)
 		if(humTempSensor->isPresent()) {
 			humTempSensor->getTempAndHum(fTemperature, fHumidity);
 		}
-		if(podRainSensor->isPresent()) {
+		if(podRainSensor->isPresentSideOne()) {
 			rainSensorValuePf = podRainSensor->getValue();
 			if(rainSensorValuePf > IT_S_RAINING) {
 				if(podController->getShutterState() == OPEN) {

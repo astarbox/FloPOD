@@ -13,17 +13,10 @@
 #include <INA260.h>
 
 // define all INA260 addresses
-/*
-MCP3421 -> 1101000 -> 0x68
-HDC1080 -> 1000000 -> 0x40 , this will conflict with U1, U1 address need to be changed,
-					we can't have 2 I2C devices on the same address
-
-AS5048B -> 1000001 -> 0x41
-*/
 // U2  A1 = GND , A0 = SCL => 1000011 => 0x43 // DC1
 INA260 INA260_DC_1(0x43);
 
-// U3  A1 = 3v3 , A0 = GND => 1000100 => 0x44 // DC2 -> going to SHT30, will move to 0x48
+// U3  A1 = 3v3 , A0 = GND => 1001000 => 0x44 // DC2 -> going to SHT30, will move to 0x48
 INA260 INA260_DC_2(0x48);
 
 // U4  A1 = 3v3 , A0 = 3v3 => 1000101 => 0x45// PWM1
