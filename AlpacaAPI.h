@@ -64,8 +64,8 @@ private :
 	int m_nRestPort;
 };
 
-AlpacaDiscoveryServer *pod_AlpacaDiscoveryServer;
-AlpacaServer *pod_AlpacaServer;
+AlpacaDiscoveryServer *pod_AlpacaDiscoveryServer = nullptr;
+AlpacaServer *pod_AlpacaServer = nullptr;
 
 // ALPACA discovery server
 
@@ -78,11 +78,10 @@ AlpacaDiscoveryServer::AlpacaDiscoveryServer( int port)
 void AlpacaDiscoveryServer::startServer()
 {
 	discoveryServer = new NetworkUDP();
-	if(!discoveryServer) {
+	if(!discoveryServer->begin(m_ipAddress, m_UDPPort)) {
+		delete discoveryServer;
 		discoveryServer = nullptr;
-		return;
 	}
-	discoveryServer->begin(m_ipAddress, m_UDPPort);
 	DBPrintln("Alpaca discovery server started on " + IpAddress2String(m_ipAddress) + "port " + String(m_UDPPort));
 }
 

@@ -27,7 +27,7 @@ public:
 
 private:
 	bool m_bPresent = false;
-	SHT31 *m_Sensor;
+	SHT31 *m_Sensor = nullptr;
 };
 
 HumTempSensor *humTempSensor;
@@ -75,7 +75,6 @@ public:
 	float getValue();
 	bool isRaining();
 private:
-	float convertToPF(long nValue);
 	FDC2x1x *capacitanceSensorOne;
 	FDC2x1x *capacitanceSensorTwo;
 	FDC2x1x_DEVICE deviceOne;
@@ -132,10 +131,7 @@ float RainSensor::getValue()
 	if(m_bDevOnePresent){
 		nValReadOne = capacitanceSensorOne->getReading(0);
 		nValRefOne = capacitanceSensorOne->getReading(1);
-		Serial.println("nValRefOne = " + String(nValRefOne));
-		Serial.println("nValReadOne = " + String(nValReadOne));
 		nValueOne = nValRefOne - nValReadOne;
-		Serial.println("nValRefOne - nValReadOne = " + String(nValueOne));
 	}
 	else {
 		nValueOne = 0;
@@ -144,10 +140,7 @@ float RainSensor::getValue()
 	if(m_bDevTwoPresent){
 		nValReadTwo = capacitanceSensorTwo->getReading(0);
 		nValRefTwo = capacitanceSensorTwo->getReading(1);
-		Serial.println("nValRefTwo = " + String(nValRefTwo));
-		Serial.println("nValReadTwo = " + String(nValReadTwo));
 		nValueTwo = nValRefTwo - nValReadTwo;
-		Serial.println("nValRefTwo - nValReadTwo = " + String(nValueTwo));
 	}
 	else {
 		nValueTwo = 0;
@@ -156,28 +149,6 @@ float RainSensor::getValue()
 	// return the highest value as only one of the 2 sensor might have detected rain
 	m_fLastValue = nValueOne>nValueTwo?float(nValueOne):float(nValueTwo);
 	return m_fLastValue;
-}
-
-float RainSensor::convertToPF(long nValue)
-{
-	Serial.println("nValue = " + String(nValue) );
-	float pi = 3.14159265358979323846f;
-	float lHenries = LC_INDUCTANCE * 0.000001f;
-	Serial.println("lHenries = " + String(lHenries,18) );
-	float omega = 2.0f * pi * 10000000; // Frq is 10Mhz
-	Serial.println("omega = " + String(omega,18) );
-	float totalFarads = 1.0f / (omega * omega * lHenries);
-	Serial.println("totalFarads = " + String(totalFarads,18) );
-	float totalPf = totalFarads * 1.0e12;
-	Serial.println("totalPf = " + String(totalPf,10) );
-	float derivedPf = totalPf - lHenries;
-	Serial.println("derivedPf = " + String(derivedPf,10) );
-
-	if ( derivedPf < 0.0f) {
-    	// Invalid LC parameters produced negative derived capacitance
-    	return -1.0f;
-  	}
-  return derivedPf;
 }
 
 bool RainSensor::isRaining()

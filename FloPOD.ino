@@ -68,18 +68,27 @@ uint32_t last_ota_time = 0;
 void setup()
 {
 	bool bEthernetOk = false;
+#ifdef DEBUG
+	DebugPort.begin(115200);
+#endif
+	// needed for I2C
+	Wire.begin();
+
 	// configure all pins
 	globalPodConfig = new PodConfig();
 	globalPodConfig->LoadPodConfig(podConfiguration);
 	podHostname = "ImagingPod-" + String(podConfiguration.serialNum, HEX) ;
 
-
+	DBPrintln("========== SETUP ==========");
 	// start the network stack so all server sees all interfaces.
 	Network.begin();
 #ifdef USE_ETHERNET
 	// configure the Ethernet cxonnection if the W5500 is present
 	bEthernetOk = initEthernet();
+	DBPrintln("========== Ethernet done ==========");
 #endif
+
+
 	// Start local hostspot and connect to local wifi if configured and available
 	// Ionfigure wifi as client and hotspot
 	configureWiFi(true);
@@ -92,14 +101,6 @@ void setup()
 
 	// create new power controller, it will be used by the PodController
 	podPowerController = new powerPorts();
-
-	// create tasks fo core 0
-	xTaskCreatePinnedToCore(MotorTask, "MotorTask", 10000, NULL, 8, NULL,  0); // priority 8 (medium) on Core 0
-	xTaskCreatePinnedToCore(PowerTask, "PowerTask", 10000, NULL, 16, NULL,  0); // priority 16 (High) on Core 0
-	xTaskCreatePinnedToCore(EnvTask, "EnvTask", 10000, NULL, 12, NULL,  0); // priority 12 (between medium and high) on Core 0
-
-	// MAG_TRIG interrupt -> on IO expander, no more interrupot, need to pull
-	// attachInterrupt(MAG_TRIG, magnetHandler, FALLING);
 
 	// create Pod controller
 	podController = new PodController();
@@ -122,6 +123,11 @@ void setup()
 	OTA_httpServer.begin();
 	MDNS.addService("OTA_update", "tcp", OTA_PORT);
 	MDNS.addServiceTxt("OTA_update", "tcp", "url", "http://" + podHostname + ".local:" + String(OTA_PORT) + "/update");
+
+	// create tasks fo core 0
+	xTaskCreatePinnedToCore(MotorTask, "MotorTask", 10000, NULL, 8, NULL,  0); // priority 8 (medium) on Core 0
+	xTaskCreatePinnedToCore(PowerTask, "PowerTask", 10000, NULL, 16, NULL,  0); // priority 16 (High) on Core 0
+	xTaskCreatePinnedToCore(EnvTask, "EnvTask", 10000, NULL, 12, NULL,  0); // priority 12 (between medium and high) on Core 0
 
 }
 
@@ -282,15 +288,6 @@ void turnAllDcOff()
 }
 
 // Interrup handlers
-#pragma message "FIX ME .. reed switch for magnet are on io expanders"
-void IRAM_ATTR magnetHandler()
-{
-	// re-read the pin
-	//if (digitalRead(MAG_TRIG) == LOW) {
-	//	bMagnetTriggered = true;
-	// }
-
-}
 
 void IRAM_ATTR overCurrentAlarm()
 {
@@ -344,7 +341,7 @@ void configureWiFi(bool bDualMode)
 
 	if(bDualMode) {
 		// connect to local WiFi if configured
-		if(wifiClientConfig.sSSID.length() && wifiApConfig.sSSID != "NOT_CONFIGURED" ) {
+		if(wifiClientConfig.sSSID.length() && wifiClientConfig.sSSID != ("NOT_CONFIGURED")) {
 			PodWiFi.begin(wifiClientConfig.sSSID.c_str(), wifiClientConfig.sPassword.c_str());
 			while (PodWiFi.status() != WL_CONNECTED) {
 				DBPrintln("Waiting for WiFi");
@@ -363,6 +360,35 @@ void configureWiFi(bool bDualMode)
 }
 
 #ifdef USE_ETHERNET
+void onEvent(arduino_event_id_t event, arduino_event_info_t info)
+{
+  switch (event) {
+    case ARDUINO_EVENT_ETH_START:
+      DBPrintln("ETH Started");
+      //set eth hostname here
+      DBPrintln("esp32-eth0");
+      break;
+    case ARDUINO_EVENT_ETH_CONNECTED:
+      DBPrintln("ETH Connected");
+      break;
+    case ARDUINO_EVENT_ETH_GOT_IP:
+      DBPrintln("ETH Got IP: '" + String(esp_netif_get_desc(info.got_ip.esp_netif)) +"'");
+      DBPrintln(ETH);
+      break;
+    case ARDUINO_EVENT_ETH_LOST_IP:
+      DBPrintln("ETH Lost IP");
+      break;
+    case ARDUINO_EVENT_ETH_DISCONNECTED:
+      DBPrintln("ETH Disconnected");
+      break;
+    case ARDUINO_EVENT_ETH_STOP:
+      DBPrintln("ETH Stopped");
+      break;
+    default:
+      break;
+  }
+}
+
 bool initEthernet()
 {
 	char macBuffer[20];
@@ -370,6 +396,7 @@ bool initEthernet()
 	int nTimeout = 0;
 
 	DBPrintln("========== Init Ethernet ==========");
+	Network.onEvent(onEvent); // this is just for debugging
 	SPI.begin(ETH_SPI_SCK, ETH_SPI_MISO, ETH_SPI_MOSI);
 	// network configuration
 	if(!ETH.begin(ETH_PHY_TYPE, ETH_PHY_ADDR, ETH_PHY_CS, ETH_PHY_IRQ, ETH_PHY_RST, SPI)) {

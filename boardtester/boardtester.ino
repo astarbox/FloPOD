@@ -116,12 +116,14 @@ void loop()
 
     if(IoExpanders->isIoExpander1Present()) {
         Serial.println("TCAL6408A side 1 detected");
+        Serial.println("Mag Switch side 1 = " + String(IoExpanders->checkMagSwitch1()?"On":"Off"));
     }
     else {
         Serial.println("TCAL6408A side 1 not found");
     }
     if(IoExpanders->isIoExpander2Present()) {
         Serial.println("TCAL6408A side 2 detected");
+        // Serial.println("Mag Switch side 2 = " + String(IoExpanders->checkMagSwitch2()?"On":"Off"));
     }
     else {
         Serial.println("TCAL6408A side 2 not found");

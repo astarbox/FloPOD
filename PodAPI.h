@@ -35,7 +35,7 @@ private :
 	UUID m_ApiServerUUID;
 };
 
-PodAPIServer *pod_ApiServer;
+PodAPIServer *pod_ApiServer = nullptr;
 
 PodAPIServer::PodAPIServer(int port)
 {
