@@ -30,7 +30,7 @@ public :
 
 private :
 	NetworkServer *mRestServer;
-	Application  *m_ApiRestServer;
+	awot::HttpServer  *m_ApiRestServer;
 	int m_nRestPort;
 	UUID m_ApiServerUUID;
 };
@@ -95,7 +95,7 @@ String encodeBase64(String plainData)
 
 	std::string stdStr(plainData.c_str(), plainData.length());
 	std::vector<uint8_t> encodedData(stdStr.begin(), stdStr.end());
-	
+
 	encode_base64(encodedData);
 
     // Convert to Arduino String
@@ -108,11 +108,13 @@ void auth(Request &req, Response &res) {
 	String plainTextCred = "login:password"; // Replace with configured username and password
 	String encodedCred  = encodeBase64(plainTextCred);
 	String encodedAuth = "Basic " + encodedCred;
-	if (!str_iseq(authHeader, encodedAuth.c_str())) { 
+	if (!str_iseq(authHeader, encodedAuth.c_str())) {
 		res.set("WWW-Authenticate", "Basic realm=\"Secret Area\"");
 		res.sendStatus(401);
 		res.end();
+		return;
 	}
+	req.next();
 }
 
 void getSerialNumber(Request &req, Response &res)
@@ -826,20 +828,19 @@ void podAlpacaState(Request &req, Response &res)
 	DBPrintln("sResp : " + sResp);
 
 	res.set("Content-Type", "application/json");
-	res.write((uint8_t*)(sResp.c_str()),sResp.length());	
+	res.write((uint8_t*)(sResp.c_str()),sResp.length());
 }
 
 void PodAPIServer::startServer()
 {
 	mRestServer = new NetworkServer(m_nRestPort);
-	m_ApiRestServer = new Application();
+	m_ApiRestServer = new awot::HttpServer();
 	DBPrintln("PodAPIServer starting");
 	DBPrintln("PodAPIServer Pod UUID : " + String(m_ApiServerUUID.toCharArray()));
 
 	mRestServer->begin();
 
 	// adding auth middleware
-	m_ApiRestServer->header("Authorization", m_AuthBuffer, AUTH_BUFFER_SIZE);
   	m_ApiRestServer->use(&auth);
 
 	DBPrintln("m_ApiRestServer mapping endpoints");
@@ -903,7 +904,8 @@ void PodAPIServer::checkForRequest()
 	// process incoming connections one at a time
 	NetworkClient client = mRestServer->accept();
 	if (client.connected()) {
-		m_ApiRestServer->process(&client);
+		Request::Header headers[] = {{"Authorization", m_AuthBuffer}};
+		m_ApiRestServer->process(&client, headers);
 		client.stop();
 	}
 }

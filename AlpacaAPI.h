@@ -60,7 +60,7 @@ public :
 	void checkForRequest();
 private :
 	NetworkServer *mRestServer;
-	Application  *m_AlpacaRestServer;
+	awot::HttpServer  *m_AlpacaRestServer;
 	int m_nRestPort;
 };
 
@@ -2569,7 +2569,7 @@ AlpacaServer::AlpacaServer(int port)
 void AlpacaServer::startServer()
 {
 	mRestServer = new NetworkServer(m_nRestPort);
-	m_AlpacaRestServer = new Application();
+	m_AlpacaRestServer = new awot::HttpServer();
 	DBPrintln("m_AlpacaRestServer starting");
 	DBPrintln("m_AlpacaRestServer Pod UUID : " + String(PodUuid.toCharArray()));
 	DBPrintln("m_AlpacaRestServer PodPower UUID : " + String(PodPowerUuid.toCharArray()));
@@ -2579,7 +2579,7 @@ void AlpacaServer::startServer()
 	DBPrintln("m_AlpacaRestServer mapping endpoints");
 	m_AlpacaRestServer->use("/", &doSetup);
 	m_AlpacaRestServer->use("/setup", &doSetup);
-
+	
 	// management
 	m_AlpacaRestServer->get("/management/apiversions", &getApiVersion);
 	m_AlpacaRestServer->get("/management/v1/configureddevices", &getConfiguredDevice);
