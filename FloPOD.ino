@@ -396,7 +396,7 @@ bool initEthernet()
 	int nTimeout = 0;
 
 	DBPrintln("========== Init Ethernet ==========");
-	Network.onEvent(onEvent); // this is just for debugging
+	Network.onEvent(onEvent);
 	SPI.begin(ETH_SPI_SCK, ETH_SPI_MISO, ETH_SPI_MOSI);
 	// network configuration
 	if(!ETH.begin(ETH_PHY_TYPE, ETH_PHY_ADDR, ETH_PHY_CS, ETH_PHY_IRQ, ETH_PHY_RST, SPI)) {

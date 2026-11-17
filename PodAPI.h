@@ -98,13 +98,13 @@ String encodeBase64(String plainData)
 
 	encode_base64(encodedData);
 
-    // Convert to Arduino String
-    String encodeString(reinterpret_cast<const char*>(encodedData.data()), encodedData.size());
+	// Convert to Arduino String
+	String encodeString(reinterpret_cast<const char*>(encodedData.data()), encodedData.size());
 	return encodeString;
 }
 
 void auth(Request &req, Response &res) {
-	char * authHeader = req.get("Authorization");
+	char *authHeader = req.get("Authorization");
 	String plainTextCred = "login:password"; // Replace with configured username and password
 	String encodedCred  = encodeBase64(plainTextCred);
 	String encodedAuth = "Basic " + encodedCred;
