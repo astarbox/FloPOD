@@ -1,0 +1,6 @@
+External libraries to install
+- INA260 version 0.1.3 by Rob Tillaart
+- FDC2x1x version 1.0.0 by dac1e
+- SHT31 version 0.5.3 by Rob Tillaart
+- PID version 1.2.0
+- TCA6408A_RT version 0.1.1 by Rob Tillaart

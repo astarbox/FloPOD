@@ -7,7 +7,6 @@
 // --------------------------------
 //
 
-
 #include "../config.h"
 #include "../powerManagement.h"
 #include "../environment.h"
@@ -35,8 +34,8 @@ void setup()
 
     int nTimeout;
     Wire.begin();
-    Serial.begin(115200);
-    Serial.println("\nI2C Scanner & FloPOD tester");
+    DebugPort.begin(115200);
+    DBPrintln("\nI2C Scanner & FloPOD tester");
 
 	Network.begin();
 #ifdef USE_ETHERNET
@@ -68,23 +67,23 @@ void loop()
     float fDeg;
 	static TickType_t xDelay = 2000/portTICK_PERIOD_MS; // 2s
 
-    Serial.println("========================");
+    DBPrintln("========================");
 #ifdef USE_ETHERNET
     if(ethernetPresent) {
-        Serial.println("W5500 Ok.");
+        DBPrintln("W5500 Ok.");
         if(PodEthernet.linkUp()) {
-            Serial.println("W5500 IP = " + IpAddress2String(PodEthernet.localIP()));
+            DBPrintln("W5500 IP = " + IpAddress2String(PodEthernet.localIP()));
         }
         else {
-            Serial.println("W5500 waiting for link");
+            DBPrintln("W5500 waiting for link");
 
         }
     }
     else {
-        Serial.println("No W5500 detected");
+        DBPrintln("No W5500 detected");
     }
 #endif
-    Serial.println("Scanning I2C bus ...");
+    DBPrintln("Scanning I2C bus ...");
     for(address = 8; address < 127; address++ ) {
         // This uses the return value of
         // the Write.endTransmisstion to see if
@@ -98,7 +97,7 @@ void loop()
             if (address<16)
                 Serial.print("0");
             Serial.print(address,HEX);
-            Serial.println("  !");
+            DBPrintln("  !");
             nDevices++;
         }
         vTaskDelay(10/portTICK_PERIOD_MS); // wait 10ms
@@ -107,26 +106,26 @@ void loop()
     }
 
     if (nDevices == 0) {
-        Serial.println("No I2C devices found\n");
+        DBPrintln("No I2C devices found\n");
         vTaskDelay(xDelay);
         taskYIELD();
         return;
     }
-    Serial.println("");
+    DBPrintln("");
 
     if(IoExpanders->isIoExpander1Present()) {
-        Serial.println("TCAL6408A side 1 detected");
-        Serial.println("Mag Switch side 1 = " + String(IoExpanders->checkMagSwitch1()?"On":"Off"));
+        DBPrintln("TCAL6408A side 1 detected");
+        DBPrintln("Mag Switch side 1 = " + String(IoExpanders->checkMagSwitch1()?"On":"Off"));
     }
     else {
-        Serial.println("TCAL6408A side 1 not found");
+        DBPrintln("TCAL6408A side 1 not found");
     }
     if(IoExpanders->isIoExpander2Present()) {
-        Serial.println("TCAL6408A side 2 detected");
-        // Serial.println("Mag Switch side 2 = " + String(IoExpanders->checkMagSwitch2()?"On":"Off"));
+        DBPrintln("TCAL6408A side 2 detected");
+        DBPrintln("Mag Switch side 2 = " + String(IoExpanders->checkMagSwitch2()?"On":"Off"));
     }
     else {
-        Serial.println("TCAL6408A side 2 not found");
+        DBPrintln("TCAL6408A side 2 not found");
     }
 
     // init the sensor
@@ -144,186 +143,204 @@ void loop()
         v = podPowerController->readVolts(INA260_MAIN);
         a = podPowerController->readAmps(INA260_MAIN);
         p = podPowerController->readPower(INA260_MAIN);
-        Serial.println("Main :");
-        Serial.println("\tVolts : " + String(v));
-        Serial.println("\tAmps  : " + String(a));
-        Serial.println("\tWatts : " + String(p));
+        DBPrintln("Main :");
+        DBPrintln("\tVolts : " + String(v));
+        DBPrintln("\tAmps  : " + String(a));
+        DBPrintln("\tWatts : " + String(p));
     } else {
-        Serial.println("Main input INA260 not found");
+        DBPrintln("Main input INA260 not found");
     }
-    Serial.println("");
+    DBPrintln("");
 
     if(podPowerController -> bDC1InaPresent) {
         v = podPowerController->readVolts(INA260_DC_1);
         a = podPowerController->readAmps(INA260_DC_1);
         p = podPowerController->readPower(INA260_DC_1);
-        Serial.println("DC1 :");
-        Serial.println("\tVolts : " + String(v));
-        Serial.println("\tAmps  : " + String(a));
-        Serial.println("\tWatts : " + String(p));
+        DBPrintln("DC1 :");
+        DBPrintln("\tVolts : " + String(v));
+        DBPrintln("\tAmps  : " + String(a));
+        DBPrintln("\tWatts : " + String(p));
     } else {
-        Serial.println("DC1 INA260 not found");
+        DBPrintln("DC1 INA260 not found");
     }
-    Serial.println("");
+    DBPrintln("");
 
     if(podPowerController -> bDC2InaPresent) {
         v = podPowerController->readVolts(INA260_DC_2);
         a = podPowerController->readAmps(INA260_DC_2);
         p = podPowerController->readPower(INA260_DC_2);
-        Serial.println("DC2 :");
-        Serial.println("\tVolts : " + String(v));
-        Serial.println("\tAmps  : " + String(a));
-        Serial.println("\tWatts : " + String(p));
+        DBPrintln("DC2 :");
+        DBPrintln("\tVolts : " + String(v));
+        DBPrintln("\tAmps  : " + String(a));
+        DBPrintln("\tWatts : " + String(p));
     } else {
-        Serial.println("DC2 INA260 not found");
+        DBPrintln("DC2 INA260 not found");
     }
-    Serial.println("");
+    DBPrintln("");
 
     if(podPowerController -> bPWM1InaPresent) {
         v = podPowerController->readVolts(INA260_PWM1);
         a = podPowerController->readAmps(INA260_PWM1);
         p = podPowerController->readPower(INA260_PWM1);
-        Serial.println("PWM1 :");
-        Serial.println("\tVolts : " + String(v));
-        Serial.println("\tAmps  : " + String(a));
-        Serial.println("\tWatts : " + String(p));
+        DBPrintln("PWM1 :");
+        DBPrintln("\tVolts : " + String(v));
+        DBPrintln("\tAmps  : " + String(a));
+        DBPrintln("\tWatts : " + String(p));
     } else {
-        Serial.println("PWM1 INA260 not found");
+        DBPrintln("PWM1 INA260 not found");
     }
-    Serial.println("");
+    DBPrintln("");
 
     if(podPowerController -> bPWM2InaPresent) {
         v = podPowerController->readVolts(INA260_PWM2);
         a = podPowerController->readAmps(INA260_PWM2);
         p = podPowerController->readPower(INA260_PWM2);
-        Serial.println("PWM2 :");
-        Serial.println("\tVolts : " + String(v));
-        Serial.println("\tAmps  : " + String(a));
-        Serial.println("\tWatts : " + String(p));
+        DBPrintln("PWM2 :");
+        DBPrintln("\tVolts : " + String(v));
+        DBPrintln("\tAmps  : " + String(a));
+        DBPrintln("\tWatts : " + String(p));
     } else {
-        Serial.println("PWM2 INA260 not found");
+        DBPrintln("PWM2 INA260 not found");
     }
-    Serial.println("");
+    DBPrintln("");
 
     if(podPowerController -> bUSBCInaPresent) {
         v = podPowerController->readVolts(INA260_USB_C);
         a = podPowerController->readAmps(INA260_USB_C);
         p = podPowerController->readPower(INA260_USB_C);
-        Serial.println("USB-C :");
-        Serial.println("\tVolts : " + String(v));
-        Serial.println("\tAmps  : " + String(a));
-        Serial.println("\tWatts : " + String(p));
+        DBPrintln("USB-C :");
+        DBPrintln("\tVolts : " + String(v));
+        DBPrintln("\tAmps  : " + String(a));
+        DBPrintln("\tWatts : " + String(p));
     } else {
-        Serial.println("USB-C INA260 not found");
+        DBPrintln("USB-C INA260 not found");
     }
-    Serial.println("");
+    DBPrintln("");
 
     if(podPowerController -> bBATInaPresent) {
         v = podPowerController->readVolts(INA260_BAT);
         a = podPowerController->readAmps(INA260_BAT);
         p = podPowerController->readPower(INA260_BAT);
-        Serial.println("Battery :");
-        Serial.println("\tVolts : " + String(v));
-        Serial.println("\tAmps  : " + String(a));
-        Serial.println("\tWatts : " + String(p));
+        DBPrintln("Battery :");
+        DBPrintln("\tVolts : " + String(v));
+        DBPrintln("\tAmps  : " + String(a));
+        DBPrintln("\tWatts : " + String(p));
     } else {
-        Serial.println("Battery INA260 not found");
+        DBPrintln("Battery INA260 not found");
     }
-    Serial.println("");
+    DBPrintln("");
 
     if(podPowerController -> bVMOTInaPresent) {
         v = podPowerController->readVolts(INA260_VMOT);
         a = podPowerController->readAmps(INA260_VMOT);
         p = podPowerController->readPower(INA260_VMOT);
-        Serial.println("Motor 1 :");
-        Serial.println("\tVolts : " + String(v));
-        Serial.println("\tAmps  : " + String(a));
-        Serial.println("\tWatts : " + String(p));
+        DBPrintln("Motor 1 :");
+        DBPrintln("\tVolts : " + String(v));
+        DBPrintln("\tAmps  : " + String(a));
+        DBPrintln("\tWatts : " + String(p));
     } else {
-        Serial.println("Motor 1 INA260 not found");
+        DBPrintln("Motor 1 INA260 not found");
     }
-    Serial.println("");
+    DBPrintln("");
 
     if(podPowerController -> bVMOT2InaPresent) {
         v = podPowerController->readVolts(INA260_VMOT2);
         a = podPowerController->readAmps(INA260_VMOT2);
         p = podPowerController->readPower(INA260_VMOT2);
-        Serial.println("Motor 2 :");
-        Serial.println("\tVolts : " + String(v));
-        Serial.println("\tAmps  : " + String(a));
-        Serial.println("\tWatts : " + String(p));
+        DBPrintln("Motor 2 :");
+        DBPrintln("\tVolts : " + String(v));
+        DBPrintln("\tAmps  : " + String(a));
+        DBPrintln("\tWatts : " + String(p));
     } else {
-        Serial.println("Motor 2 INA260 not found");
+        DBPrintln("Motor 2 INA260 not found");
     }
-    Serial.println("");
+    DBPrintln("");
     // Environment sensors
     if(humTempSensor->isPresent()) {
         humTempSensor->getTempAndHum(fTemperature, fHumidity);
         Serial.printf("SHT31 : %f degC \n %f %% \n",fTemperature,fHumidity);
-        Serial.println("");
+        DBPrintln("");
     } else {
-        Serial.println("Temperature and humidity sensor not found");
+        DBPrintln("Temperature and humidity sensor not found");
     }
 
     if(podRainSensor->isPresentSideOne()) {
-         Serial.println("Rain sensor side 1 detected");
+         DBPrintln("Rain sensor side 1 detected");
+    }
+    else {
+         DBPrintln("Rain sensor side 1 not found");
     }
     if(podRainSensor->isPresentSideTwo()) {
-         Serial.println("Rain sensor side 2 detected");
+         DBPrintln("Rain sensor side 2 detected");
+    }
+    else {
+         DBPrintln("Rain sensor side 2 not found");
     }
 
     if(podRainSensor->isPresentSideOne() || podRainSensor->isPresentSideTwo()) {
         rainSensorValue = podRainSensor->getValue();
-        Serial.println("Rain Sensor  : " + String(rainSensorValue));
-        Serial.println("");
+        DBPrintln("Rain Sensor  : " + String(rainSensorValue));
+        DBPrintln("");
     } else {
-        Serial.println("No rain sensor detected");
+        DBPrintln("No rain sensor detected");
     }
 
     if(PodMotorController->isEncoder1Present()){
         PodMotorController->getEncoder1Position(fDeg);
-        Serial.println("AMS encoder 1 angle : " + String(fDeg));
-        Serial.println("");
+        DBPrintln("AMS encoder 1 angle : " + String(fDeg));
+        DBPrintln("");
     }
     else {
-        Serial.println("AMS encoder 1 not present");
-        Serial.println("");
+        DBPrintln("AMS encoder 1 not present");
+        DBPrintln("");
 
     }
 
     if(PodMotorController->isEncoder2Present()){
         PodMotorController->getEncoder2Position(fDeg);
-        Serial.println("AMS encoder 2 angle : " + String(fDeg));
-        Serial.println("");
+        DBPrintln("AMS encoder 2 angle : " + String(fDeg));
+        DBPrintln("");
     }
     else {
-        Serial.println("AMS encoder 2 not present");
-        Serial.println("");
+        DBPrintln("AMS encoder 2 not present");
+        DBPrintln("");
 
     }
-    //if(nbLoop == 10) {
-/*
-        if(bPortOn) {
-            Serial.println("Switching port Off\n");
-            bPortOn = false;
-            podPowerController->setPortState(USB_C, false);
-            podPowerController->setPortState(DC1, false);
-            podPowerController->setPortState(DC2, false);
-            podPowerController->setPwmPortState(PWM1PwmChannel, 0);
-            podPowerController->setPwmPortState(PWM2PwmChannel, 0);
+    if(bPortOn) {
+        DBPrintln("Switching port Off\n");
+        bPortOn = false;
+        podPowerController->setPortState(USB_C, false);
+        podPowerController->setPortState(DC1, false);
+        podPowerController->setPortState(DC2, false);
+        podPowerController->setPwmPortState(PWM1PwmChannel, 0);
+        podPowerController->setPwmPortState(PWM2PwmChannel, 0);
+        if(IoExpanders->isIoExpander1Present()) {
+            DBPrintln("swithing side 1  LED off");
+            IoExpanders->setLedSide1(false);
         }
-        else {
-  */
-            //Serial.println("Switching port On\n");
-            //bPortOn = true;
-            podPowerController->setPortState(USB_C, true);
-            podPowerController->setPortState(DC1, true);
-            podPowerController->setPortState(DC2, true);
-            podPowerController->setPwmPortState(PWM1PwmChannel, 50);
-            podPowerController->setPwmPortState(PWM2PwmChannel, 50);
-    //    }
-    //    nbLoop = 0;
-    //}
+        if(IoExpanders->isIoExpander2Present()) {
+            DBPrintln("swithing side 2  LED off");
+            IoExpanders->setLedSide2(false);
+        }
+    }
+    else {
+
+        //DBPrintln("Switching port On\n");
+        //bPortOn = true;
+        podPowerController->setPortState(USB_C, true);
+        podPowerController->setPortState(DC1, true);
+        podPowerController->setPortState(DC2, true);
+        podPowerController->setPwmPortState(PWM1PwmChannel, 50);
+        podPowerController->setPwmPortState(PWM2PwmChannel, 50);
+        if(IoExpanders->isIoExpander1Present()) {
+            DBPrintln("swithing side 1  LED on");
+            IoExpanders->setLedSide1(true);
+        }
+        if(IoExpanders->isIoExpander2Present()) {
+            DBPrintln("swithing side 2  LED on");
+            IoExpanders->setLedSide2(true);
+        }
+    }
 
     nbLoop++;
     vTaskDelay(xDelay);
@@ -336,25 +353,25 @@ void onEvent(arduino_event_id_t event, arduino_event_info_t info)
 {
   switch (event) {
     case ARDUINO_EVENT_ETH_START:
-      Serial.println("ETH Started");
+      DBPrintln("ETH Started");
       //set eth hostname here
-      Serial.println("esp32-eth0");
+      DBPrintln("esp32-eth0");
       break;
     case ARDUINO_EVENT_ETH_CONNECTED:
-      Serial.println("ETH Connected");
+      DBPrintln("ETH Connected");
       break;
     case ARDUINO_EVENT_ETH_GOT_IP:
-      Serial.println("ETH Got IP: '" + String(esp_netif_get_desc(info.got_ip.esp_netif)) +"'");
-      Serial.println(ETH);
+      DBPrintln("ETH Got IP: '" + String(esp_netif_get_desc(info.got_ip.esp_netif)) +"'");
+      DBPrintln(ETH);
       break;
     case ARDUINO_EVENT_ETH_LOST_IP:
-      Serial.println("ETH Lost IP");
+      DBPrintln("ETH Lost IP");
       break;
     case ARDUINO_EVENT_ETH_DISCONNECTED:
-      Serial.println("ETH Disconnected");
+      DBPrintln("ETH Disconnected");
       break;
     case ARDUINO_EVENT_ETH_STOP:
-      Serial.println("ETH Stopped");
+      DBPrintln("ETH Stopped");
       break;
     default:
       break;
@@ -367,13 +384,13 @@ bool initEthernet()
 	bool bDhcpOk = false;
 	int nTimeout = 0;
 
-	Serial.println("========== Init Ethernet ==========");
+	DBPrintln("========== Init Ethernet ==========");
 	Network.onEvent(onEvent); // this is just for debugging
 	// resetChip(ETHERNET_RESET);
 	SPI.begin(ETH_SPI_SCK, ETH_SPI_MISO, ETH_SPI_MOSI);
 	// network configuration
 	if(!ETH.begin(ETH_PHY_TYPE, ETH_PHY_ADDR, ETH_PHY_CS, ETH_PHY_IRQ, ETH_PHY_RST, SPI)) {
-		Serial.println("No Ethernet hardware detected");
+		DBPrintln("No Ethernet hardware detected");
 		return false;
 	}
     ethernetPresent = true;
@@ -390,7 +407,7 @@ bool initEthernet()
 	PodEthernet.macAddress(MAC_Address);
 	PodEthernet.setHostname("FLO-Pod");
 
-	Serial.println("========== Setting IP config ==========");
+	DBPrintln("========== Setting IP config ==========");
     bDhcpOk = PodEthernet.config(IPAddress(0, 0, 0, 0), IPAddress(0, 0, 0, 0), IPAddress(0, 0, 0, 0)); // all value set to the default 0 means use dhcp.
     if(bDhcpOk) {
         nTimeout = 0;
@@ -411,9 +428,9 @@ bool initEthernet()
 
 	PodEthernet.setDefault();
 
-	Serial.println("========== Checking hardware status ==========");
-	Serial.println("W5500 Ok.");
-	Serial.println("W5500 IP = " + IpAddress2String(PodEthernet.localIP()));
+	DBPrintln("========== Checking hardware status ==========");
+	DBPrintln("W5500 Ok.");
+	DBPrintln("W5500 IP = " + IpAddress2String(PodEthernet.localIP()));
 	snprintf(macBuffer,20,"%02x:%02x:%02x:%02x:%02x:%02x",
 		MAC_Address[0],
 		MAC_Address[1],
@@ -421,7 +438,7 @@ bool initEthernet()
 		MAC_Address[3],
 		MAC_Address[4],
 		MAC_Address[5]);
-	Serial.println("Dome MAC : " + String(macBuffer));
+	DBPrintln("Dome MAC : " + String(macBuffer));
 	return true;
 }
 #endif
