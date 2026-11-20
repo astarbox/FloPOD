@@ -14,31 +14,31 @@
 
 // define all INA260 addresses
 // U2  A1 = GND , A0 = SCL => 1000011 => 0x43 // DC1
-INA260 INA260_DC_1(0x43);
+INA260 INA_DC_1(0x43);
 
 // U3  A1 = 3v3 , A0 = GND => 1001000 => 0x44 // DC2 -> going to SHT30, will move to 0x48
-INA260 INA260_DC_2(0x48);
+INA260 INA_DC_2(0x48);
 
 // U4  A1 = 3v3 , A0 = 3v3 => 1000101 => 0x45// PWM1
-INA260 INA260_PWM1(0x45);
+INA260 INA_PWM1(0x45);
 
 // U1  A1 = 3v3 , A0 = SDA => 1000110 => 0x46// Main
-INA260 INA260_MAIN(0x46);
+INA260 INA_MAIN(0x46);
 
 // U11 A1 = 3v3 , A0 = SCL => 1000111 => 0x47 // VBat
-INA260 INA260_BAT(0x47);
+INA260 INA_BAT(0x47);
 
 // U5  A1 = SDA , A0 = SDA => 1001010 => 0x4a // PWM2
-INA260 INA260_PWM2(0x4A);
+INA260 INA_PWM2(0x4A);
 
 // U8  A1 = SDA , A0 = SCL => 1001011 => 0x4b // USB-C
-INA260 INA260_USB_C(0x4B);
+INA260 INA_USB_C(0x4B);
 
 // U18 A1 = SCL , A0 = SCL => 1001111 => 0x4f // VMOT
-INA260 INA260_VMOT(0x4F);
+INA260 INA_VMOT(0x4F);
 
 // Extra INA260 : A1 = SCL , A0 = SDA => 1001110 => 0x4e // VMOT2
-INA260 INA260_VMOT2(0x4E);
+INA260 INA_VMOT2(0x4E);
 
 class powerPorts
 {
@@ -83,80 +83,80 @@ powerPorts *podPowerController = nullptr;
 powerPorts::powerPorts()
 {
 
-	if (!INA260_MAIN.begin()) {
+	if (!INA_MAIN.begin()) {
 		bMainInaPresent = false;
 	}
 	else {
 		bMainInaPresent = true;
-		INA260_MAIN.setMode();
+		INA_MAIN.setMode();
 	}
-	if (!INA260_DC_1.begin()) {
+	if (!INA_DC_1.begin()) {
 		bDC1InaPresent = false;
 	}
 	else {
 		bDC1InaPresent = true;
-		INA260_DC_1.setMode();
+		INA_DC_1.setMode();
 	}
-	if (!INA260_DC_2.begin()) {
+	if (!INA_DC_2.begin()) {
 		bDC2InaPresent = false;
 	}
 	else {
 		bDC2InaPresent = true;
-		INA260_DC_2.setMode();
+		INA_DC_2.setMode();
 	}
 
-	if (!INA260_USB_C.begin()) {
+	if (!INA_USB_C.begin()) {
 		bUSBCInaPresent = false;
 	}
 	else {
 		bUSBCInaPresent = true;
-		INA260_USB_C.setMode();
+		INA_USB_C.setMode();
 	}
 
-	if (!INA260_PWM1.begin()) {
+	if (!INA_PWM1.begin()) {
 		bPWM1InaPresent = false;
 	}
 	else {
 		bPWM1InaPresent = true;
-		INA260_PWM1.setMode();
-		INA260_PWM1.setAverage(INA260_128_SAMPLES);
-		INA260_PWM1.setBusVoltageConversionTime(INA260_8300_us);
-		INA260_PWM1.setShuntCurrentConversionTime(INA260_8300_us);
+		INA_PWM1.setMode();
+		INA_PWM1.setAverage(INA260_128_SAMPLES);
+		INA_PWM1.setBusVoltageConversionTime(INA260_8300_us);
+		INA_PWM1.setShuntCurrentConversionTime(INA260_8300_us);
 	}
 
-	if (!INA260_PWM2.begin()) {
+	if (!INA_PWM2.begin()) {
 		bPWM2InaPresent = false;
 	}
 	else {
 		bPWM2InaPresent = true;
-		INA260_PWM2.setMode();
-		INA260_PWM2.setAverage(INA260_128_SAMPLES);
-		INA260_PWM2.setBusVoltageConversionTime(INA260_8300_us);
-		INA260_PWM1.setShuntCurrentConversionTime(INA260_8300_us);
+		INA_PWM2.setMode();
+		INA_PWM2.setAverage(INA260_128_SAMPLES);
+		INA_PWM2.setBusVoltageConversionTime(INA260_8300_us);
+		INA_PWM1.setShuntCurrentConversionTime(INA260_8300_us);
 	}
 
-	if (!INA260_BAT.begin()) {
+	if (!INA_BAT.begin()) {
 		bBATInaPresent = false;
 	}
 	else {
 		bBATInaPresent = true;
-		INA260_BAT.setMode();
+		INA_BAT.setMode();
 	}
 
-	if (!INA260_VMOT.begin()) {
+	if (!INA_VMOT.begin()) {
 		bVMOTInaPresent = false;
 	}
 	else {
 		bVMOTInaPresent = true;
-		INA260_VMOT.setMode();
+		INA_VMOT.setMode();
 	}
 
-	if (!INA260_VMOT2.begin()) {
+	if (!INA_VMOT2.begin()) {
 		bVMOT2InaPresent = false;
 	}
 	else {
 		bVMOT2InaPresent = true;
-		INA260_VMOT2.setMode();
+		INA_VMOT2.setMode();
 	}
 
 

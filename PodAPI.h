@@ -523,11 +523,11 @@ void podMainPower(Request &req, Response &res)
 	int nPercent;
 	float fValue;
 
-	fValue = podPowerController->readVolts(INA260_MAIN);
+	fValue = podPowerController->readVolts(INA_MAIN);
 	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_MAIN);
+	fValue = podPowerController->readAmps(INA_MAIN);
 	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_MAIN);
+	fValue = podPowerController->readPower(INA_MAIN);
 	controllerResp["watt"] = fValue;
 
 	serializeJson(controllerResp, sResp);
@@ -544,11 +544,11 @@ void podDC1Power(Request &req, Response &res)
 	int nPercent;
 	float fValue;
 
-	fValue = podPowerController->readVolts(INA260_DC_1);
+	fValue = podPowerController->readVolts(INA_DC_1);
 	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_DC_1);
+	fValue = podPowerController->readAmps(INA_DC_1);
 	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_DC_1);
+	fValue = podPowerController->readPower(INA_DC_1);
 	controllerResp["watt"] = fValue;
 
 	serializeJson(controllerResp, sResp);
@@ -565,11 +565,11 @@ void podDC2Power(Request &req, Response &res)
 	int nPercent;
 	float fValue;
 
-	fValue = podPowerController->readVolts(INA260_DC_2);
+	fValue = podPowerController->readVolts(INA_DC_2);
 	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_DC_2);
+	fValue = podPowerController->readAmps(INA_DC_2);
 	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_DC_2);
+	fValue = podPowerController->readPower(INA_DC_2);
 	controllerResp["watt"] = fValue;
 
 	serializeJson(controllerResp, sResp);
@@ -586,11 +586,11 @@ void podPWM1Power(Request &req, Response &res)
 	int nPercent;
 	float fValue;
 
-	fValue = podPowerController->readVolts(INA260_PWM1);
+	fValue = podPowerController->readVolts(INA_PWM1);
 	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_PWM1);
+	fValue = podPowerController->readAmps(INA_PWM1);
 	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_PWM1);
+	fValue = podPowerController->readPower(INA_PWM1);
 	controllerResp["watt"] = fValue;
 
 	serializeJson(controllerResp, sResp);
@@ -607,11 +607,11 @@ void podPWM2Power(Request &req, Response &res)
 	int nPercent;
 	float fValue;
 
-	fValue = podPowerController->readVolts(INA260_PWM2);
+	fValue = podPowerController->readVolts(INA_PWM2);
 	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_PWM2);
+	fValue = podPowerController->readAmps(INA_PWM2);
 	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_PWM2);
+	fValue = podPowerController->readPower(INA_PWM2);
 	controllerResp["watt"] = fValue;
 
 	serializeJson(controllerResp, sResp);
@@ -628,11 +628,11 @@ void podBatPower(Request &req, Response &res)
 	int nPercent;
 	float fValue;
 
-	fValue = podPowerController->readVolts(INA260_BAT);
+	fValue = podPowerController->readVolts(INA_BAT);
 	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_BAT);
+	fValue = podPowerController->readAmps(INA_BAT);
 	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_BAT);
+	fValue = podPowerController->readPower(INA_BAT);
 	controllerResp["watt"] = fValue;
 
 	serializeJson(controllerResp, sResp);
@@ -649,11 +649,11 @@ void podUsbCPower(Request &req, Response &res)
 	int nPercent;
 	float fValue;
 
-	fValue = podPowerController->readVolts(INA260_USB_C);
+	fValue = podPowerController->readVolts(INA_USB_C);
 	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_USB_C);
+	fValue = podPowerController->readAmps(INA_USB_C);
 	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_USB_C);
+	fValue = podPowerController->readPower(INA_USB_C);
 	controllerResp["watt"] = fValue;
 
 	serializeJson(controllerResp, sResp);
@@ -670,11 +670,11 @@ void podMot1Power(Request &req, Response &res)
 	int nPercent;
 	float fValue;
 
-	fValue = podPowerController->readVolts(INA260_VMOT);
+	fValue = podPowerController->readVolts(INA_VMOT);
 	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_VMOT);
+	fValue = podPowerController->readAmps(INA_VMOT);
 	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_VMOT);
+	fValue = podPowerController->readPower(INA_VMOT);
 	controllerResp["watt"] = fValue;
 
 	serializeJson(controllerResp, sResp);
@@ -691,11 +691,11 @@ void podMot2Power(Request &req, Response &res)
 	int nPercent;
 	float fValue;
 
-	fValue = podPowerController->readVolts(INA260_VMOT2);
+	fValue = podPowerController->readVolts(INA_VMOT2);
 	controllerResp["volts"] = fValue;
-	fValue = podPowerController->readAmps(INA260_VMOT2);
+	fValue = podPowerController->readAmps(INA_VMOT2);
 	controllerResp["amps"] = fValue;
-	fValue = podPowerController->readPower(INA260_VMOT2);
+	fValue = podPowerController->readPower(INA_VMOT2);
 	controllerResp["watt"] = fValue;
 
 	serializeJson(controllerResp, sResp);

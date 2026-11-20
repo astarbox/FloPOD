@@ -204,16 +204,16 @@ void PowerTask(void *)
 		}
 		if(bMainOcTriggered){
 			bMainOcTriggered = false;
-			if(podPowerController->checkAlert(INA260_MAIN)) {
+			if(podPowerController->checkAlert(INA_MAIN)) {
 				// if the main OC is triggered we turn all DC port off.
 				turnAllDcOff();
 				// Also turn off motors
 				podController->Stop();
 			}
-			if(podPowerController->checkAlert(INA260_VMOT)) {
+			if(podPowerController->checkAlert(INA_VMOT)) {
 				podController->Stop();
 			}
-			if(podPowerController->checkAlert(INA260_VMOT2)) {
+			if(podPowerController->checkAlert(INA_VMOT2)) {
 				podController->Stop();
 			}
 		}
@@ -255,22 +255,22 @@ void chackAllDc()
 	if(!podPowerController)
 		return;
 
-	if(podPowerController->checkAlert(INA260_DC_1)) {
+	if(podPowerController->checkAlert(INA_DC_1)) {
 		podPowerController->setPortState(DC1, false);
 	}
-	if(podPowerController->checkAlert(INA260_DC_2)) {
+	if(podPowerController->checkAlert(INA_DC_2)) {
 		podPowerController->setPortState(DC2, false);
 	}
-	if(podPowerController->checkAlert(INA260_PWM1)) {
+	if(podPowerController->checkAlert(INA_PWM1)) {
 		podPowerController->setPortState(PWM1, false);
 	}
-	if(podPowerController->checkAlert(INA260_PWM2)) {
+	if(podPowerController->checkAlert(INA_PWM2)) {
 		podPowerController->setPortState(PWM2, false);
 	}
-	if(podPowerController->checkAlert(INA260_USB_C)) {
+	if(podPowerController->checkAlert(INA_USB_C)) {
 		podPowerController->setPortState(USB_C, false);
 	}
-	if(podPowerController->checkAlert(INA260_BAT)) {
+	if(podPowerController->checkAlert(INA_BAT)) {
 		podPowerController->setPortState(BAT_EN, false);
 	}
 }
